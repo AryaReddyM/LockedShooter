@@ -3,16 +3,19 @@ package frc.robot.subsystems.intake;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.util.state.StateMachine;
 
 public class Intake extends StateMachine<Intake.State> implements IntakeIO{
 
+    private final RobotState state;
     private final IntakeIO intakeIO;
     private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
-    public Intake(IntakeIO intakeIO) {
+    public Intake(IntakeIO intakeIO, RobotState state) {
         super("Intake", State.UNDETERMINED, State.class);
         this.intakeIO = intakeIO;
+        this.state = state;
         registerStateTransitions();
         registerStateCommands();
         enable();

@@ -1,6 +1,5 @@
 package frc.robot.subsystems.shooter.turret;
 
-import org.dyn4j.geometry.Rotation;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;

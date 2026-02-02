@@ -3,7 +3,8 @@ package frc.robot.subsystems.shooter.turret;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
 import frc.robot.util.RobotTime;
 import frc.robot.util.state.StateMachine;
@@ -29,6 +30,16 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO{
         turretIO.updateInputs(inputs);
         Logger.processInputs("Turret", inputs);
         
+        { // TURRET POS SETTER
+            if (getState() == State.HUB_TRACKING) {
+                setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(), state.getCurrentHubSetpoint().getTurretFF());
+            } else if (getState() == State.PASS_TRACKING) {
+                setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(), state.getCurrentHubSetpoint().getTurretFF());
+            } else {
+                stop();
+            }
+        }
+
         state.addTurretUpdates(RobotTime.getTimestampSeconds(), inputs.turretRotation2d,
                 inputs.turretPos,
                 inputs.turretVelRadPerSec);
@@ -43,19 +54,22 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO{
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING);
+        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.UNDETERMINED);
     }
 
     private void registerStateCommands() {
-        setDefaultCommand(new InstantCommand( () -> {
-            if (getState() == State.HUB_TRACKING) {
-                setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(), state.getCurrentHubSetpoint().getTurretFF());
-            } else if (getState() == State.PASS_TRACKING) {
-                setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(), state.getCurrentHubSetpoint().getTurretFF());
-            } else {
-                stop();
-            }
-        }));
+    }
+
+    public Command waitForShootReady(double tolerance) {
+        return new WaitUntilCommand(() -> {
+            return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter() - turretIO.getTurretPosition()) < tolerance;
+        });
+    }
+
+    public Command waitForPassReady(double tolerance) {
+        return new WaitUntilCommand(() -> {
+            return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter() - turretIO.getTurretPosition()) < tolerance;
+        });
     }
 
      @Override

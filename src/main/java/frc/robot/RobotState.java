@@ -39,12 +39,20 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperIOSpark;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOSpark;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
@@ -70,6 +78,10 @@ public class RobotState extends StateMachine<RobotState.State> {
     private Drive drive;
     private VisionSubsystem vision;
     private Shooter shooter;
+    private Climb climb;
+    private Intake intake;
+    private Hopper hopper;
+    private Kicker kicker;
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
@@ -200,10 +212,27 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // TOOD shooter
-        {
-            // shooter = new Shooter(this);
-        }
+        // TODO subsystems
+        // {
+        //     shooter = new Shooter(this);
+        // }
+
+        // {
+        //     climb = new Climb(new ClimbIOSpark(), this);
+        // }
+
+        // {
+        //     hopper = new Hopper(new HopperIOSpark(), this);
+        // }
+
+        // {
+        //     intake = new Intake(new IntakeIOSpark(), this);
+        // }
+
+        // {
+        //     kicker = new Kicker(new KickerIOSpark(), this);
+        // }
+
         // auto setup
         {
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -220,6 +249,11 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
+        // addChildSubsystem(shooter);
+        // addChildSubsystem(climb);
+        // addChildSubsystem(hopper);
+        // addChildSubsystem(intake);
+        // addChildSubsystem(kicker);
         enable();
     }
 
@@ -268,14 +302,80 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE)));
+                drive.transitionCommand(Drive.State.IDLE),
+                shooter.transitionCommand(Shooter.State.IDLE),
+                climb.transitionCommand(Climb.State.STOW),
+                hopper.transitionCommand(Hopper.State.IDLE),
+                intake.transitionCommand(Intake.State.STOW),
+                kicker.transitionCommand(Kicker.State.IDLE)
+        ));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING)));
+            drive.transitionCommand(Drive.State.TRAVERSING),
+            shooter.transitionCommand(Shooter.State.IDLE),
+            climb.transitionCommand(Climb.State.STOW),
+            hopper.transitionCommand(Hopper.State.IDLE),
+            intake.transitionCommand(Intake.State.STOW),
+            kicker.transitionCommand(Kicker.State.IDLE)
+        ));
+
+        registerStateCommand(State.INTAKING, new ParallelCommandGroup(
+            intake.transitionCommand(Intake.State.INTAKE),
+            hopper.transitionCommand(Hopper.State.IDLE),
+            kicker.transitionCommand(Kicker.State.IDLE),
+            climb.transitionCommand(Climb.State.STOW),
+
+            shooter.transitionCommand(Shooter.State.IDLE)
+        ));
+
+        registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
+            intake.transitionCommand(Intake.State.IDLE),
+            hopper.transitionCommand(Hopper.State.SHOOT),
+            kicker.transitionCommand(Kicker.State.SHOOT),
+            climb.transitionCommand(Climb.State.STOW),
+
+            shooter.transitionCommand(Shooter.State.SHOOTING)
+        ));
+
+        registerStateCommand(State.PASSING, new ParallelCommandGroup(
+            intake.transitionCommand(Intake.State.IDLE),
+            hopper.transitionCommand(Hopper.State.SHOOT),
+            kicker.transitionCommand(Kicker.State.SHOOT),
+            climb.transitionCommand(Climb.State.STOW),
+
+            shooter.transitionCommand(Shooter.State.PASSING)
+        ));
+
+        registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
+            intake.transitionCommand(Intake.State.INTAKE),
+            hopper.transitionCommand(Hopper.State.SHOOT),
+            kicker.transitionCommand(Kicker.State.SHOOT),
+            climb.transitionCommand(Climb.State.STOW),
+
+            shooter.transitionCommand(Shooter.State.SHOOTING)
+        ));
+
+        registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
+            intake.transitionCommand(Intake.State.INTAKE),
+            hopper.transitionCommand(Hopper.State.SHOOT),
+            kicker.transitionCommand(Kicker.State.SHOOT),
+            climb.transitionCommand(Climb.State.STOW),
+
+            shooter.transitionCommand(Shooter.State.PASSING)
+        ));
+
+        registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
+            shooter.transitionCommand(Shooter.State.IDLE),
+            climb.transitionCommand(Climb.State.CLIMB),
+            hopper.transitionCommand(Hopper.State.IDLE),
+            intake.transitionCommand(Intake.State.STOW),
+            kicker.transitionCommand(Kicker.State.IDLE)
+        ));
 
         // // change this to an auto state in the future?
         registerStateCommand(State.AUTO, new ParallelCommandGroup(
                 drive.transitionCommand(Drive.State.TRAVERSING)));
+        
     }
 
     private void setupControllerBindings() {
@@ -285,9 +385,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller
+        controller // TODO turn this off in a real game (SWITCH KEYBINDS)
                 .b()
-                // .onTrue(Commands.runOnce( () -> drive.zeroGyro()));
                 .onTrue(
                         Commands.runOnce(
                                 () -> drive.setPose(
@@ -298,8 +397,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(13).get().toPose2d()
                 .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
                         new Rotation2d(Units.degreesToRadians(270))));
-        // .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0), new
-        // Rotation2d(Units.degreesToRadians(90))));
         controller
                 .y()
                 .onTrue(
@@ -315,8 +412,23 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public VisionSubsystem getVision() {
-        return null;
-        // return vision;
+        return vision;
+    }
+
+    public Climb getClimb() {
+        return climb;
+    }
+
+    public Hopper getHopper() {
+        return hopper;
+    }
+
+    public Intake getIntake() {
+        return intake;
+    }
+
+    public Kicker getKicker() {
+        return kicker;
     }
 
     public CommandXboxController getController() {
@@ -646,7 +758,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));
 
-        // TODO identifier for a real game auto
         SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
     }
 

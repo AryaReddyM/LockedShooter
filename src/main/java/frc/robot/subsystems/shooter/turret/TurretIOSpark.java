@@ -21,14 +21,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import frc.robot.RobotState;
 import frc.robot.util.SparkUtil;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 public class TurretIOSpark implements TurretIO {
 
-    private final RobotState state;
     // Hardware objects
     private final SparkMax turret;
 
@@ -39,8 +37,7 @@ public class TurretIOSpark implements TurretIO {
 
     private double latencyCompensatedMS = TurretConstants.latencyComepnsationMS;
 
-    public TurretIOSpark(RobotState state) {
-        this.state = state;
+    public TurretIOSpark() {
         turret = new SparkMax(0, MotorType.kBrushless);
 
         turretEncoder = turret.getEncoder();

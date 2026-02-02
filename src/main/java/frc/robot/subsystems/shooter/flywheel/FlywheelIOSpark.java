@@ -4,8 +4,10 @@ package frc.robot.subsystems.shooter.flywheel;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -21,6 +23,7 @@ public class FlywheelIOSpark implements FlywheelIO{
     // Hardware objects
     private final SparkMax flywheel;
 
+    @SuppressWarnings("unused")
     private final RelativeEncoder flywheelEncoder;
 
     // Closed loop controllers
@@ -86,6 +89,11 @@ public class FlywheelIOSpark implements FlywheelIO{
     @Override
     public void setFlywheelVoltage(double volts) {
         flywheel.setVoltage(volts);
+    }
+
+    @Override
+    public void setFlywheelSpeed(double speed, double ff) {
+        flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
     }
 
     @Override

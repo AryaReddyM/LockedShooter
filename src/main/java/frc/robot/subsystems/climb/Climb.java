@@ -3,16 +3,19 @@ package frc.robot.subsystems.climb;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.util.state.StateMachine;
 
 public class Climb extends StateMachine<Climb.State> implements ClimbIO{
 
+    private final RobotState state;
     private final ClimbIO climbIO;
     private final ClimbIOInputsAutoLogged inputs = new ClimbIOInputsAutoLogged();
 
-    public Climb(ClimbIO climbIO) {
+    public Climb(ClimbIO climbIO, RobotState state) {
         super("Climb", State.UNDETERMINED, State.class);
         this.climbIO = climbIO;
+        this.state = state;
         registerStateTransitions();
         registerStateCommands();
         enable();

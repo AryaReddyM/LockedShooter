@@ -18,7 +18,9 @@ public interface FlywheelIO {
 
   public default void setFlywheelVoltage(double volts) {}
 
-  public default void setFlywheelSpeed(double position) {}
+  public default void setFlywheelSpeed(double position, double ff) {}
+   public default void setFlywheelSpeed(double position) {}
+
 
   public default void stopFlywheel() {}
 

@@ -174,13 +174,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private void registerStateCommands() {
     registerStateCommand(State.IDLE, new InstantCommand(() -> stop()));
 
-    // TODO fix soon
-    // registerStateCommand(State.TRAVERSING, DriveCommands.joystickDrive(
-    // this,
-    // () -> -robotState.getController().getLeftY(),
-    // () -> -robotState.getController().getLeftX(),
-    // () -> -robotState.getController().getRightX()));
-
     setDefaultCommand(DriveCommands.joystickDrive(
         this,
         () -> {
@@ -249,7 +242,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       double accelX = accelerationX.getValueAsDouble();
       double accelY = accelerationY.getValueAsDouble();
 
-      // TODO make sure driveInputs.modStates / optimized match w our stuff
 
       if (driveInputs.optimizedModStates.length == 4) {
         var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);

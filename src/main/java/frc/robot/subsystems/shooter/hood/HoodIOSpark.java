@@ -4,9 +4,11 @@ package frc.robot.subsystems.shooter.hood;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -20,6 +22,7 @@ public class HoodIOSpark implements HoodIO{
     // Hardware objects
     private final SparkMax hood;
 
+    @SuppressWarnings("unused")
     private final RelativeEncoder hoodEncoder;
 
     // Closed loop controllers
@@ -89,8 +92,13 @@ public class HoodIOSpark implements HoodIO{
     }
 
     @Override
-    public void setHoodPosition(double position) {
-        hoodController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
+    public void setHoodPosition(double position, double ff) {
+        hoodController.setSetpoint(position, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
+    }
+
+    @Override
+    public double getHoodPosition() {
+        return hoodController.getMAXMotionSetpointPosition();
     }
 
     @Override

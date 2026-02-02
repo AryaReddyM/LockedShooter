@@ -3,16 +3,19 @@ package frc.robot.subsystems.hopper;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.util.state.StateMachine;
 
 public class Hopper extends StateMachine<Hopper.State> implements HopperIO{
 
+    private final RobotState state;
     private final HopperIO hopperIO;
     private final HopperIOInputsAutoLogged inputs = new HopperIOInputsAutoLogged();
 
-    public Hopper(HopperIO hopperIO) {
+    public Hopper(HopperIO hopperIO, RobotState state) {
         super("Hopper", State.UNDETERMINED, State.class);
         this.hopperIO = hopperIO;
+        this.state = state;
         registerStateTransitions();
         registerStateCommands();
         enable();
