@@ -18,10 +18,10 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import dev.doglog.DogLog;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.RobotState;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import frc.robot.RobotState;
 import frc.robot.util.SparkUtil;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;

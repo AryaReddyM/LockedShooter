@@ -45,6 +45,7 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
@@ -68,6 +69,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Drive drive;
     private VisionSubsystem vision;
+    private Shooter shooter;
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
@@ -198,6 +200,10 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
+        // TOOD shooter
+        {
+            // shooter = new Shooter(this);
+        }
         // auto setup
         {
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -302,6 +308,10 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public Drive getDrive() {
         return drive;
+    }
+
+    public Shooter getShooter() {
+        return shooter;
     }
 
     public VisionSubsystem getVision() {

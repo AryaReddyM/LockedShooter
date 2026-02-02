@@ -1,16 +1,11 @@
 package frc.robot.subsystems.shooter.turret;
 
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.util.RobotTime;
-import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.state.StateMachine;
 
 public class Turret extends StateMachine<Turret.State> implements TurretIO{
