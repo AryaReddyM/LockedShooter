@@ -19,6 +19,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -203,6 +204,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         registerStateTransitions();
         registerStateCommands();
+
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
@@ -477,6 +479,19 @@ public class RobotState extends StateMachine<RobotState.State> {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
     }
 
+    private Pose2d flipPoseForRed(Pose2d bluePose) {
+    double FIELD_LENGTH = 16.54;
+    double FIELD_WIDTH  = 8.21;
+
+    return new Pose2d(
+            new Translation2d(
+                    FIELD_LENGTH - bluePose.getX(),
+                    FIELD_WIDTH - bluePose.getY()
+            ),
+            bluePose.getRotation().rotateBy(Rotation2d.fromDegrees(180))
+    );
+}
+
     public void updateLogger() {
         if (this.driveYawAngularVelocity.getInternalBuffer().lastEntry() != null) {
             Logger.recordOutput("RobotState/YawAngularVelocity",
@@ -503,34 +518,49 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     @Override
     protected void onTeleopStart() {
+        System.out.println("ewfwefwefwefwefwef");
         setState(State.TRAVERSING);
     }
 
     @Override
     protected void onAutonomousStart() {
-        registerStateCommand(State.AUTO, autoChooser.get().andThen(new PrintCommand("Auto is Done!")));
+        registerStateCommand(State.AUTO, autoChooser.get());
         setState(State.AUTO);
 
         String autoName = autoChooser.get().getName();
 
         try {
-            List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+        List<PathPlannerPath> pathGroup =
+                PathPlannerAuto.getPathGroupFromAutoFile(autoName);
 
-            List<Pose2d> allPoses = new ArrayList<>();
-            for (PathPlannerPath path : pathGroup) {
-                allPoses.addAll(path.getPathPoses());
+        List<Pose2d> allPoses = new ArrayList<>();
+
+        boolean isRed =
+                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+
+        for (PathPlannerPath path : pathGroup) {
+            for (Pose2d pose : path.getPathPoses()) {
+                allPoses.add(isRed ? flipPoseForRed(pose) : pose);
             }
-            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-        } catch (Exception e) {
-            Elastic.sendNotification(
-                    new Notification().withTitle("Auto Mapping").withDescription("Unable to add Auto Trajectory"));
         }
+
+        drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+    } 
+    
+    catch (Exception e) {
+        Elastic.sendNotification(
+                new Notification()
+                        .withTitle("Auto Mapping")
+                        .withDescription("Unable to add Auto Trajectory"));
+    }
     }
 
     @Override
     protected void determineSelf() {
-        setState(State.SOFT_STOP);
+        setState(State.TRAVERSING);
     }
+
+    
 
     @Override
     public void update() {
