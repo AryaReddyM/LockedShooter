@@ -12,11 +12,9 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -32,7 +30,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -40,19 +37,14 @@ import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
-import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.hopper.HopperIOSpark;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.kicker.Kicker;
-import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
@@ -206,31 +198,31 @@ public class RobotState extends StateMachine<RobotState.State> {
                             new ModuleIO() {
                             },
                             new ModuleIO() {
-                            },
-                            this);
+                            }, this);
+
             }
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
         // TODO subsystems
         // {
-        //     shooter = new Shooter(this);
+        // shooter = new Shooter(this);
         // }
 
         // {
-        //     climb = new Climb(new ClimbIOSpark(), this);
+        // climb = new Climb(new ClimbIOSpark(), this);
         // }
 
         // {
-        //     hopper = new Hopper(new HopperIOSpark(), this);
+        // hopper = new Hopper(new HopperIOSpark(), this);
         // }
 
         // {
-        //     intake = new Intake(new IntakeIOSpark(), this);
+        // intake = new Intake(new IntakeIOSpark(), this);
         // }
 
         // {
-        //     kicker = new Kicker(new KickerIOSpark(), this);
+        // kicker = new Kicker(new KickerIOSpark(), this);
         // }
 
         // auto setup
@@ -307,75 +299,67 @@ public class RobotState extends StateMachine<RobotState.State> {
                 climb.transitionCommand(Climb.State.STOW),
                 hopper.transitionCommand(Hopper.State.IDLE),
                 intake.transitionCommand(Intake.State.STOW),
-                kicker.transitionCommand(Kicker.State.IDLE)
-        ));
+                kicker.transitionCommand(Kicker.State.IDLE)));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-            drive.transitionCommand(Drive.State.TRAVERSING),
-            shooter.transitionCommand(Shooter.State.IDLE),
-            climb.transitionCommand(Climb.State.STOW),
-            hopper.transitionCommand(Hopper.State.IDLE),
-            intake.transitionCommand(Intake.State.STOW),
-            kicker.transitionCommand(Kicker.State.IDLE)
-        ));
+                drive.transitionCommand(Drive.State.TRAVERSING),
+                shooter.transitionCommand(Shooter.State.IDLE),
+                climb.transitionCommand(Climb.State.STOW),
+                hopper.transitionCommand(Hopper.State.IDLE),
+                intake.transitionCommand(Intake.State.STOW),
+                kicker.transitionCommand(Kicker.State.IDLE)));
 
         registerStateCommand(State.INTAKING, new ParallelCommandGroup(
-            intake.transitionCommand(Intake.State.INTAKE),
-            hopper.transitionCommand(Hopper.State.IDLE),
-            kicker.transitionCommand(Kicker.State.IDLE),
-            climb.transitionCommand(Climb.State.STOW),
+                intake.transitionCommand(Intake.State.INTAKE),
+                hopper.transitionCommand(Hopper.State.IDLE),
+                kicker.transitionCommand(Kicker.State.IDLE),
+                climb.transitionCommand(Climb.State.STOW),
 
-            shooter.transitionCommand(Shooter.State.IDLE)
-        ));
+                shooter.transitionCommand(Shooter.State.IDLE)));
 
         registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
-            intake.transitionCommand(Intake.State.IDLE),
-            hopper.transitionCommand(Hopper.State.SHOOT),
-            kicker.transitionCommand(Kicker.State.SHOOT),
-            climb.transitionCommand(Climb.State.STOW),
+                intake.transitionCommand(Intake.State.IDLE),
+                hopper.transitionCommand(Hopper.State.SHOOT),
+                kicker.transitionCommand(Kicker.State.SHOOT),
+                climb.transitionCommand(Climb.State.STOW),
 
-            shooter.transitionCommand(Shooter.State.SHOOTING)
-        ));
+                shooter.transitionCommand(Shooter.State.SHOOTING)));
 
         registerStateCommand(State.PASSING, new ParallelCommandGroup(
-            intake.transitionCommand(Intake.State.IDLE),
-            hopper.transitionCommand(Hopper.State.SHOOT),
-            kicker.transitionCommand(Kicker.State.SHOOT),
-            climb.transitionCommand(Climb.State.STOW),
+                intake.transitionCommand(Intake.State.IDLE),
+                hopper.transitionCommand(Hopper.State.SHOOT),
+                kicker.transitionCommand(Kicker.State.SHOOT),
+                climb.transitionCommand(Climb.State.STOW),
 
-            shooter.transitionCommand(Shooter.State.PASSING)
-        ));
+                shooter.transitionCommand(Shooter.State.PASSING)));
 
         registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
-            intake.transitionCommand(Intake.State.INTAKE),
-            hopper.transitionCommand(Hopper.State.SHOOT),
-            kicker.transitionCommand(Kicker.State.SHOOT),
-            climb.transitionCommand(Climb.State.STOW),
+                intake.transitionCommand(Intake.State.INTAKE),
+                hopper.transitionCommand(Hopper.State.SHOOT),
+                kicker.transitionCommand(Kicker.State.SHOOT),
+                climb.transitionCommand(Climb.State.STOW),
 
-            shooter.transitionCommand(Shooter.State.SHOOTING)
-        ));
+                shooter.transitionCommand(Shooter.State.SHOOTING)));
 
         registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
-            intake.transitionCommand(Intake.State.INTAKE),
-            hopper.transitionCommand(Hopper.State.SHOOT),
-            kicker.transitionCommand(Kicker.State.SHOOT),
-            climb.transitionCommand(Climb.State.STOW),
+                intake.transitionCommand(Intake.State.INTAKE),
+                hopper.transitionCommand(Hopper.State.SHOOT),
+                kicker.transitionCommand(Kicker.State.SHOOT),
+                climb.transitionCommand(Climb.State.STOW),
 
-            shooter.transitionCommand(Shooter.State.PASSING)
-        ));
+                shooter.transitionCommand(Shooter.State.PASSING)));
 
         registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
-            shooter.transitionCommand(Shooter.State.IDLE),
-            climb.transitionCommand(Climb.State.CLIMB),
-            hopper.transitionCommand(Hopper.State.IDLE),
-            intake.transitionCommand(Intake.State.STOW),
-            kicker.transitionCommand(Kicker.State.IDLE)
-        ));
+                shooter.transitionCommand(Shooter.State.IDLE),
+                climb.transitionCommand(Climb.State.CLIMB),
+                hopper.transitionCommand(Hopper.State.IDLE),
+                intake.transitionCommand(Intake.State.STOW),
+                kicker.transitionCommand(Kicker.State.IDLE)));
 
         // // change this to an auto state in the future?
         registerStateCommand(State.AUTO, new ParallelCommandGroup(
                 drive.transitionCommand(Drive.State.TRAVERSING)));
-        
+
     }
 
     private void setupControllerBindings() {
@@ -661,30 +645,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         registerStateCommand(State.AUTO, autoChooser.get());
         setState(State.AUTO);
 
-        String autoName = autoChooser.get().getName();
-
-        try {
-            List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
-
-            List<Pose2d> allPoses = new ArrayList<>();
-
-            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-
-            for (PathPlannerPath path : pathGroup) {
-                for (Pose2d pose : path.getPathPoses()) {
-                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
-                }
-            }
-
-            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-        }
-
-        catch (Exception e) {
-            Elastic.sendNotification(
-                    new Notification()
-                            .withTitle("Auto Mapping")
-                            .withDescription("Unable to add Auto Trajectory"));
-        }
     }
 
     @Override
@@ -710,6 +670,34 @@ public class RobotState extends StateMachine<RobotState.State> {
         if (DriverStation.isAutonomous()) {
             gameState = "Autonomous";
             secondsUntilAllianceShift = 0;
+
+            {
+                String autoName = autoChooser.get().getName();
+
+                try {
+                    List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+
+                    List<Pose2d> allPoses = new ArrayList<>();
+
+                    boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+
+                    for (PathPlannerPath path : pathGroup) {
+                        for (Pose2d pose : path.getPathPoses()) {
+                            allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                        }
+                    }
+
+                    drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                }
+
+                catch (Exception e) {
+                    Elastic.sendNotification(
+                            new Notification()
+                                    .withTitle("Auto Mapping")
+                                    .withDescription("Unable to add Auto Trajectory"));
+                }
+
+            }
         } else if (inTransitionShift) {
             gameState = "Transition";
             secondsUntilAllianceShift = matchTime - 130;
