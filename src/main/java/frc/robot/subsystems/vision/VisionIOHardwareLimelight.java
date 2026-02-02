@@ -2,6 +2,8 @@ package frc.robot.subsystems.vision;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.google.flatbuffers.Constants;
+
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -35,7 +37,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
                 0
         };
 
-        tableA.getEntry("camerapose_robotspace_set").setDoubleArray(cameraAPose);
+        // tableA.getEntry("camerapose_robotspace_set").setDoubleArray(cameraAPose);
 
         double[] cameraBPose = {
                 VisionConstants.kCameraBForwardMeters,
@@ -62,6 +64,15 @@ public class VisionIOHardwareLimelight implements VisionIO {
 
         var gyroAngle = robotState.getLatestFieldToRobot().getValue().getRotation();
         var gyroAngularVelocity = Units.radiansToDegrees(robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
+        
+        var fieldToTurretRotation = robotState.getLatestFieldToRobot().getValue().getRotation()
+                .rotateBy(robotState.getLatestRobotToTurret().getValue());
+        var fieldToTurretVelocity = Units.radiansToDegrees(robotState.getLatestTurretAngularVelocity()
+                + robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
+
+        LimelightHelpers.SetRobotOrientation(VisionConstants.kLimelightTableName, fieldToTurretRotation.getDegrees(),
+                fieldToTurretVelocity, 0, 0, 0, 0);
+            
         LimelightHelpers.SetRobotOrientation(VisionConstants.kLimelightBTableName, gyroAngle.getDegrees(),
                 gyroAngularVelocity, 0, 0, 0, 0);
         

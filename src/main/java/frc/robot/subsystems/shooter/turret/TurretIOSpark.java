@@ -1,25 +1,34 @@
 package frc.robot.subsystems.shooter.turret;
 
-import static frc.robot.util.SparkUtil.tryUntilOk;
+import static frc.robot.util.SparkUtil.ifOk;
 
-import com.ctre.phoenix6.hardware.CANcoder;
+import java.util.function.DoubleSupplier;
+
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import dev.doglog.DogLog;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.RobotState;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.util.SparkUtil;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+public class TurretIOSpark implements TurretIO {
 
-public class TurretIOSpark implements TurretIO{
- 
+    private final RobotState state;
     // Hardware objects
     private final SparkMax turret;
 
@@ -28,66 +37,81 @@ public class TurretIOSpark implements TurretIO{
     // Closed loop controllers
     private final SparkClosedLoopController turretController;
 
-    public TurretIOSpark(){
+    private double latencyCompensatedMS = TurretConstants.latencyComepnsationMS;
 
-    turret = new SparkMax(0, MotorType.kBrushless);
+    public TurretIOSpark(RobotState state) {
+        this.state = state;
+        turret = new SparkMax(0, MotorType.kBrushless);
 
-    turretEncoder = turret.getEncoder();
+        turretEncoder = turret.getEncoder();
 
-    turretController = turret.getClosedLoopController();
+        turretController = turret.getClosedLoopController();
 
-    // Configure turret motor
-    // NEED TO CONFIGURE
-    SparkMaxConfig turretConfig = new SparkMaxConfig();
-    turretConfig
-        .inverted(TurretConstants.kTurretinverted)
-        .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(TurretConstants.kTurretCurrentLimit)
-        .voltageCompensation(12.0);
-    turretConfig
-        .encoder
-        .positionConversionFactor(TurretConstants.kTurretPositionConversionFactor)
-        .velocityConversionFactor(TurretConstants.kTurretVelocityConversionFactor);
-    turretConfig
-        .closedLoop
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .positionWrappingInputRange(0,2 * Math.PI)
-        .pid(TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD)
-        .maxMotion
-        .maxAcceleration(TurretConstants.kTurretMaxAccel)
-        .cruiseVelocity(TurretConstants.kTurretCruiseVel)
-        .allowedProfileError(TurretConstants.kTurretDeviationErr);
-    turretConfig
-        .signals
-        .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderVelocityAlwaysOn(true)
-        .primaryEncoderVelocityPeriodMs(20)
-        .appliedOutputPeriodMs(20)
-        .busVoltagePeriodMs(20)
-        .outputCurrentPeriodMs(20);
+        // Configure turret motor
+        // NEED TO CONFIGURE
+        SparkMaxConfig turretConfig = new SparkMaxConfig();
+        turretConfig
+                .inverted(TurretConstants.kTurretinverted)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(TurretConstants.kTurretCurrentLimit)
+                .voltageCompensation(12.0);
+        turretConfig.encoder
+                .positionConversionFactor(TurretConstants.kTurretPositionConversionFactor)
+                .velocityConversionFactor(TurretConstants.kTurretVelocityConversionFactor);
+        turretConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .positionWrappingInputRange(0, 2 * Math.PI)
+                .pid(TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD).maxMotion
+                .maxAcceleration(TurretConstants.kTurretMaxAccel)
+                .cruiseVelocity(TurretConstants.kTurretCruiseVel)
+                .allowedProfileError(TurretConstants.kTurretDeviationErr);
+        turretConfig.signals
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs(10)
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
 
-    turret.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    turret.clearFaults();
+        turret.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        turret.clearFaults();
 
-    SparkUtil.tunePID(
-            "Turret",
-            turret,
-            turretConfig,
-            new double[] {TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD, 0,0,0,0, TurretConstants.kTurretMaxAccel, TurretConstants.kTurretCruiseVel, TurretConstants.kTurretCruiseVel},
-            ResetMode.kResetSafeParameters,
+        SparkUtil.tunePID(
+                "Turret",
+                turret,
+                turretConfig,
+                new double[] { TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD,
+                        TurretConstants.kTurretS, TurretConstants.kTurretV, TurretConstants.kTurretA,
+                        TurretConstants.kTurretG, TurretConstants.kTurretMaxAccel, TurretConstants.kTurretCruiseVel,
+                        TurretConstants.kTurretCruiseVel },
+                ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters,
-                false,
-                true
-        );
+                true,
+                true);
 
-
-
-
+        DogLog.tunable("Turret/Latency", TurretConstants.latencyComepnsationMS, (newVal) -> {
+            latencyCompensatedMS = newVal;
+        });
     }
 
     @Override
-    public void updateInputs(TurretIOInputs inputs) {
-        
+    public void updateInputs(TurretIOInputsAutoLogged inputs) {
+        inputs.turretVelRadPerSec = turretEncoder.getVelocity();
+
+        ifOk(turret, turretEncoder::getVelocity, (value) -> inputs.turretVelRadPerSec = value);
+
+        ifOk(
+                turret,
+                turretEncoder::getPosition,
+                (value) -> inputs.turretRotation2d = new Rotation2d(
+                        value + inputs.turretVelRadPerSec * latencyCompensatedMS / 1000));
+
+        ifOk(
+                turret,
+                new DoubleSupplier[] { turret::getAppliedOutput, turret::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(turret, turret::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override
@@ -96,16 +120,29 @@ public class TurretIOSpark implements TurretIO{
     }
 
     @Override
-    public void setTurretPosition(double position) {
-        turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
+    public void setTurretPosition(double position, double ff) {
+        turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0 ,ff, ArbFFUnits.kVoltage);
+    }
+
+    @Override
+    public double getTurretPosition() {
+        return turretController.getMAXMotionSetpointPosition();
+    }
+
+    @Override
+    public double getTurretVelocity() {
+        return turretController.getMAXMotionSetpointVelocity();
+    }
+
+    @Override
+    public Rotation2d getRobotToTurretRotation() {
+        double turretPos = getTurretPosition();
+        // conversion Factor
+        return new Rotation2d(turretPos);
     }
 
     @Override
     public void stopTurret() {
         turret.stopMotor();
     }
-
-
-    
-    
 }

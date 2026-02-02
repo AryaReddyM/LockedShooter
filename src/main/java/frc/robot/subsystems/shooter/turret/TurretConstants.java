@@ -8,6 +8,10 @@ public class TurretConstants {
     public static final double kTurretP = 0;
     public static final double kTurretI = 0;
     public static final double kTurretD = 0;
+    public static final double kTurretS = 0;
+    public static final double kTurretV = 0;
+    public static final double kTurretA = 0;
+    public static final double kTurretG = 0;
     public static final double kTurretMaxAccel = 0;
     public static final double kTurretCruiseVel = 0;
     public static final double kTurretDeviationErr = 0;
@@ -21,5 +25,8 @@ public class TurretConstants {
     // Configuration
     public static final boolean kTurretinverted = false;
     public static final int kTurretCurrentLimit = 10;
+
+
+    public static final double latencyComepnsationMS = 20.0;
     
 }

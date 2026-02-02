@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -53,6 +54,7 @@ import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.MathHelpers;
+import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
@@ -66,6 +68,9 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Drive drive;
     private VisionSubsystem vision;
+
+    private Supplier<ShooterSetpoint> hubSupplier;
+    private Supplier<ShooterSetpoint> passSupplier;
 
     private CommandXboxController controller = new CommandXboxController(0);
 
@@ -82,9 +87,10 @@ public class RobotState extends StateMachine<RobotState.State> {
             VisionConstants.kTurretToCameraY,
             MathHelpers.kRotation2dZero);
 
-    // private static final Transform2d ROBOT_TO_CAMERA_B = new Transform2d(VisionConstants.kTurretToCameraBX,
-    //         VisionConstants.kTurretToCameraBY,
-    //         MathHelpers.kRotation2dZero);
+    // private static final Transform2d ROBOT_TO_CAMERA_B = new
+    // Transform2d(VisionConstants.kTurretToCameraBX,
+    // VisionConstants.kTurretToCameraBY,
+    // MathHelpers.kRotation2dZero);
 
     private static final Transform2d ROBOT_TO_CAMERA_B = new Transform2d();
     private final AtomicReference<ChassisSpeeds> measuredRobotRelativeChassisSpeeds = new AtomicReference<>(
@@ -136,12 +142,12 @@ public class RobotState extends StateMachine<RobotState.State> {
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
                 public void accept(VisionFieldPoseEstimate estimate) {
-                    drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(), estimate.getVisionMeasurementStdDevs());
+                    drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
+                            estimate.getVisionMeasurementStdDevs());
                 }
             };
 
-
-            switch(robotState) {
+            switch (robotState) {
                 case 1:
                     vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
                     break;
@@ -168,7 +174,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                     break;
                 case 2:
                     drive = new Drive(
-                            new GyroIO() {},
+                            new GyroIO() {
+                            },
                             new ModuleIOSim(),
                             new ModuleIOSim(),
                             new ModuleIOSim(),
@@ -204,7 +211,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         registerStateTransitions();
         registerStateCommands();
-
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
@@ -284,7 +290,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 .ignoringDisable(true));
 
         Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(13).get().toPose2d()
-                .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0), new Rotation2d(Units.degreesToRadians(270))));
+                .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
+                        new Rotation2d(Units.degreesToRadians(270))));
         // .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0), new
         // Rotation2d(Units.degreesToRadians(90))));
         controller
@@ -292,7 +299,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .onTrue(
                         new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
     }
-
 
     public Drive getDrive() {
         return drive;
@@ -305,6 +311,14 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public CommandXboxController getController() {
         return controller;
+    }
+
+    public ShooterSetpoint getCurrentHubSetpoint() {
+        return hubSupplier.get();
+    }
+
+    public ShooterSetpoint getCurrentPassSetpoint() {
+        return passSupplier.get();
     }
 
     public void setAutoStartTime(double timestamp) {
@@ -480,17 +494,15 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     private Pose2d flipPoseForRed(Pose2d bluePose) {
-    double FIELD_LENGTH = 16.54;
-    double FIELD_WIDTH  = 8.21;
+        double FIELD_LENGTH = 16.54;
+        double FIELD_WIDTH = 8.21;
 
-    return new Pose2d(
-            new Translation2d(
-                    FIELD_LENGTH - bluePose.getX(),
-                    FIELD_WIDTH - bluePose.getY()
-            ),
-            bluePose.getRotation().rotateBy(Rotation2d.fromDegrees(180))
-    );
-}
+        return new Pose2d(
+                new Translation2d(
+                        FIELD_LENGTH - bluePose.getX(),
+                        FIELD_WIDTH - bluePose.getY()),
+                bluePose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
+    }
 
     public void updateLogger() {
         if (this.driveYawAngularVelocity.getInternalBuffer().lastEntry() != null) {
@@ -530,37 +542,33 @@ public class RobotState extends StateMachine<RobotState.State> {
         String autoName = autoChooser.get().getName();
 
         try {
-        List<PathPlannerPath> pathGroup =
-                PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+            List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
 
-        List<Pose2d> allPoses = new ArrayList<>();
+            List<Pose2d> allPoses = new ArrayList<>();
 
-        boolean isRed =
-                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
-        for (PathPlannerPath path : pathGroup) {
-            for (Pose2d pose : path.getPathPoses()) {
-                allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+            for (PathPlannerPath path : pathGroup) {
+                for (Pose2d pose : path.getPathPoses()) {
+                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                }
             }
+
+            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
         }
 
-        drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-    } 
-    
-    catch (Exception e) {
-        Elastic.sendNotification(
-                new Notification()
-                        .withTitle("Auto Mapping")
-                        .withDescription("Unable to add Auto Trajectory"));
-    }
+        catch (Exception e) {
+            Elastic.sendNotification(
+                    new Notification()
+                            .withTitle("Auto Mapping")
+                            .withDescription("Unable to add Auto Trajectory"));
+        }
     }
 
     @Override
     protected void determineSelf() {
         setState(State.TRAVERSING);
     }
-
-    
 
     @Override
     public void update() {
