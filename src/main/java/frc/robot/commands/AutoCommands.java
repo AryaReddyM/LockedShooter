@@ -20,8 +20,8 @@ import frc.robot.RobotState;
 public class AutoCommands {
 
     public static class AutoClass {
-        String[] sequentialPathStrings;
-        String name;
+        public String[] sequentialPathStrings;
+        public String name;
 
         public Command getCommand(RobotState state) {
             return new PrintCommand("Unfilled");
@@ -38,6 +38,7 @@ public class AutoCommands {
 
     public static Optional<AutoClass> getAutoByName(String name) {
         for (AutoClass auto : availableAutos) {
+            System.out.println(auto.name);
             if (auto.name.equals(name)) {
                 return Optional.of(auto);
             }
@@ -57,9 +58,11 @@ public class AutoCommands {
         return pathMap;
     }
 
-    public static class testAuto extends AutoClass {
-        String[] sequentialPathStrings = { "Center to Depot" };
-        String name = "Apple";
+public static class testAuto extends AutoClass {
+        public testAuto() {
+            this.name = "Apple";
+            this.sequentialPathStrings = new String[]{"Center to Depot"};
+        }
 
         @Override
         public Command getCommand(RobotState state) {

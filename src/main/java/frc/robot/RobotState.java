@@ -299,67 +299,75 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE),
-                shooter.transitionCommand(Shooter.State.IDLE),
-                climb.transitionCommand(Climb.State.STOW),
-                hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW),
-                kicker.transitionCommand(Kicker.State.IDLE)));
+                drive.transitionCommand(Drive.State.IDLE)
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING),
-                shooter.transitionCommand(Shooter.State.IDLE),
-                climb.transitionCommand(Climb.State.STOW),
-                hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW),
-                kicker.transitionCommand(Kicker.State.IDLE)));
+                drive.transitionCommand(Drive.State.TRAVERSING)
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
 
         registerStateCommand(State.INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE),
-                hopper.transitionCommand(Hopper.State.IDLE),
-                kicker.transitionCommand(Kicker.State.IDLE),
-                climb.transitionCommand(Climb.State.STOW),
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // kicker.transitionCommand(Kicker.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
 
-                shooter.transitionCommand(Shooter.State.IDLE)));
+                // shooter.transitionCommand(Shooter.State.IDLE)
+                ));
 
         registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.IDLE),
-                hopper.transitionCommand(Hopper.State.SHOOT),
-                kicker.transitionCommand(Kicker.State.SHOOT),
-                climb.transitionCommand(Climb.State.STOW),
+                // intake.transitionCommand(Intake.State.IDLE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
 
-                shooter.transitionCommand(Shooter.State.SHOOTING)));
+                // shooter.transitionCommand(Shooter.State.SHOOTING)
+                ));
 
         registerStateCommand(State.PASSING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.IDLE),
-                hopper.transitionCommand(Hopper.State.SHOOT),
-                kicker.transitionCommand(Kicker.State.SHOOT),
-                climb.transitionCommand(Climb.State.STOW),
+                // intake.transitionCommand(Intake.State.IDLE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
 
-                shooter.transitionCommand(Shooter.State.PASSING)));
+                // shooter.transitionCommand(Shooter.State.PASSING)
+                ));
 
         registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE),
-                hopper.transitionCommand(Hopper.State.SHOOT),
-                kicker.transitionCommand(Kicker.State.SHOOT),
-                climb.transitionCommand(Climb.State.STOW),
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
 
-                shooter.transitionCommand(Shooter.State.SHOOTING)));
+                // shooter.transitionCommand(Shooter.State.SHOOTING)
+                ));
 
         registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE),
-                hopper.transitionCommand(Hopper.State.SHOOT),
-                kicker.transitionCommand(Kicker.State.SHOOT),
-                climb.transitionCommand(Climb.State.STOW),
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
 
-                shooter.transitionCommand(Shooter.State.PASSING)));
+                // shooter.transitionCommand(Shooter.State.PASSING)
+                ));
 
         registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
-                shooter.transitionCommand(Shooter.State.IDLE),
-                climb.transitionCommand(Climb.State.CLIMB),
-                hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW),
-                kicker.transitionCommand(Kicker.State.IDLE)));
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.CLIMB),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
 
         // // change this to an auto state in the future?
         registerStateCommand(State.AUTO, new ParallelCommandGroup(
