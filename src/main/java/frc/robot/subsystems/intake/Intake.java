@@ -10,59 +10,64 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.util.state.StateMachine;
 import org.littletonrobotics.junction.Logger;
+import frc.robot.RobotState;
 
 public class Intake extends StateMachine<Intake.State> implements IntakeIO {
   private final IntakeIO io;
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
-  public Intake(IntakeIO io) {
-    super("Intake", State.UNDETERMINED, State.class);
-    this.io = io;
+  private final RobotState state;
+  private final IntakeIO intakeIO;
+  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
-    registerStateTransitions();
-    registerStateCommands();
-    enable();
-  }
-
-  @Override
-  public void update() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
+  public Intake(IntakeIO intakeIO, RobotState state) {
+      super("Intake", State.UNDETERMINED, State.class);
+      this.intakeIO = intakeIO;
+      this.state = state;
+      registerStateTransitions();
+      registerStateCommands();
+      enable();
   }
 
   public void run(double speed) {
     io.setVoltage(speed * 12.0);
   }
 
-  public void stop() {
-    io.stop();
+  public void stow() {
+      intakeIO.setExtensionPosition(IntakeConstants.kExtensionStowSetpoint);
+      intakeIO.stopRollers();
   }
 
-  private void registerStateTransitions() {
-    addOmniTransitions(State.IDLE, State.INTAKE, State.EXPEL, State.VOLTAGE_CALC, State.PROX_TRIPPED);
+  public void intakeidle() {
+      intakeIO.setExtensionPosition(IntakeConstants.kExtensionIntakeSetpoint);
+      intakeIO.stopRollers();
+  }
+  
+  public void intake() {
+      intakeIO.setExtensionPosition(IntakeConstants.kExtensionIntakeSetpoint);
+      intakeIO.setRollerVoltage(IntakeConstants.kRollerIntakeVoltage);
   }
 
-  private void registerStateCommands() {
-    registerStateCommand(State.IDLE, Commands.runOnce(() -> stop(), this));
-
-    registerStateCommand(State.INTAKE, Commands.run(() -> run(1.0), this));
-    registerStateCommand(State.EXPEL, Commands.run(() -> run(-1.0), this));
-    // Setup Commands for Pathfinding as needed
+  public void outake(){
+      intakeIO.setExtensionPosition(IntakeConstants.kExtensionOuttakeSetpoint);
+      intakeIO.setRollerVoltage(IntakeConstants.kRollerOuttakeVoltage);
   }
 
-  public enum State {
-    UNDETERMINED,
-    IDLE,
-    INTAKE,
-    EXPEL,
-    VOLTAGE_CALC,
+     @Override
+    protected void determineSelf() {
+        setState(State.STOP);
+    }
+    
+    public enum State {
+        UNDETERMINED,
 
-    // flags
-    PROX_TRIPPED
-  }
+        STOP,
+        STOW,
+        IDLE,
+        INTAKE,
+        OUTAKE
 
-  @Override
-  protected void determineSelf() {
-    //throw new UnsupportedOperationException("Unimplemented method 'determineSelf'");
-  }
+        // flags
+
+    }
 }

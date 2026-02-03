@@ -1,29 +1,32 @@
 package frc.robot.subsystems.shooter.hood;
 
-import static frc.robot.util.SparkUtil.tryUntilOk;
 
-import com.ctre.phoenix6.hardware.CANcoder;
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import frc.robot.subsystems.climb.ClimbIO.ClimbIOInputs;
-import frc.robot.subsystems.drive.ModuleIO;
+
+import frc.robot.util.SparkUtil;
 
 public class HoodIOSpark implements HoodIO{
  
     // Hardware objects
     private final SparkMax hood;
 
+    @SuppressWarnings("unused")
     private final RelativeEncoder hoodEncoder;
 
     // Closed loop controllers
@@ -41,23 +44,22 @@ public class HoodIOSpark implements HoodIO{
     // NEED TO CONFIGURE
     SparkMaxConfig hoodConfig = new SparkMaxConfig();
     hoodConfig
-        .inverted(false)
+        .inverted(HoodConstants.kHoodinverted)
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(10)
+        .smartCurrentLimit(HoodConstants.kHoodCurrentLimit)
         .voltageCompensation(12.0);
     hoodConfig
         .encoder
-        .positionConversionFactor(0)
-        .velocityConversionFactor(0);
+        .positionConversionFactor(HoodConstants.kHoodPositionConversionFactor)
+        .velocityConversionFactor(HoodConstants.kHoodVelocityConversionFactor);
     hoodConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .positionWrappingEnabled(true)
-        .pid(0, 0, 0)
+        .pid(HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD)
         .maxMotion
-        .maxAcceleration(0)
-        .cruiseVelocity(0)
-        .allowedProfileError(0);
+        .maxAcceleration(HoodConstants.kHoodMaxAccel)
+        .cruiseVelocity(HoodConstants.kHoodCruiseVel)
+        .allowedProfileError(HoodConstants.kHoodDeviationErr);
     hoodConfig
         .signals
         .primaryEncoderPositionAlwaysOn(true)
@@ -67,16 +69,31 @@ public class HoodIOSpark implements HoodIO{
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
 
-    // turnSpark.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     hood.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     hood.clearFaults();
 
+    SparkUtil.tunePID(
+            "Hood",
+            hood,
+            hoodConfig,
+            new double[] {HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD, 0,0,0,0, HoodConstants.kHoodMaxAccel, HoodConstants.kHoodCruiseVel, HoodConstants.kHoodCruiseVel},
+            ResetMode.kResetSafeParameters,
+                PersistMode.kPersistParameters,
+                false,
+                true
+        );
 
     }
 
     @Override
     public void updateInputs(HoodIOInputs inputs) {
-        
+        ifOk(hood, hoodEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(hood, hoodEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                hood,
+                new DoubleSupplier[] { hood::getAppliedOutput, hood::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(hood, hood::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override
@@ -85,8 +102,13 @@ public class HoodIOSpark implements HoodIO{
     }
 
     @Override
-    public void setHoodPosition(double position) {
-        hoodController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
+    public void setHoodPosition(double position, double ff) {
+        hoodController.setSetpoint(position, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
+    }
+
+    @Override
+    public double getHoodPosition() {
+        return hoodController.getMAXMotionSetpointPosition();
     }
 
     @Override

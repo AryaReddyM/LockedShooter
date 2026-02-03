@@ -1,67 +1,94 @@
 package frc.robot;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.FileVersionException;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.AutoAlignToPoseCommand;
+import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.ClimbIO;
+import frc.robot.subsystems.climb.ClimbIOSim;
+import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperIO;
+import frc.robot.subsystems.hopper.HopperIOSim;
+import frc.robot.subsystems.hopper.HopperIOSpark;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.intake.IntakeIOSpark;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIO;
+import frc.robot.subsystems.kicker.KickerIOSim;
+import frc.robot.subsystems.kicker.KickerIOSpark;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
+import frc.robot.subsystems.shooter.hood.HoodIO;
+import frc.robot.subsystems.shooter.hood.HoodIOSim;
+import frc.robot.subsystems.shooter.hood.HoodIOSpark;
+import frc.robot.subsystems.shooter.turret.TurretIO;
+import frc.robot.subsystems.shooter.turret.TurretIOSim;
+import frc.robot.subsystems.shooter.turret.TurretIOSpark;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
-import frc.robot.subsystems.vision.VisionIOInputsAutoLogged;
+import frc.robot.subsystems.vision.VisionIOSimPhoton;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.Elastic;
-import frc.robot.util.MathHelpers;
-import frc.robot.util.RobotTime;
 import frc.robot.util.Elastic.Notification;
+import frc.robot.util.MathHelpers;
+import frc.robot.util.ShooterSetpoint;
+import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
+    public final static int robotState = 1; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
 
+    private final SimulatedRobotState simulatedRobotState = Robot.isSimulation() ? new SimulatedRobotState(this) : null;
+
     private Drive drive;
     private VisionSubsystem vision;
-<<<<<<< Updated upstream
-=======
-    private final Intake intake = new Intake(new IntakeIOSpark(10, 17));
->>>>>>> Stashed changes
 
     private CommandXboxController controller = new CommandXboxController(0);
 
@@ -77,9 +104,13 @@ public class RobotState extends StateMachine<RobotState.State> {
     private static final Transform2d TURRET_TO_CAMERA = new Transform2d(VisionConstants.kTurretToCameraX,
             VisionConstants.kTurretToCameraY,
             MathHelpers.kRotation2dZero);
-    private static final Transform2d ROBOT_TO_CAMERA_B = new Transform2d(VisionConstants.kTurretToCameraBX,
-            VisionConstants.kTurretToCameraBY,
-            MathHelpers.kRotation2dZero);
+
+    // private static final Transform2d ROBOT_TO_CAMERA_B = new
+    // Transform2d(VisionConstants.kTurretToCameraBX,
+    // VisionConstants.kTurretToCameraBY,
+    // MathHelpers.kRotation2dZero);
+
+    private static final Transform2d ROBOT_TO_CAMERA_B = new Transform2d();
     private final AtomicReference<ChassisSpeeds> measuredRobotRelativeChassisSpeeds = new AtomicReference<>(
             new ChassisSpeeds());
     private final AtomicReference<ChassisSpeeds> measuredFieldRelativeChassisSpeeds = new AtomicReference<>(
@@ -90,7 +121,6 @@ public class RobotState extends StateMachine<RobotState.State> {
             new ChassisSpeeds());
 
     private double lastUsedMegatagTimestamp = 0;
-    private double lastTriggeredIntakeSensorTimestamp = 0;
     private ConcurrentTimeInterpolatableBuffer<Double> turretAngularVelocity = ConcurrentTimeInterpolatableBuffer
             .createDoubleBuffer(LOOKBACK_TIME);
     private ConcurrentTimeInterpolatableBuffer<Double> turretPositionRadians = ConcurrentTimeInterpolatableBuffer
@@ -130,11 +160,19 @@ public class RobotState extends StateMachine<RobotState.State> {
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
                 public void accept(VisionFieldPoseEstimate estimate) {
-                    drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds());
+                    drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
+                            estimate.getVisionMeasurementStdDevs());
                 }
             };
 
-            vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
+            switch (robotState) {
+                case 1:
+                    vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
+                    break;
+                default:
+                    vision = new VisionSubsystem(new VisionIOSimPhoton(this, simulatedRobotState), this);
+                    break;
+            }
 
             Elastic.sendNotification(
                     new Notification().withTitle("Vision Subsystem").withDescription("Vision Started"));
@@ -142,17 +180,164 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // drive intialization
         {
-            drive = new Drive(
-                    new GyroIOPigeon2(),
-                    new ModuleIOSpark(0),
-                    new ModuleIOSpark(1),
-                    new ModuleIOSpark(2),
-                    new ModuleIOSpark(3),
-                    this);
+            switch (robotState) {
+                case 1:
+                    drive = new Drive(
+                            new GyroIOPigeon2(),
+                            new ModuleIOSpark(0),
+                            new ModuleIOSpark(1),
+                            new ModuleIOSpark(2),
+                            new ModuleIOSpark(3),
+                            this);
+                    break;
+                case 2:
+                    drive = new Drive(
+                            new GyroIO() {
+                            },
+                            new ModuleIOSim(),
+                            new ModuleIOSim(),
+                            new ModuleIOSim(),
+                            new ModuleIOSim(),
+                            this);
+                default:
+                    drive = new Drive(
+                            new GyroIO() {
+                            },
+                            new ModuleIO() {
+                            },
+                            new ModuleIO() {
+                            },
+                            new ModuleIO() {
+                            },
+                            new ModuleIO() {
+                            }, this);
+
+            }
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // auto setup
+        // { // shooter
+        //     switch (robotState) {
+        //         case 1:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIOSpark(),
+        //                 new HoodIOSpark(),
+        //                 new FlywheelIOSpark()
+        //             );
+        //             break;
+        //         case 2:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIOSim(),
+        //                 new HoodIOSim(),
+        //                 new FlywheelIOSim()
+        //             );
+        //             break;
+        //         default:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIO() {},
+        //                 new HoodIO() {},
+        //                 new FlywheelIO() {}
+        //             );
+        //             break;
+        //     }
+        // }
+
+        // { // climb
+        //     switch (robotState) {
+        //         case 1:
+        //             climb = new Climb(
+        //                 new ClimbIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             climb = new Climb(
+        //                 new ClimbIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             climb = new Climb(
+        //                 new ClimbIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
+        // }
+
+        // { // hopper
+        //     switch (robotState) {
+        //         case 1:
+        //             hopper = new Hopper(
+        //                 new HopperIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             hopper = new Hopper(
+        //                 new HopperIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             hopper = new Hopper(
+        //                 new HopperIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
+        // }
+
+        // { // intake
+        //     switch (robotState) {
+        //         case 1:
+        //             intake = new Intake(
+        //                 new IntakeIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             intake = new Intake(
+        //                 new IntakeIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             intake = new Intake(
+        //                 new IntakeIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
+        // }
+
+        // { // kicker
+        //     switch (robotState) {
+        //         case 1:
+        //             kicker = new Kicker(
+        //                 new KickerIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             kicker = new Kicker(
+        //                 new KickerIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             kicker = new Kicker(
+        //                 new KickerIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
+        // }
+
+        // // auto setup
         {
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
             setupDriveDiagnosisAutos();
@@ -168,6 +353,11 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
+        // addChildSubsystem(shooter);
+        // addChildSubsystem(climb);
+        // addChildSubsystem(hopper);
+        // addChildSubsystem(intake);
+        // addChildSubsystem(kicker);
         enable();
     }
 
@@ -188,6 +378,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
+        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName("Apple").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -215,14 +406,80 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE)));
+                drive.transitionCommand(Drive.State.IDLE)
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING)));
+                drive.transitionCommand(Drive.State.TRAVERSING)
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
+
+        registerStateCommand(State.INTAKING, new ParallelCommandGroup(
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // kicker.transitionCommand(Kicker.State.IDLE),
+                // climb.transitionCommand(Climb.State.STOW),
+
+                // shooter.transitionCommand(Shooter.State.IDLE)
+                ));
+
+        registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
+                // intake.transitionCommand(Intake.State.IDLE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
+
+                // shooter.transitionCommand(Shooter.State.SHOOTING)
+                ));
+
+        registerStateCommand(State.PASSING, new ParallelCommandGroup(
+                // intake.transitionCommand(Intake.State.IDLE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
+
+                // shooter.transitionCommand(Shooter.State.PASSING)
+                ));
+
+        registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
+
+                // shooter.transitionCommand(Shooter.State.SHOOTING)
+                ));
+
+        registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
+                // intake.transitionCommand(Intake.State.INTAKE),
+                // hopper.transitionCommand(Hopper.State.SHOOT),
+                // kicker.transitionCommand(Kicker.State.SHOOT),
+                // climb.transitionCommand(Climb.State.STOW),
+
+                // shooter.transitionCommand(Shooter.State.PASSING)
+                ));
+
+        registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
+                // shooter.transitionCommand(Shooter.State.IDLE),
+                // climb.transitionCommand(Climb.State.CLIMB),
+                // hopper.transitionCommand(Hopper.State.IDLE),
+                // intake.transitionCommand(Intake.State.STOW),
+                // kicker.transitionCommand(Kicker.State.IDLE)
+                ));
 
         // // change this to an auto state in the future?
         registerStateCommand(State.AUTO, new ParallelCommandGroup(
                 drive.transitionCommand(Drive.State.TRAVERSING)));
+
     }
 
     private void setupControllerBindings() {
@@ -232,7 +489,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller
+        controller // TODO turn this off in a real game (SWITCH KEYBINDS)
                 .b()
                 .onTrue(
                         Commands.runOnce(
@@ -243,26 +500,47 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public Command getAutonomousCommand() {
-        try {
-            return AutoBuilder.followPath(PathPlannerPath.fromPathFile("Auto Path"));
-        } 
-        catch (FileVersionException | IOException | ParseException e) {
-            e.printStackTrace();
-            return Commands.none();
-        }
+        return Commands.print("None");
     }
 
     public Drive getDrive() {
         return drive;
     }
 
+    public Shooter getShooter() {
+        return shooter;
+    }
+
     public VisionSubsystem getVision() {
-        return null;
-        // return vision;
+        return vision;
+    }
+
+    public Climb getClimb() {
+        return climb;
+    }
+
+    public Hopper getHopper() {
+        return hopper;
+    }
+
+    public Intake getIntake() {
+        return intake;
+    }
+
+    public Kicker getKicker() {
+        return kicker;
     }
 
     public CommandXboxController getController() {
         return controller;
+    }
+
+    public ShooterSetpoint getCurrentHubSetpoint() {
+        return hubSupplier.get();
+    }
+
+    public ShooterSetpoint getCurrentPassSetpoint() {
+        return passSupplier.get();
     }
 
     public void setAutoStartTime(double timestamp) {
@@ -429,25 +707,23 @@ public class RobotState extends StateMachine<RobotState.State> {
         visionEstimateConsumer.accept(megatagEstimate);
     }
 
-    public void updatePinholeEstimate(VisionFieldPoseEstimate pinholeEstimate) {
-        visionEstimateConsumer.accept(pinholeEstimate);
-    }
-
-    public void updateLastTriggeredIntakeSensorTimestamp(boolean triggered) {
-        if (triggered)
-            lastTriggeredIntakeSensorTimestamp = RobotTime.getTimestampSeconds();
-    }
-
     public double lastUsedMegatagTimestamp() {
         return lastUsedMegatagTimestamp;
     }
 
-    public double lastTriggeredIntakeSensorTimestamp() {
-        return lastTriggeredIntakeSensorTimestamp;
-    }
-
     public boolean isRedAlliance() {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
+    }
+
+    private Pose2d flipPoseForRed(Pose2d bluePose) {
+        double FIELD_LENGTH = 16.54;
+        double FIELD_WIDTH = 8.21;
+
+        return new Pose2d(
+                new Translation2d(
+                        FIELD_LENGTH - bluePose.getX(),
+                        FIELD_WIDTH - bluePose.getY()),
+                bluePose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
     }
 
     public void updateLogger() {
@@ -476,18 +752,20 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     @Override
     protected void onTeleopStart() {
-        requestTransition(State.TRAVERSING);
+        System.out.println("ewfwefwefwefwefwef");
+        setState(State.TRAVERSING);
     }
 
     @Override
     protected void onAutonomousStart() {
-        registerStateCommand(State.AUTO, autoChooser.get().andThen(new PrintCommand("Auto is Done!")));
-        requestTransition(State.AUTO);
+        registerStateCommand(State.AUTO, autoChooser.get());
+        setState(State.AUTO);
+
     }
 
     @Override
     protected void determineSelf() {
-        setState(State.SOFT_STOP);
+        setState(State.TRAVERSING);
     }
 
     @Override
@@ -499,7 +777,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         char autoWinner = (message.length() > 0) ? message.charAt(0) : ' ';
         double matchTime = DriverStation.getMatchTime();
-        
+
         boolean inTransitionShift = (matchTime >= 130);
         boolean inEndGame = (matchTime <= 30);
         // ONLY refer to this if both booleans are false
@@ -508,6 +786,41 @@ public class RobotState extends StateMachine<RobotState.State> {
         if (DriverStation.isAutonomous()) {
             gameState = "Autonomous";
             secondsUntilAllianceShift = 0;
+
+            {
+                Command newAutoCommand = autoChooser.get();
+
+                if (newAutoCommand != autoCommand) {
+                    autoCommand = newAutoCommand;
+                    String autoName = autoCommand.getName();
+
+                    try {
+                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(autoName);
+
+                        if (!possibleAuto.isEmpty()) {
+                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+
+                            List<Pose2d> allPoses = new ArrayList<>();
+
+                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+
+                            for (PathPlannerPath path : pathGroup) {
+                                for (Pose2d pose : path.getPathPoses()) {
+                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                                }
+                            }
+
+                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        }
+
+                    } catch (Exception e) {
+                        Elastic.sendNotification(
+                                new Notification()
+                                        .withTitle("Auto Mapping")
+                                        .withDescription("Unable to add Auto Trajectory"));
+                    }
+                }
+            }
         } else if (inTransitionShift) {
             gameState = "Transition";
             secondsUntilAllianceShift = matchTime - 130;
@@ -555,8 +868,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         SmartDashboard.putBoolean("Game/HubActivated", hubActivated.get());
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));
-        
-        // TODO identifier for a real game auto
+
         SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
     }
 

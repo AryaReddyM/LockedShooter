@@ -1,46 +1,171 @@
 package frc.robot.subsystems.intake;
 
+
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.FeedbackSensor;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import frc.robot.util.SparkUtil;
+
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+@SuppressWarnings("unused")
 public class IntakeIOSpark implements IntakeIO {
-  private final SparkMax topMotor;
-  private final SparkMax bottomMotor;
 
-  public IntakeIOSpark(int topID, int bottomID) {
-    topMotor = new SparkMax(topID, MotorType.kBrushless);
-    bottomMotor = new SparkMax(bottomID, MotorType.kBrushless);;
+    // Hardware objects
+    private final SparkFlex rollers;
+    private final SparkMax extension;
 
-    SparkMaxConfig topConfig = new SparkMaxConfig();
-    topConfig.smartCurrentLimit(15);
+    private final RelativeEncoder rollerEncoder;
+    private final RelativeEncoder extensionEncoder;
 
-    SparkMaxConfig bottomConfig = new SparkMaxConfig();
-    bottomConfig.smartCurrentLimit(15);
+    // Closed loop controllers
+    private final SparkClosedLoopController rollerController;
+    private final SparkClosedLoopController extensionController;
 
-    bottomConfig.follow(topMotor, true);
+    public IntakeIOSpark() {
 
-    topMotor.configure(topConfig, 
-        ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    bottomMotor.configure(bottomConfig,
-        ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-  }
+        rollers = new SparkFlex(IntakeConstants.kRollersCanID, MotorType.kBrushless);
+        extension = new SparkMax(IntakeConstants.kExtensionCanID, MotorType.kBrushless);
 
-  @Override
-  public void updateInputs(IntakeIOInputs inputs) {
-      inputs.velocity = topMotor.getEncoder().getVelocity();
-      inputs.voltage = topMotor.getAppliedOutput() * topMotor.getBusVoltage();
-  }
+        rollerEncoder = rollers.getEncoder();
+        extensionEncoder = extension.getEncoder();
 
-  @Override
-  public void setVoltage(double volts) {
-      topMotor.setVoltage(volts);
-  }
+        rollerController = rollers.getClosedLoopController();
+        extensionController = extension.getClosedLoopController();
 
-  @Override
-  public void stop() {
-      topMotor.stopMotor();
-  }
+        // Configure roller motor
+        SparkFlexConfig rollerConfig = new SparkFlexConfig();
+        rollerConfig
+                .inverted(false)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(10)
+                .voltageCompensation(12.0);
+        rollerConfig.encoder
+                .positionConversionFactor(IntakeConstants.kRollerPositionConversionFactor)
+                .velocityConversionFactor(IntakeConstants.kRollerVelocityConversionFactor)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2);
+        rollerConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pid(IntakeConstants.kRollerP, IntakeConstants.kRollerI, IntakeConstants.kRollerD)
+                .iMaxAccum(0.01); // change if needed
+        rollerConfig.signals
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
+
+        rollers.configure(rollerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        rollers.clearFaults();
+        
+        // Configure extension motor
+        SparkMaxConfig extensionConfig = new SparkMaxConfig();
+        extensionConfig
+                .inverted(false)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(10)
+                .voltageCompensation(12.0);
+        extensionConfig.encoder
+                .positionConversionFactor(IntakeConstants.kExtensionPositionConversionFactor)
+                .velocityConversionFactor(IntakeConstants.kExtensionVelocityConversionFactor);
+        extensionConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .positionWrappingEnabled(true)
+                .pid(IntakeConstants.kExtensionP, IntakeConstants.kExtensionI, IntakeConstants.kExtensionD)
+                .maxMotion
+                .maxAcceleration(IntakeConstants.kExtensionMaxAccel)
+                .cruiseVelocity(IntakeConstants.kExtensionCruiseVel)
+                .allowedProfileError(IntakeConstants.kExtensionDeviationErr);
+        extensionConfig.signals
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
+
+
+        extension.configure(extensionConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        extension.clearFaults();
+
+        SparkUtil.tunePID(
+                "Intake Roller",
+                rollers,
+                rollerConfig,
+                new double[] { IntakeConstants.kRollerP, IntakeConstants.kRollerI, IntakeConstants.kRollerD },
+                ResetMode.kResetSafeParameters,
+                PersistMode.kPersistParameters,
+                false,
+                false);
+
+        SparkUtil.tunePID(
+            "Intake Extension",
+            extension,
+            extensionConfig,
+            new double[] {IntakeConstants.kExtensionP, IntakeConstants.kExtensionI, IntakeConstants.kExtensionD, 0,0,0,0, IntakeConstants.kExtensionMaxAccel, IntakeConstants.kExtensionCruiseVel, IntakeConstants.kExtensionDeviationErr},
+            ResetMode.kResetSafeParameters,
+                PersistMode.kPersistParameters,
+                false,
+                true
+        );
+    }
+
+    @Override
+    public void updateInputs(IntakeIOInputs inputs) {
+        ifOk(extension, extensionEncoder::getPosition, (value) -> inputs.extensionPosRad = value);
+        ifOk(extension, extensionEncoder::getVelocity, (value) -> inputs.extensionVelPerSec = value);
+        ifOk(
+                extension,
+                new DoubleSupplier[] { extension::getAppliedOutput, extension::getBusVoltage },
+                (values) -> inputs.extensionAppliedVolts = values[0] * values[1]);
+        ifOk(extension, extension::getOutputCurrent, (value) -> inputs.extensionCurrentAmps = value);
+
+        ifOk(rollers, rollerEncoder::getPosition, (value) -> inputs.rollerPosRad = value);
+        ifOk(rollers, rollerEncoder::getVelocity, (value) -> inputs.rollerVelPerSec = value);
+        ifOk(
+                rollers,
+                new DoubleSupplier[] { rollers::getAppliedOutput, rollers::getBusVoltage },
+                (values) -> inputs.rollerAppliedVolts = values[0] * values[1]);
+        ifOk(rollers, rollers::getOutputCurrent, (value) -> inputs.rollerCurrentAmps = value);
+    }
+
+    @Override
+    public void setRollerVoltage(double volts) {
+        rollers.setVoltage(volts);
+    }
+
+    @Override
+    public void setRollerSpeed(double speed) {
+        rollerController.setSetpoint(speed, ControlType.kVelocity);
+    }
+
+    @Override
+    public void stopRollers() {
+        rollers.stopMotor();
+    }
+
+    @Override
+    public void setExtensionPosition(double position) {
+        extensionController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
+    }
+
+    @Override
+    public void stopExtension() {
+        extension.stopMotor();
+    }
 }

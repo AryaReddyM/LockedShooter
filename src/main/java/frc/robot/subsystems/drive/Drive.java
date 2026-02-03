@@ -13,8 +13,10 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -30,6 +32,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -52,6 +55,8 @@ import frc.robot.util.state.StateMachine;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -111,9 +116,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configure(
         () -> robotState.getLatestFieldToRobotCenter(),
-        (pose) -> {
-        },
-        // this::setPose,
+        this::setPose,
         () -> robotState.getLatestRobotRelativeChassisSpeed(),
         this::runVelocity,
         new PPHolonomicDriveController(
@@ -145,24 +148,24 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     enable();
 
     SmartDashboard.putData("Swerve Drive", new Sendable() {
-        @Override
-        public void initSendable(SendableBuilder builder) {
-          builder.setSmartDashboardType("SwerveDrive");
-          builder.addDoubleProperty("Front Left Angle", () -> modules[0].getAngle().getRadians(), null);
-          builder.addDoubleProperty("Front Left Velocity", () -> modules[0].getVelocityMetersPerSec(), null);
+      @Override
+      public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("SwerveDrive");
+        builder.addDoubleProperty("Front Left Angle", () -> modules[0].getAngle().getRadians(), null);
+        builder.addDoubleProperty("Front Left Velocity", () -> modules[0].getVelocityMetersPerSec(), null);
 
-          builder.addDoubleProperty("Front Right Angle", () -> modules[1].getAngle().getRadians(), null);
-          builder.addDoubleProperty("Front Right Velocity", () -> modules[1].getVelocityMetersPerSec(), null);
+        builder.addDoubleProperty("Front Right Angle", () -> modules[1].getAngle().getRadians(), null);
+        builder.addDoubleProperty("Front Right Velocity", () -> modules[1].getVelocityMetersPerSec(), null);
 
-          builder.addDoubleProperty("Back Left Angle", () -> modules[2].getAngle().getRadians(), null);
-          builder.addDoubleProperty("Back Left Velocity", () -> modules[2].getVelocityMetersPerSec(), null);
+        builder.addDoubleProperty("Back Left Angle", () -> modules[2].getAngle().getRadians(), null);
+        builder.addDoubleProperty("Back Left Velocity", () -> modules[2].getVelocityMetersPerSec(), null);
 
-          builder.addDoubleProperty("Back Right Angle", () -> modules[3].getAngle().getRadians(), null);
-          builder.addDoubleProperty("Back Right Velocity", () -> modules[3].getVelocityMetersPerSec(), null);
+        builder.addDoubleProperty("Back Right Angle", () -> modules[3].getAngle().getRadians(), null);
+        builder.addDoubleProperty("Back Right Velocity", () -> modules[3].getVelocityMetersPerSec(), null);
 
-          builder.addDoubleProperty("Robot Angle", () -> getRotation().getRadians(), null);
-        }
-      });
+        builder.addDoubleProperty("Robot Angle", () -> getRotation().getRadians(), null);
+      }
+    });
   }
 
   private void registerStateTransitions() {
@@ -172,13 +175,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   private void registerStateCommands() {
     registerStateCommand(State.IDLE, new InstantCommand(() -> stop()));
-
-    // TODO fix soon
-    // registerStateCommand(State.TRAVERSING, DriveCommands.joystickDrive(
-    // this,
-    // () -> -robotState.getController().getLeftY(),
-    // () -> -robotState.getController().getLeftX(),
-    // () -> -robotState.getController().getRightX()));
 
     setDefaultCommand(DriveCommands.joystickDrive(
         this,
@@ -223,50 +219,50 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     // robotState updating (some logic has been redone twice)
     {
-      double timestamp = RobotTime.getTimestampSeconds();
-      robotState.addOdometryMeasurement(timestamp, getPose()); // test wihtout this too
+      if (RobotState.robotState == 1) {
+        double timestamp = RobotTime.getTimestampSeconds();
+        robotState.addOdometryMeasurement(timestamp, getPose()); // test wihtout this too
 
-      StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
-      StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
-      StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
+        StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
+        StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
+        StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
 
-      StatusSignal<Angle> roll = gyroIO.getPiegon().getRoll();
-      StatusSignal<Angle> pitch = gyroIO.getPiegon().getPitch();
+        StatusSignal<Angle> roll = gyroIO.getPiegon().getRoll();
+        StatusSignal<Angle> pitch = gyroIO.getPiegon().getPitch();
 
-      StatusSignal<LinearAcceleration> accelerationX = gyroIO.getPiegon().getAccelerationX();
-      StatusSignal<LinearAcceleration> accelerationY = gyroIO.getPiegon().getAccelerationY();
+        StatusSignal<LinearAcceleration> accelerationX = gyroIO.getPiegon().getAccelerationX();
+        StatusSignal<LinearAcceleration> accelerationY = gyroIO.getPiegon().getAccelerationY();
 
-      BaseStatusSignal.refreshAll(angularRollVelocity, angularPitchVelocity, angularYawVelocity, pitch, roll,
-          accelerationX, accelerationY);
+        BaseStatusSignal.refreshAll(angularRollVelocity, angularPitchVelocity, angularYawVelocity, pitch, roll,
+            accelerationX, accelerationY);
 
-      double rollRadsPerS = Units.degreesToRadians(angularRollVelocity.getValueAsDouble());
-      double pitchRadsPerS = Units.degreesToRadians(angularPitchVelocity.getValueAsDouble());
-      double yawRadsPerS = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
+        double rollRadsPerS = Units.degreesToRadians(angularRollVelocity.getValueAsDouble());
+        double pitchRadsPerS = Units.degreesToRadians(angularPitchVelocity.getValueAsDouble());
+        double yawRadsPerS = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
 
-      double pitchRads = Units.degreesToRadians(pitch.getValueAsDouble());
-      double rollRads = Units.degreesToRadians(roll.getValueAsDouble());
-      double accelX = accelerationX.getValueAsDouble();
-      double accelY = accelerationY.getValueAsDouble();
+        double pitchRads = Units.degreesToRadians(pitch.getValueAsDouble());
+        double rollRads = Units.degreesToRadians(roll.getValueAsDouble());
+        double accelX = accelerationX.getValueAsDouble();
+        double accelY = accelerationY.getValueAsDouble();
 
-      // TODO make sure driveInputs.modStates / optimized match w our stuff
+        if (driveInputs.optimizedModStates.length == 4) {
+          var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);
+          var measuredFieldRelativeChassisSpeeds = ChassisSpeeds
+              .fromRobotRelativeSpeeds(measuredRobotRelativeChassisSpeeds,
+                  getPose().getRotation());
+          var desiredFieldRelativeChassisSpeeds = ChassisSpeeds
+              .fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(driveInputs.modStates),
+                  getPose().getRotation());
+          var fusedFieldRelativeChassisSpeeds = new ChassisSpeeds(measuredFieldRelativeChassisSpeeds.vxMetersPerSecond,
+              measuredFieldRelativeChassisSpeeds.vyMetersPerSecond,
+              yawRadsPerS);
 
-      if (driveInputs.optimizedModStates.length == 4) {
-        var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);
-        var measuredFieldRelativeChassisSpeeds = ChassisSpeeds
-            .fromRobotRelativeSpeeds(measuredRobotRelativeChassisSpeeds,
-                getPose().getRotation());
-        var desiredFieldRelativeChassisSpeeds = ChassisSpeeds
-            .fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(driveInputs.modStates),
-                getPose().getRotation());
-        var fusedFieldRelativeChassisSpeeds = new ChassisSpeeds(measuredFieldRelativeChassisSpeeds.vxMetersPerSecond,
-            measuredFieldRelativeChassisSpeeds.vyMetersPerSecond,
-            yawRadsPerS);
-
-        robotState.addDriveMotionMeasurements(timestamp, rollRadsPerS, pitchRadsPerS,
-            yawRadsPerS,
-            pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
-            measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
-            fusedFieldRelativeChassisSpeeds);
+          robotState.addDriveMotionMeasurements(timestamp, rollRadsPerS, pitchRadsPerS,
+              yawRadsPerS,
+              pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
+              measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
+              fusedFieldRelativeChassisSpeeds);
+        }
       }
     }
 
@@ -457,6 +453,10 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
+  public void zeroGyro() {
+    gyroIO.getPiegon().setYaw(0);
+  }
+
   public void setTargetPose(Pose2d pose) {
     driveInputs.goalPose = pose;
   }
@@ -503,6 +503,15 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   public void determineSelf() {
     setState(State.TRAVERSING);
+  }
+
+  @Override
+  public void onTeleopStart() {
+    setFieldPoses();
+  }
+
+  public void setFieldPoses(Pose2d... poses) {
+    fieldPose.getObject("mainTrajectory").setPoses(poses);
   }
 
   public enum State {

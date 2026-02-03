@@ -5,12 +5,16 @@ import org.littletonrobotics.junction.AutoLog;
 public interface IntakeIO {
   @AutoLog
   public static class IntakeIOInputs {
-    public double velocity = 0.0;
-    public double rotorVelocity = 0.0;
-    public double targetVelocity = 0.0;
-    public double voltage = 0.0;
+    
+    double rollerPosRad = 0;
+    double rollerVelPerSec = 0;
+    double rollerAppliedVolts = 0;
+    double rollerCurrentAmps = 0;
 
-    public boolean proxTripped = false;
+    double extensionPosRad = 0;
+    double extensionVelPerSec = 0;
+    double extensionAppliedVolts = 0;
+    double extensionCurrentAmps = 0;
   }
 
   public default void updateInputs(IntakeIOInputs inputs) {}
