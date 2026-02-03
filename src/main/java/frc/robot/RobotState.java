@@ -12,9 +12,11 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -40,6 +42,7 @@ import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.hopper.Hopper;
@@ -74,6 +77,8 @@ public class RobotState extends StateMachine<RobotState.State> {
     private Intake intake;
     private Hopper hopper;
     private Kicker kicker;
+
+    private Command autoCommand = null;
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
@@ -266,7 +271,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
-        autoChooser.addOption("Testing Auto", AutoCommands.testingAuto().withName("Testing Auto (Game)"));
+        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName("Apple").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -672,31 +677,38 @@ public class RobotState extends StateMachine<RobotState.State> {
             secondsUntilAllianceShift = 0;
 
             {
-                String autoName = autoChooser.get().getName();
+                Command newAutoCommand = autoChooser.get();
 
-                try {
-                    List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(autoName);
+                if (newAutoCommand != autoCommand) {
+                    autoCommand = newAutoCommand;
+                    String autoName = autoCommand.getName();
 
-                    List<Pose2d> allPoses = new ArrayList<>();
+                    try {
+                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(autoName);
 
-                    boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                        if (!possibleAuto.isEmpty()) {
+                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
 
-                    for (PathPlannerPath path : pathGroup) {
-                        for (Pose2d pose : path.getPathPoses()) {
-                            allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                            List<Pose2d> allPoses = new ArrayList<>();
+
+                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+
+                            for (PathPlannerPath path : pathGroup) {
+                                for (Pose2d pose : path.getPathPoses()) {
+                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                                }
+                            }
+
+                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
                         }
+
+                    } catch (Exception e) {
+                        Elastic.sendNotification(
+                                new Notification()
+                                        .withTitle("Auto Mapping")
+                                        .withDescription("Unable to add Auto Trajectory"));
                     }
-
-                    drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
                 }
-
-                catch (Exception e) {
-                    Elastic.sendNotification(
-                            new Notification()
-                                    .withTitle("Auto Mapping")
-                                    .withDescription("Unable to add Auto Trajectory"));
-                }
-
             }
         } else if (inTransitionShift) {
             gameState = "Transition";
