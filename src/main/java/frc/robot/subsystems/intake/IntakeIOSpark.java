@@ -1,6 +1,10 @@
 package frc.robot.subsystems.intake;
 
 
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -123,7 +127,21 @@ public class IntakeIOSpark implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
+        ifOk(extension, extensionEncoder::getPosition, (value) -> inputs.extensionPosRad = value);
+        ifOk(extension, extensionEncoder::getVelocity, (value) -> inputs.extensionVelPerSec = value);
+        ifOk(
+                extension,
+                new DoubleSupplier[] { extension::getAppliedOutput, extension::getBusVoltage },
+                (values) -> inputs.extensionAppliedVolts = values[0] * values[1]);
+        ifOk(extension, extension::getOutputCurrent, (value) -> inputs.extensionCurrentAmps = value);
 
+        ifOk(rollers, rollerEncoder::getPosition, (value) -> inputs.rollerPosRad = value);
+        ifOk(rollers, rollerEncoder::getVelocity, (value) -> inputs.rollerVelPerSec = value);
+        ifOk(
+                rollers,
+                new DoubleSupplier[] { rollers::getAppliedOutput, rollers::getBusVoltage },
+                (values) -> inputs.rollerAppliedVolts = values[0] * values[1]);
+        ifOk(rollers, rollers::getOutputCurrent, (value) -> inputs.rollerCurrentAmps = value);
     }
 
     @Override
@@ -148,6 +166,6 @@ public class IntakeIOSpark implements IntakeIO {
 
     @Override
     public void stopExtension() {
-        rollers.stopMotor();
+        extension.stopMotor();
     }
 }

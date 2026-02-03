@@ -5,16 +5,15 @@ import org.littletonrobotics.junction.AutoLog;
 public interface FlywheelIO {
   @AutoLog
   public static class FlywheelIOInputs {
-    
+    double posRad = 0;
+    double velPerSec = 0;
+    double appliedVolts = 0;
+    double currentAmps = 0;
   }
 
-  public static class FlywheelIOOutputs {
-   
-  }
 
   default void updateInputs(FlywheelIOInputs inputs) {}
 
-  default void applyOutputs(FlywheelIOOutputs outputs) {}
 
   public default void setFlywheelVoltage(double volts) {}
 

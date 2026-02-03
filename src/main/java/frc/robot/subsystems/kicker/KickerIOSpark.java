@@ -1,6 +1,10 @@
 package frc.robot.subsystems.kicker;
 
 
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -80,7 +84,13 @@ public class KickerIOSpark implements KickerIO{
 
     @Override
     public void updateInputs(KickerIOInputs inputs) {
-        
+        ifOk(kicker, kickerEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(kicker, kickerEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                kicker,
+                new DoubleSupplier[] { kicker::getAppliedOutput, kicker::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(kicker, kicker::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override

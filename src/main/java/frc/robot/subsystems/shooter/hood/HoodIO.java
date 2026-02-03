@@ -5,16 +5,15 @@ import org.littletonrobotics.junction.AutoLog;
 public interface HoodIO {
   @AutoLog
   public static class HoodIOInputs {
-    
+    double posRad = 0;
+    double velPerSec = 0;
+    double appliedVolts = 0;
+    double currentAmps = 0;
+
   }
 
-  public static class HoodIOOutputs {
-   
-  }
 
   default void updateInputs(HoodIOInputs inputs) {}
-
-  default void applyOutputs(HoodIOOutputs outputs) {}
 
   public default void setHoodVoltage(double volts) {}
 

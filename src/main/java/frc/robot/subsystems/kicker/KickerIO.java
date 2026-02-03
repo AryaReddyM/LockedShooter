@@ -5,16 +5,14 @@ import org.littletonrobotics.junction.AutoLog;
 public interface KickerIO {
   @AutoLog
   public static class KickerIOInputs {
-    
+    double posRad = 0;
+    double velPerSec = 0;
+    double appliedVolts = 0;
+    double currentAmps = 0;
   }
 
-  public static class KickerIOOutputs {
-   
-  }
 
   default void updateInputs(KickerIOInputs inputs) {}
-
-  default void applyOutputs(KickerIOOutputs outputs) {}
 
   public default void setKickerVoltage(double volts) {}
 

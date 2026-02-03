@@ -15,7 +15,7 @@ public interface TurretIO {
     public double currentAmps = 0.0;
   }
 
-  default void updateInputs(TurretIOInputsAutoLogged inputs) {}
+  default void updateInputs(TurretIOInputs inputs) {}
 
 
   public default void setTurretVoltage(double volts) {}

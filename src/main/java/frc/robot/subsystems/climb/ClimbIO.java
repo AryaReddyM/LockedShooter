@@ -5,16 +5,16 @@ import org.littletonrobotics.junction.AutoLog;
 public interface ClimbIO {
   @AutoLog
   public static class ClimbIOInputs {
-    
-  }
 
-  public static class ClimbIOOutputs {
-   
+    double posRad = 0;
+    double velPerSec = 0;
+    double appliedVolts = 0;
+    double currentAmps = 0;
+    
+
   }
 
   default void updateInputs(ClimbIOInputs inputs) {}
-
-  default void applyOutputs(ClimbIOOutputs outputs) {}
 
   public default void setClimbVoltage(double volts) {}
 

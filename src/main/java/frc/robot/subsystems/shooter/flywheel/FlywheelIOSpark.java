@@ -1,6 +1,10 @@
 package frc.robot.subsystems.shooter.flywheel;
 
 
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -83,7 +87,13 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public void updateInputs(FlywheelIOInputs inputs) {
-        
+        ifOk(flywheel, flywheelEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(flywheel, flywheelEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                flywheel,
+                new DoubleSupplier[] { flywheel::getAppliedOutput, flywheel::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(flywheel, flywheel::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override

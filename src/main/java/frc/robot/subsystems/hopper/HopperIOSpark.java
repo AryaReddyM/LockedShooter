@@ -1,6 +1,9 @@
 package frc.robot.subsystems.hopper;
 
+import static frc.robot.util.SparkUtil.ifOk;
 import static frc.robot.util.SparkUtil.tryUntilOk;
+
+import java.util.function.DoubleSupplier;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
@@ -81,7 +84,13 @@ public class HopperIOSpark implements HopperIO{
 
     @Override
     public void updateInputs(HopperIOInputs inputs) {
-        
+        ifOk(hopper, hopperEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(hopper, hopperEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                hopper,
+                new DoubleSupplier[] { hopper::getAppliedOutput, hopper::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(hopper, hopper::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override

@@ -3,11 +3,11 @@ package frc.robot.subsystems.shooter;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.flywheel.Flywheel;
-import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.hood.Hood;
-import frc.robot.subsystems.shooter.hood.HoodIOSpark;
+import frc.robot.subsystems.shooter.hood.HoodIO;
 import frc.robot.subsystems.shooter.turret.Turret;
-import frc.robot.subsystems.shooter.turret.TurretIOSpark;
+import frc.robot.subsystems.shooter.turret.TurretIO;
 import frc.robot.util.state.StateMachine;
 
 public class Shooter extends StateMachine<Shooter.State> {
@@ -17,12 +17,12 @@ public class Shooter extends StateMachine<Shooter.State> {
     private Flywheel flywheel;
 
 
-    public Shooter(RobotState state) {
+    public Shooter(RobotState state, TurretIO turretIO, HoodIO hoodIO, FlywheelIO flywheelIO) {
         super("Shooter", State.UNDETERMINED, State.class);
 
-        turret = new Turret(new TurretIOSpark(), state);
-        hood = new Hood(new HoodIOSpark(), state);
-        flywheel = new Flywheel(new FlywheelIOSpark(), state);
+        turret = new Turret(turretIO, state);
+        hood = new Hood(hoodIO, state);
+        flywheel = new Flywheel(flywheelIO, state);
 
         registerStateTransitions();
         registerStateCommands();

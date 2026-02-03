@@ -217,49 +217,50 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     // robotState updating (some logic has been redone twice)
     {
-      double timestamp = RobotTime.getTimestampSeconds();
-      robotState.addOdometryMeasurement(timestamp, getPose()); // test wihtout this too
+      if (RobotState.robotState == 1) {
+        double timestamp = RobotTime.getTimestampSeconds();
+        robotState.addOdometryMeasurement(timestamp, getPose()); // test wihtout this too
 
-      StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
-      StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
-      StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
+        StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
+        StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
+        StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
 
-      StatusSignal<Angle> roll = gyroIO.getPiegon().getRoll();
-      StatusSignal<Angle> pitch = gyroIO.getPiegon().getPitch();
+        StatusSignal<Angle> roll = gyroIO.getPiegon().getRoll();
+        StatusSignal<Angle> pitch = gyroIO.getPiegon().getPitch();
 
-      StatusSignal<LinearAcceleration> accelerationX = gyroIO.getPiegon().getAccelerationX();
-      StatusSignal<LinearAcceleration> accelerationY = gyroIO.getPiegon().getAccelerationY();
+        StatusSignal<LinearAcceleration> accelerationX = gyroIO.getPiegon().getAccelerationX();
+        StatusSignal<LinearAcceleration> accelerationY = gyroIO.getPiegon().getAccelerationY();
 
-      BaseStatusSignal.refreshAll(angularRollVelocity, angularPitchVelocity, angularYawVelocity, pitch, roll,
-          accelerationX, accelerationY);
+        BaseStatusSignal.refreshAll(angularRollVelocity, angularPitchVelocity, angularYawVelocity, pitch, roll,
+            accelerationX, accelerationY);
 
-      double rollRadsPerS = Units.degreesToRadians(angularRollVelocity.getValueAsDouble());
-      double pitchRadsPerS = Units.degreesToRadians(angularPitchVelocity.getValueAsDouble());
-      double yawRadsPerS = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
+        double rollRadsPerS = Units.degreesToRadians(angularRollVelocity.getValueAsDouble());
+        double pitchRadsPerS = Units.degreesToRadians(angularPitchVelocity.getValueAsDouble());
+        double yawRadsPerS = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
 
-      double pitchRads = Units.degreesToRadians(pitch.getValueAsDouble());
-      double rollRads = Units.degreesToRadians(roll.getValueAsDouble());
-      double accelX = accelerationX.getValueAsDouble();
-      double accelY = accelerationY.getValueAsDouble();
+        double pitchRads = Units.degreesToRadians(pitch.getValueAsDouble());
+        double rollRads = Units.degreesToRadians(roll.getValueAsDouble());
+        double accelX = accelerationX.getValueAsDouble();
+        double accelY = accelerationY.getValueAsDouble();
 
+        if (driveInputs.optimizedModStates.length == 4) {
+          var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);
+          var measuredFieldRelativeChassisSpeeds = ChassisSpeeds
+              .fromRobotRelativeSpeeds(measuredRobotRelativeChassisSpeeds,
+                  getPose().getRotation());
+          var desiredFieldRelativeChassisSpeeds = ChassisSpeeds
+              .fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(driveInputs.modStates),
+                  getPose().getRotation());
+          var fusedFieldRelativeChassisSpeeds = new ChassisSpeeds(measuredFieldRelativeChassisSpeeds.vxMetersPerSecond,
+              measuredFieldRelativeChassisSpeeds.vyMetersPerSecond,
+              yawRadsPerS);
 
-      if (driveInputs.optimizedModStates.length == 4) {
-        var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);
-        var measuredFieldRelativeChassisSpeeds = ChassisSpeeds
-            .fromRobotRelativeSpeeds(measuredRobotRelativeChassisSpeeds,
-                getPose().getRotation());
-        var desiredFieldRelativeChassisSpeeds = ChassisSpeeds
-            .fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(driveInputs.modStates),
-                getPose().getRotation());
-        var fusedFieldRelativeChassisSpeeds = new ChassisSpeeds(measuredFieldRelativeChassisSpeeds.vxMetersPerSecond,
-            measuredFieldRelativeChassisSpeeds.vyMetersPerSecond,
-            yawRadsPerS);
-
-        robotState.addDriveMotionMeasurements(timestamp, rollRadsPerS, pitchRadsPerS,
-            yawRadsPerS,
-            pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
-            measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
-            fusedFieldRelativeChassisSpeeds);
+          robotState.addDriveMotionMeasurements(timestamp, rollRadsPerS, pitchRadsPerS,
+              yawRadsPerS,
+              pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
+              measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
+              fusedFieldRelativeChassisSpeeds);
+        }
       }
     }
 

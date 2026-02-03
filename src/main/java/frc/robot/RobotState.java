@@ -39,6 +39,9 @@ import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.climb.ClimbIO;
+import frc.robot.subsystems.climb.ClimbIOSim;
+import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -46,9 +49,27 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperIO;
+import frc.robot.subsystems.hopper.HopperIOSim;
+import frc.robot.subsystems.hopper.HopperIOSpark;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIO;
+import frc.robot.subsystems.kicker.KickerIOSim;
+import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
+import frc.robot.subsystems.shooter.hood.HoodIO;
+import frc.robot.subsystems.shooter.hood.HoodIOSim;
+import frc.robot.subsystems.shooter.hood.HoodIOSpark;
+import frc.robot.subsystems.shooter.turret.TurretIO;
+import frc.robot.subsystems.shooter.turret.TurretIOSim;
+import frc.robot.subsystems.shooter.turret.TurretIOSpark;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
@@ -209,28 +230,128 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // TODO subsystems
-        // {
-        // shooter = new Shooter(this);
+        // { // shooter
+        //     switch (robotState) {
+        //         case 1:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIOSpark(),
+        //                 new HoodIOSpark(),
+        //                 new FlywheelIOSpark()
+        //             );
+        //             break;
+        //         case 2:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIOSim(),
+        //                 new HoodIOSim(),
+        //                 new FlywheelIOSim()
+        //             );
+        //             break;
+        //         default:
+        //             shooter = new Shooter(
+        //                 this,
+        //                 new TurretIO() {},
+        //                 new HoodIO() {},
+        //                 new FlywheelIO() {}
+        //             );
+        //             break;
+        //     }
         // }
 
-        // {
-        // climb = new Climb(new ClimbIOSpark(), this);
+        // { // climb
+        //     switch (robotState) {
+        //         case 1:
+        //             climb = new Climb(
+        //                 new ClimbIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             climb = new Climb(
+        //                 new ClimbIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             climb = new Climb(
+        //                 new ClimbIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
         // }
 
-        // {
-        // hopper = new Hopper(new HopperIOSpark(), this);
+        // { // hopper
+        //     switch (robotState) {
+        //         case 1:
+        //             hopper = new Hopper(
+        //                 new HopperIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             hopper = new Hopper(
+        //                 new HopperIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             hopper = new Hopper(
+        //                 new HopperIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
         // }
 
-        // {
-        // intake = new Intake(new IntakeIOSpark(), this);
+        // { // intake
+        //     switch (robotState) {
+        //         case 1:
+        //             intake = new Intake(
+        //                 new IntakeIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             intake = new Intake(
+        //                 new IntakeIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             intake = new Intake(
+        //                 new IntakeIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
         // }
 
-        // {
-        // kicker = new Kicker(new KickerIOSpark(), this);
+        // { // kicker
+        //     switch (robotState) {
+        //         case 1:
+        //             kicker = new Kicker(
+        //                 new KickerIOSpark(),
+        //                 this
+        //             );
+        //             break;
+        //         case 2:
+        //             kicker = new Kicker(
+        //                 new KickerIOSim(),
+        //                 this
+        //             );
+        //             break;
+        //         default:
+        //             kicker = new Kicker(
+        //                 new KickerIO() {},
+        //                 this
+        //             );
+        //             break;
+        //     }
         // }
 
-        // auto setup
+        // // auto setup
         {
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
             setupDriveDiagnosisAutos();

@@ -1,6 +1,10 @@
 package frc.robot.subsystems.shooter.hood;
 
 
+import static frc.robot.util.SparkUtil.ifOk;
+
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -83,7 +87,13 @@ public class HoodIOSpark implements HoodIO{
 
     @Override
     public void updateInputs(HoodIOInputs inputs) {
-        
+        ifOk(hood, hoodEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(hood, hoodEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                hood,
+                new DoubleSupplier[] { hood::getAppliedOutput, hood::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(hood, hood::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override
