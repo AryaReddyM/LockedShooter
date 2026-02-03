@@ -44,7 +44,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
 
   private void registerStateCommands() {
     registerStateCommand(State.IDLE, Commands.runOnce(() -> stop(), this));
-    
+
     registerStateCommand(State.INTAKE, Commands.run(() -> run(1.0), this));
     registerStateCommand(State.EXPEL, Commands.run(() -> run(-1.0), this));
     // Setup Commands for Pathfinding as needed
@@ -63,6 +63,6 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
 
   @Override
   protected void determineSelf() {
-    throw new UnsupportedOperationException("Unimplemented method 'determineSelf'");
+    //throw new UnsupportedOperationException("Unimplemented method 'determineSelf'");
   }
 }

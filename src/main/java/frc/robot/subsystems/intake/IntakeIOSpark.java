@@ -2,22 +2,22 @@ package frc.robot.subsystems.intake;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class IntakeIOSpark implements IntakeIO {
-  private final SparkFlex topMotor;
-  private final SparkFlex bottomMotor;
+  private final SparkMax topMotor;
+  private final SparkMax bottomMotor;
 
   public IntakeIOSpark(int topID, int bottomID) {
-    topMotor = new SparkFlex(topID, MotorType.kBrushless);
-    bottomMotor = new SparkFlex(bottomID, MotorType.kBrushless);;
+    topMotor = new SparkMax(topID, MotorType.kBrushless);
+    bottomMotor = new SparkMax(bottomID, MotorType.kBrushless);;
 
-    SparkFlexConfig topConfig = new SparkFlexConfig();
+    SparkMaxConfig topConfig = new SparkMaxConfig();
     topConfig.smartCurrentLimit(15);
 
-    SparkFlexConfig bottomConfig = new SparkFlexConfig();
+    SparkMaxConfig bottomConfig = new SparkMaxConfig();
     bottomConfig.smartCurrentLimit(15);
 
     bottomConfig.follow(topMotor, true);

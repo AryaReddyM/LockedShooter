@@ -58,6 +58,10 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Drive drive;
     private VisionSubsystem vision;
+<<<<<<< Updated upstream
+=======
+    private final Intake intake = new Intake(new IntakeIOSpark(10, 17));
+>>>>>>> Stashed changes
 
     private CommandXboxController controller = new CommandXboxController(0);
 
