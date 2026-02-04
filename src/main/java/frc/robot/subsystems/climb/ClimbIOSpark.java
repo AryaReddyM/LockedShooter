@@ -51,9 +51,9 @@ public class ClimbIOSpark implements ClimbIO{
         .positionWrappingEnabled(true)
         .pid(climbKp, climbKi, climbKd)
         .maxMotion
-        .maxAcceleration(0)
-        .cruiseVelocity(0)
-        .allowedProfileError(0);
+        .maxAcceleration(climbMaxAcceleration)
+        .cruiseVelocity(climbCruiseVelocity)
+        .allowedProfileError(climbAllowedProfileError);
     climbConfig
         .signals
         .primaryEncoderPositionAlwaysOn(true)
@@ -66,54 +66,33 @@ public class ClimbIOSpark implements ClimbIO{
     climb.configure(climbConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     climb.clearFaults();
 
+    SparkUtil.tunePID(
+        "Climb PID " + module, 
+        climb, 
+        climbConfig, 
+        new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
+        ResetMode.kResetSafeParameters, 
+        PersistMode.kPersistParameters,
+        true,
+        false
+        );
     }
 
     @Override
     public void updateInputs(ClimbIOInputs inputs) {
-    //     // Update drive inputs
-    // sparkStickyFault = false;
-    // ifOk(driveSpark, driveEncoder::getPosition, (value) -> inputs.drivePositionRad = value);
-    // ifOk(driveSpark, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
-    // ifOk(
-    //     driveSpark,
-    //     new DoubleSupplier[] {driveSpark::getAppliedOutput, driveSpark::getBusVoltage},
-    //     (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
-    // ifOk(driveSpark, driveSpark::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
-    // inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
+    // Update climb inputs
+    sparkStickyFault = false;
+    ifOk(
+        climb,
+        climbEncoder::getPosition,
+        (value) -> inputs.climbPosition = value);
 
-    // if ((Math.abs((canTurnEncoder.getAbsolutePosition().getValue().in(Degree) - (relTurnEncoder.getPosition() - zeroRotation.getDegrees())))) > 5) {
-    //     // tryUntilOk(turnSpark, 1, () -> relTurnEncoder.setPosition(canTurnEncoder.getAbsolutePosition().getValue().in(Radians)));
-    //     // System.out.println("ROTATE!");
-    // }
-
-    // // Update turn inputs
-    // sparkStickyFault = false;
-    // ifOk(
-    //     turnSpark,
-    //     relTurnEncoder::getPosition,
-    //     (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
-
-    // ifOk(turnSpark, relTurnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
-    // ifOk(
-    //     turnSpark,
-    //     new DoubleSupplier[] {turnSpark::getAppliedOutput, turnSpark::getBusVoltage},
-    //     (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
-    // ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
-    // inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
-
-    // inputs.canPosition = new Rotation2d(canTurnEncoder.getAbsolutePosition().getValue().in(Radians));
-    // // Update odometry inputs
-    // inputs.odometryTimestamps =
-    //     timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-    // inputs.odometryDrivePositionsRad =
-    //     drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
-    // inputs.odometryTurnPositions =
-    //     turnPositionQueue.stream()
-    //         .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
-    //         .toArray(Rotation2d[]::new);
-    // timestampQueue.clear();
-    // drivePositionQueue.clear();
-    // turnPositionQueue.clear();
+    ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.climbVelocityRadPerSec = value);
+    ifOk(
+        climb,
+        new DoubleSupplier[] {climb::getAppliedOutput, climb::getBusVoltage},
+        (values) -> inputs.climbAppliedVolts = values[0] * values[1]);
+    ifOk(climb, climb::getOutputCurrent, (value) -> inputs.climbCurrentAmps = value);
     }
 
     @Override
@@ -130,17 +109,6 @@ public class ClimbIOSpark implements ClimbIO{
     public void stopClimb() {
         climb.stopMotor();
     }
-
-    SparkUtil.tunePID(
-        "Climb PID " + module, 
-        climb, 
-        climbConfig, 
-        new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
-        ResetMode.kResetSafeParameters, 
-        PersistMode.kPersistParameters,
-        true,
-        false
-        );
   }
 
 
