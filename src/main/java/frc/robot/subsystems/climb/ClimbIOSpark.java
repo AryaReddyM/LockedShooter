@@ -69,11 +69,27 @@ public class ClimbIOSpark implements ClimbIO {
         climb.configure(climbConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         climb.clearFaults();
 
+    SparkUtil.tunePID(
+        "Climb PID " + module, 
+        climb, 
+        climbConfig, 
+        new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
+        ResetMode.kResetSafeParameters, 
+        PersistMode.kPersistParameters,
+        true,
+        false
+        );
     }
 
     @Override
     public void updateInputs(ClimbIOInputs inputs) {
-        
+        ifOk(climb, climbEncoder::getPosition, (value) -> inputs.posRad = value);
+        ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(
+                climb,
+                new DoubleSupplier[] { climb::getAppliedOutput, climb::getBusVoltage },
+                (values) -> inputs.appliedVolts = values[0] * values[1]);
+        ifOk(climb, climb::getOutputCurrent, (value) -> inputs.currentAmps = value);
     }
 
     @Override
