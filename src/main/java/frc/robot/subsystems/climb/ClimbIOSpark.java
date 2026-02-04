@@ -35,10 +35,11 @@ public class ClimbIOSpark implements ClimbIO{
 
     // Configure extention motor
     SparkMaxConfig climbConfig = new SparkMaxConfig();
-    climbConfig
-        .inverted(climbInverted)
+    
+    climbConfig 
+        .inverted(climbInverted) 
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(10)
+        .smartCurrentLimit(climbMotorCurrentLimit)
         .voltageCompensation(12.0);
     climbConfig
         .encoder
@@ -69,16 +70,50 @@ public class ClimbIOSpark implements ClimbIO{
 
     @Override
     public void updateInputs(ClimbIOInputs inputs) {
-        // Update climb inputs - Lily:I don't know how this works tbh
-        sparkStickyFault = false;
-        ifOk(climb, climbEncoder::getPosition, (value) -> inputs.climbPositionRad = value);
-        ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.climbVelocityRadPerSec = value);
-        ifOk(
-            climb,
-            new DoubleSupplier[] {climb::getAppliedOutput, climb::getBusVoltage},
-            (values) -> inputs.climbAppliedVolts = values[0] * values[1]);
-        ifOk(climb, climb::getOutputCurrent, (value) -> inputs.climbCurrentAmps = value);
-        inputs.climbConnected = climbConnectedDebounce.calculate(!sparkStickyFault);
+    //     // Update drive inputs
+    // sparkStickyFault = false;
+    // ifOk(driveSpark, driveEncoder::getPosition, (value) -> inputs.drivePositionRad = value);
+    // ifOk(driveSpark, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
+    // ifOk(
+    //     driveSpark,
+    //     new DoubleSupplier[] {driveSpark::getAppliedOutput, driveSpark::getBusVoltage},
+    //     (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
+    // ifOk(driveSpark, driveSpark::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
+    // inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
+
+    // if ((Math.abs((canTurnEncoder.getAbsolutePosition().getValue().in(Degree) - (relTurnEncoder.getPosition() - zeroRotation.getDegrees())))) > 5) {
+    //     // tryUntilOk(turnSpark, 1, () -> relTurnEncoder.setPosition(canTurnEncoder.getAbsolutePosition().getValue().in(Radians)));
+    //     // System.out.println("ROTATE!");
+    // }
+
+    // // Update turn inputs
+    // sparkStickyFault = false;
+    // ifOk(
+    //     turnSpark,
+    //     relTurnEncoder::getPosition,
+    //     (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
+
+    // ifOk(turnSpark, relTurnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
+    // ifOk(
+    //     turnSpark,
+    //     new DoubleSupplier[] {turnSpark::getAppliedOutput, turnSpark::getBusVoltage},
+    //     (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
+    // ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
+    // inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
+
+    // inputs.canPosition = new Rotation2d(canTurnEncoder.getAbsolutePosition().getValue().in(Radians));
+    // // Update odometry inputs
+    // inputs.odometryTimestamps =
+    //     timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    // inputs.odometryDrivePositionsRad =
+    //     drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+    // inputs.odometryTurnPositions =
+    //     turnPositionQueue.stream()
+    //         .map((Double value) -> new Rotation2d(value).minus(zeroRotation))
+    //         .toArray(Rotation2d[]::new);
+    // timestampQueue.clear();
+    // drivePositionQueue.clear();
+    // turnPositionQueue.clear();
     }
 
     @Override
