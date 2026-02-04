@@ -16,8 +16,6 @@ public interface ClimbIO {
 
   default void updateInputs(ClimbIOInputs inputs) {}
 
-  default void applyOutputs(ClimbIOOutputs outputs) {}
-
   public default void setClimbVoltage(double volts) {}
 
   public default void setClimbPosition(double position) {}

@@ -1,8 +1,9 @@
 package frc.robot.subsystems.climb;
 
-import static frc.robot.util.SparkUtil.tryUntilOk;
+import static frc.robot.util.SparkUtil.ifOk;
 
-import com.ctre.phoenix6.hardware.CANcoder;
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -12,11 +13,13 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
+import frc.robot.util.SparkUtil;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+public class ClimbIOSpark implements ClimbIO {
 
-public class ClimbIOSpark implements ClimbIO{
- 
     // Hardware objects
     private final SparkMax climb;
 
@@ -25,13 +28,13 @@ public class ClimbIOSpark implements ClimbIO{
     // Closed loop controllers
     private final SparkClosedLoopController climbController;
 
-    public ClimbIOSpark(){
+    public ClimbIOSpark() {
 
-    climb = new SparkMax(0, MotorType.kBrushless);
+        climb = new SparkMax(ClimbConstants.kClimbCanID, MotorType.kBrushless);
 
-    climbEncoder = climb.getEncoder();
+        climbEncoder = climb.getEncoder();
 
-    climbController = climb.getClosedLoopController();
+        climbController = climb.getClosedLoopController();
 
     // Configure extention motor
     SparkMaxConfig climbConfig = new SparkMaxConfig();
@@ -63,36 +66,14 @@ public class ClimbIOSpark implements ClimbIO{
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
 
-    climb.configure(climbConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    climb.clearFaults();
+        climb.configure(climbConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        climb.clearFaults();
 
-    SparkUtil.tunePID(
-        "Climb PID " + module, 
-        climb, 
-        climbConfig, 
-        new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
-        ResetMode.kResetSafeParameters, 
-        PersistMode.kPersistParameters,
-        true,
-        false
-        );
     }
 
     @Override
     public void updateInputs(ClimbIOInputs inputs) {
-    // Update climb inputs
-    sparkStickyFault = false;
-    ifOk(
-        climb,
-        climbEncoder::getPosition,
-        (value) -> inputs.climbPosition = value);
-
-    ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.climbVelocityRadPerSec = value);
-    ifOk(
-        climb,
-        new DoubleSupplier[] {climb::getAppliedOutput, climb::getBusVoltage},
-        (values) -> inputs.climbAppliedVolts = values[0] * values[1]);
-    ifOk(climb, climb::getOutputCurrent, (value) -> inputs.climbCurrentAmps = value);
+        
     }
 
     @Override
@@ -109,7 +90,4 @@ public class ClimbIOSpark implements ClimbIO{
     public void stopClimb() {
         climb.stopMotor();
     }
-  }
-
-
-
+}

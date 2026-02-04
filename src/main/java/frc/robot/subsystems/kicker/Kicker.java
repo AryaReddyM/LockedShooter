@@ -3,16 +3,19 @@ package frc.robot.subsystems.kicker;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.util.state.StateMachine;
 
 public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
 
+    private final RobotState state;
     private final KickerIO kickerIO;
     private final KickerIOInputsAutoLogged inputs = new KickerIOInputsAutoLogged();
 
-    public Kicker(KickerIO kickerIO) {
+    public Kicker(KickerIO kickerIO, RobotState state) {
         super("Kicker", State.UNDETERMINED, State.class);
         this.kickerIO = kickerIO;
+        this.state = state;
         registerStateTransitions();
         registerStateCommands();
         enable();
@@ -21,11 +24,11 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     @Override
     public void update() {
         kickerIO.updateInputs(inputs);
-        Logger.processInputs("Intake", inputs);
+        Logger.processInputs("Kicker", inputs);
     }
 
     public void shoot() {
-        kickerIO.setKickerSpeed(0);
+        kickerIO.setKickerVoltage(0);
 
     }
 
