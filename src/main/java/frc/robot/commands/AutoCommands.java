@@ -7,8 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -16,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
+import frc.robot.util.CustomAutoBuilder;
+import frc.robot.util.DynamicPathGenerator;
 
 public class AutoCommands {
 
@@ -26,30 +31,36 @@ public class AutoCommands {
         public Command getCommand(RobotState state) {
             return new PrintCommand("Unfilled");
         }
-    }
 
-    private static final List<AutoClass> availableAutos = List.of(
-        new testAuto()
-    );
-
-    public static Optional<AutoClass> getAutoByName(String name) {
-        for (AutoClass auto : availableAutos) {
-            if (auto.name.equals(name)) {
-                return Optional.of(auto);
-            }
-        }
-        
-        return Optional.empty(); 
-    }
-
-    public static List<PathPlannerPath> getAutoDisplayList(String[] sequentialPathStrings) {
+        public List<PathPlannerPath> getAutoDisplayList() {
             try {
                 Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
+
                 return new ArrayList<>(pathMap.values());
             } catch (Exception e) {
                 return new ArrayList<>();
             }
         }
+    }
+
+    // DONT FORGET THIS
+    private static final List<AutoClass> availableAutos = List.of(
+            new testAuto(),
+            new waypointTestAuto()
+    );
+
+    public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
+        if (name == "CUSTOM AUTO (GAME)") {
+            return Optional.of(state.getCustomAutoBuilder());
+        }
+        for (AutoClass auto : availableAutos) {
+            if (auto.name.equals(name)) {
+                return Optional.of(auto);
+            }
+        }
+
+        return Optional.empty();
+    }
 
     private static Map<String, PathPlannerPath> getMapPath(String[] sequentialPathStrings) throws Exception {
         Map<String, PathPlannerPath> pathMap = new HashMap<>();
@@ -62,10 +73,10 @@ public class AutoCommands {
         return pathMap;
     }
 
-public static class testAuto extends AutoClass {
+    public static class testAuto extends AutoClass {
         public testAuto() {
             this.name = "Apple (GAME)";
-            this.sequentialPathStrings = new String[]{"Center to Depot"};
+            this.sequentialPathStrings = new String[] { "Center to Depot" };
         }
 
         @Override
@@ -84,6 +95,36 @@ public static class testAuto extends AutoClass {
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
             }
+        }
+    }
+
+    public static class waypointTestAuto extends AutoClass {
+        PathPlannerPath waypointGeneratedPath;
+
+        public waypointTestAuto() {
+            this.name = "WAYPOINT (GAME)";
+            this.sequentialPathStrings = new String[] {};
+            waypointGeneratedPath = ActionCommands.waypointTestPath();
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            return new ParallelCommandGroup(
+                    AutoBuilder.followPath(waypointGeneratedPath),
+                    new SequentialCommandGroup(
+                            new WaitCommand(1),
+                            new InstantCommand())).withName(name);
+        }
+
+        @Override
+        public List<PathPlannerPath> getAutoDisplayList() {
+            List<PathPlannerPath> pathList = new ArrayList<>();
+
+            if (waypointGeneratedPath != null) {
+                pathList.add(waypointGeneratedPath);
+            }
+
+            return pathList;
         }
     }
 }
