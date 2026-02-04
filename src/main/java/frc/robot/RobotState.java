@@ -392,7 +392,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
-        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName("Apple").get().getCommand(this));
+        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName("Apple (GAME)").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -770,7 +770,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     @Override
     protected void onTeleopStart() {
-        System.out.println("ewfwefwefwefwefwef");
         setState(State.TRAVERSING);
     }
 
@@ -816,7 +815,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                         Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(autoName);
 
                         if (!possibleAuto.isEmpty()) {
-                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                            List<PathPlannerPath> pathGroup = AutoCommands.getAutoDisplayList(possibleAuto.get().sequentialPathStrings);
 
                             List<Pose2d> allPoses = new ArrayList<>();
 
@@ -829,9 +828,12 @@ public class RobotState extends StateMachine<RobotState.State> {
                             }
 
                             drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        } else {
+                            drive.setFieldPoses();
                         }
 
                     } catch (Exception e) {
+                        drive.setFieldPoses();
                         Elastic.sendNotification(
                                 new Notification()
                                         .withTitle("Auto Mapping")

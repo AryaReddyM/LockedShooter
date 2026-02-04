@@ -26,10 +26,6 @@ public class AutoCommands {
         public Command getCommand(RobotState state) {
             return new PrintCommand("Unfilled");
         }
-
-        public List<PathPlannerPath> getAutoDisplayList() {
-            return new ArrayList<>();
-        }
     }
 
     private static final List<AutoClass> availableAutos = List.of(
@@ -38,7 +34,6 @@ public class AutoCommands {
 
     public static Optional<AutoClass> getAutoByName(String name) {
         for (AutoClass auto : availableAutos) {
-            System.out.println(auto.name);
             if (auto.name.equals(name)) {
                 return Optional.of(auto);
             }
@@ -46,6 +41,15 @@ public class AutoCommands {
         
         return Optional.empty(); 
     }
+
+    public static List<PathPlannerPath> getAutoDisplayList(String[] sequentialPathStrings) {
+            try {
+                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
+                return new ArrayList<>(pathMap.values());
+            } catch (Exception e) {
+                return new ArrayList<>();
+            }
+        }
 
     private static Map<String, PathPlannerPath> getMapPath(String[] sequentialPathStrings) throws Exception {
         Map<String, PathPlannerPath> pathMap = new HashMap<>();
@@ -60,7 +64,7 @@ public class AutoCommands {
 
 public static class testAuto extends AutoClass {
         public testAuto() {
-            this.name = "Apple";
+            this.name = "Apple (GAME)";
             this.sequentialPathStrings = new String[]{"Center to Depot"};
         }
 
@@ -76,19 +80,9 @@ public static class testAuto extends AutoClass {
                                 new InstantCommand(() -> {
                                     // state.getShooter().requestTransition(State.SHOOTING);
                                 })))
-                        .withName(name + " GAME");
+                        .withName(name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            }
-        }
-
-        @Override
-        public List<PathPlannerPath> getAutoDisplayList() {
-            try {
-                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-                return new ArrayList<>(pathMap.values());
-            } catch (Exception e) {
-                return new ArrayList<>();
             }
         }
     }
