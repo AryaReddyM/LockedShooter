@@ -46,7 +46,7 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void updateInputs(IntakeIOInputs inputs) {
+  public void updateInputs(IntakeIO.IntakeIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
       motorAppliedVolts =

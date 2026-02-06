@@ -17,9 +17,16 @@ public interface IntakeIO {
     double extensionCurrentAmps = 0;
   }
 
-  public default void updateInputs(IntakeIOInputs inputs) {}
 
-  public default void setVoltage(double volts) {}
+  default void updateInputs(IntakeIOInputs inputs) {}
 
-  public default void stop() {}
+  public default void setRollerVoltage(double volts) {}
+
+  public default void setRollerSpeed(double speed) {}
+
+  public default void setExtensionPosition(double position) {}
+
+  public default void stopRollers() {}
+
+  public default void stopExtension() {}
 }

@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -7,11 +9,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -23,6 +26,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -80,7 +84,7 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
+    public final static int robotState = 2; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -89,6 +93,16 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Drive drive;
     private VisionSubsystem vision;
+    private Shooter shooter;
+    private Climb climb;
+    private Intake intake;
+    private Hopper hopper;
+    private Kicker kicker;
+
+    private Command autoCommand = null;
+
+    private Supplier<ShooterSetpoint> hubSupplier;
+    private Supplier<ShooterSetpoint> passSupplier;
 
     private CommandXboxController controller = new CommandXboxController(0);
 
@@ -291,28 +305,28 @@ public class RobotState extends StateMachine<RobotState.State> {
         //     }
         // }
 
-        // { // intake
-        //     switch (robotState) {
-        //         case 1:
-        //             intake = new Intake(
-        //                 new IntakeIOSpark(),
-        //                 this
-        //             );
-        //             break;
-        //         case 2:
-        //             intake = new Intake(
-        //                 new IntakeIOSim(),
-        //                 this
-        //             );
-        //             break;
-        //         default:
-        //             intake = new Intake(
-        //                 new IntakeIO() {},
-        //                 this
-        //             );
-        //             break;
-        //     }
-        // }
+        { // intake
+            switch (robotState) {
+                case 1:
+                    intake = new Intake(
+                        new IntakeIOSpark(),
+                        this
+                    );
+                    break;
+                case 2:
+                    intake = new Intake(
+                        new IntakeIOSim(),
+                        this
+                    );
+                    break;
+                default:
+                    intake = new Intake(
+                        new IntakeIO() {},
+                        this
+                    );
+                    break;
+            }
+        }
 
         // { // kicker
         //     switch (robotState) {
@@ -356,7 +370,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         // addChildSubsystem(shooter);
         // addChildSubsystem(climb);
         // addChildSubsystem(hopper);
-        // addChildSubsystem(intake);
+        addChildSubsystem(intake);
         // addChildSubsystem(kicker);
         enable();
     }
@@ -406,25 +420,25 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE)
+                drive.transitionCommand(Drive.State.IDLE),
                 // shooter.transitionCommand(Shooter.State.IDLE),
                 // climb.transitionCommand(Climb.State.STOW),
                 // hopper.transitionCommand(Hopper.State.IDLE),
-                // intake.transitionCommand(Intake.State.STOW),
+                intake.transitionCommand(Intake.State.STOW)
                 // kicker.transitionCommand(Kicker.State.IDLE)
                 ));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING)
+                drive.transitionCommand(Drive.State.TRAVERSING),
                 // shooter.transitionCommand(Shooter.State.IDLE),
                 // climb.transitionCommand(Climb.State.STOW),
                 // hopper.transitionCommand(Hopper.State.IDLE),
-                // intake.transitionCommand(Intake.State.STOW),
+                intake.transitionCommand(Intake.State.STOW)
                 // kicker.transitionCommand(Kicker.State.IDLE)
                 ));
 
         registerStateCommand(State.INTAKING, new ParallelCommandGroup(
-                // intake.transitionCommand(Intake.State.INTAKE),
+                intake.transitionCommand(Intake.State.INTAKE)
                 // hopper.transitionCommand(Hopper.State.IDLE),
                 // kicker.transitionCommand(Kicker.State.IDLE),
                 // climb.transitionCommand(Climb.State.STOW),
@@ -433,7 +447,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 ));
 
         registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
-                // intake.transitionCommand(Intake.State.IDLE),
+                intake.transitionCommand(Intake.State.IDLE)
                 // hopper.transitionCommand(Hopper.State.SHOOT),
                 // kicker.transitionCommand(Kicker.State.SHOOT),
                 // climb.transitionCommand(Climb.State.STOW),
@@ -442,7 +456,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 ));
 
         registerStateCommand(State.PASSING, new ParallelCommandGroup(
-                // intake.transitionCommand(Intake.State.IDLE),
+                intake.transitionCommand(Intake.State.IDLE)
                 // hopper.transitionCommand(Hopper.State.SHOOT),
                 // kicker.transitionCommand(Kicker.State.SHOOT),
                 // climb.transitionCommand(Climb.State.STOW),
@@ -451,7 +465,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 ));
 
         registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
-                // intake.transitionCommand(Intake.State.INTAKE),
+                intake.transitionCommand(Intake.State.INTAKE)
                 // hopper.transitionCommand(Hopper.State.SHOOT),
                 // kicker.transitionCommand(Kicker.State.SHOOT),
                 // climb.transitionCommand(Climb.State.STOW),
@@ -460,7 +474,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 ));
 
         registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
-                // intake.transitionCommand(Intake.State.INTAKE),
+                intake.transitionCommand(Intake.State.INTAKE)
                 // hopper.transitionCommand(Hopper.State.SHOOT),
                 // kicker.transitionCommand(Kicker.State.SHOOT),
                 // climb.transitionCommand(Climb.State.STOW),
@@ -472,7 +486,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 // shooter.transitionCommand(Shooter.State.IDLE),
                 // climb.transitionCommand(Climb.State.CLIMB),
                 // hopper.transitionCommand(Hopper.State.IDLE),
-                // intake.transitionCommand(Intake.State.STOW),
+                intake.transitionCommand(Intake.State.STOW)
                 // kicker.transitionCommand(Kicker.State.IDLE)
                 ));
 
@@ -497,10 +511,20 @@ public class RobotState extends StateMachine<RobotState.State> {
                                         new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                                 drive)
                                 .ignoringDisable(true));
-    }
 
-    public Command getAutonomousCommand() {
-        return Commands.print("None");
+        Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(13).get().toPose2d()
+                .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
+                        new Rotation2d(Units.degreesToRadians(270))));
+        // controller
+        //         .y()
+        //         .onTrue(
+        //                 new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
+
+        controller
+                .y()
+                .onTrue(
+                    intake.transitionCommand(Intake.State.INTAKE)
+                );
     }
 
     public Drive getDrive() {
