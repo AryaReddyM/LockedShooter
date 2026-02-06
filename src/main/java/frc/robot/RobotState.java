@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
@@ -76,8 +77,11 @@ import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
 import frc.robot.subsystems.vision.VisionIOSimPhoton;
 import frc.robot.subsystems.vision.VisionSubsystem;
 import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
+import frc.robot.util.CustomAutoBuilder;
+import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
+import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.MathHelpers;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
@@ -100,6 +104,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     private Kicker kicker;
 
     private Command autoCommand = null;
+    CustomAutoBuilder customAutoBuilder;
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
@@ -353,6 +358,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // // auto setup
         {
+            customAutoBuilder = new CustomAutoBuilder(this);
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
             setupDriveDiagnosisAutos();
         }
@@ -373,6 +379,12 @@ public class RobotState extends StateMachine<RobotState.State> {
         addChildSubsystem(intake);
         // addChildSubsystem(kicker);
         enable();
+
+        try{
+            DynamicPathGenerator.warmupInit();
+        } catch (Exception e) {
+            Elastic.sendNotification(new Notification().withTitle("Warmup Command").withLevel(NotificationLevel.ERROR).withDescription("Failed to warmup commands"));
+        }
     }
 
     private void setupDriveDiagnosisAutos() {
@@ -392,7 +404,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                 "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
-        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName("Apple").get().getCommand(this));
+        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
+        autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }
 
     private void setupNotis() {
@@ -587,6 +602,10 @@ public class RobotState extends StateMachine<RobotState.State> {
         return enablePathCancel.get();
     }
 
+    public CustomAutoBuilder getCustomAutoBuilder() {
+        return customAutoBuilder;
+    }
+
     public void addOdometryMeasurement(double timestamp, Pose2d pose) {
         fieldToRobot.addSample(timestamp, pose);
     }
@@ -776,7 +795,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     @Override
     protected void onTeleopStart() {
-        System.out.println("ewfwefwefwefwefwef");
         setState(State.TRAVERSING);
     }
 
@@ -819,9 +837,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                     String autoName = autoCommand.getName();
 
                     try {
-                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(autoName);
+                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
-                        if (!possibleAuto.isEmpty()) {
+                        if (possibleAuto.isPresent()) {
                             List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
 
                             List<Pose2d> allPoses = new ArrayList<>();
@@ -835,13 +853,16 @@ public class RobotState extends StateMachine<RobotState.State> {
                             }
 
                             drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        } else {
+                            drive.setFieldPoses();
                         }
 
                     } catch (Exception e) {
+                        drive.setFieldPoses();
                         Elastic.sendNotification(
                                 new Notification()
                                         .withTitle("Auto Mapping")
-                                        .withDescription("Unable to add Auto Trajectory"));
+                                        .withDescription("Unable to add Auto Trajectory").withLevel(NotificationLevel.ERROR));
                     }
                 }
             }

@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
+import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.state.graph.DirectionalEnumGraph;
 import frc.robot.util.state.transitions.CommandTransition;
 import frc.robot.util.state.transitions.TransitionBase;
@@ -530,7 +531,7 @@ public abstract class StateMachine<E extends Enum<E>> extends SubsystemBase {
     cancelStateCommand();
 
     currentState = state;
-    Elastic.sendNotification(new Notification().withTitle(getSubsystem()).withDescription("Changed state to " + state.toString()).withDisplaySeconds(1));
+    Elastic.sendNotification(new Notification().withTitle(getSubsystem()).withDescription("Changed state to " + state.toString()).withDisplaySeconds(1).withLevel(NotificationLevel.INFO));
 
     clearFlags();
     if (stateCommands.containsKey(state)) {
