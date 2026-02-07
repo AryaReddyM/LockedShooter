@@ -76,8 +76,8 @@ public class ClimbIOSpark implements ClimbIO {
         new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
         ResetMode.kResetSafeParameters, 
         PersistMode.kPersistParameters,
-        true,
-        false
+        false,
+        true
         );
     }
 

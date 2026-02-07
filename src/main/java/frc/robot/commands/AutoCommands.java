@@ -73,6 +73,45 @@ public class AutoCommands {
         return pathMap;
     }
 
+    public static class centerToFuel extends AutoClass {
+        public centerToFuel() {
+            this.name = "Apple (GAME)";
+            this.sequentialPathStrings = new String[] { "Center to Fuel", "Fuel to Center" };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
+                //new ParallelCommandGroup
+                //new SequentialCommandGroup
+
+                return new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Center to Fuel")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(2.5),
+                            new InstantCommand(() -> {
+                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                            })
+                        )
+                    ),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Fuel to Center")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(3.5),
+                            new InstantCommand(() -> {
+                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                            })
+                        )
+                    ))
+                        .withName(name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+            }
+        }
+    }
+
     public static class testAuto extends AutoClass {
         public testAuto() {
             this.name = "Apple (GAME)";
