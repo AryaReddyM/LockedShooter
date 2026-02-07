@@ -57,7 +57,6 @@ public class DriveConstants {
   public static final double driveEncoderPositionFactor =  2 * Math.PI / 6.48; // Wheel Radians
   public static final double driveEncoderVelocityFactor =  (2 * Math.PI / 6.48) / 60; // Wheel Rad/Sec
 
-
   // Drive PID configuration
   public static final double driveKp = 0.008;
   public static final double driveKi = 0.0;

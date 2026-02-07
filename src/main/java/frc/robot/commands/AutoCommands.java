@@ -46,7 +46,8 @@ public class AutoCommands {
     // DONT FORGET THIS
     private static final List<AutoClass> availableAutos = List.of(
             new testAuto(),
-            new waypointTestAuto()
+            new waypointTestAuto(),
+            new depotAuto()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
@@ -82,6 +83,7 @@ public class AutoCommands {
         @Override
         public Command getCommand(RobotState state) {
             try {
+                
                 Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
 
                 return new ParallelCommandGroup(
@@ -125,6 +127,36 @@ public class AutoCommands {
             }
 
             return pathList;
+        }
+    }
+
+    public static class depotAuto extends AutoClass {
+        public depotAuto() {
+            this.name = "Depot (GAME)";
+            this.sequentialPathStrings = new String[] {
+                "Starting to Depot", 
+                "Depot to 1st Shooting",
+                "1st Shooting to 2nd Shooting"
+            };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Starting to Depot")),
+                        new WaitCommand(2), // Temp seconds amount
+                        AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting")),
+                        // Shoot or smth idk
+                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting"))
+                        // Shoot again
+                        )
+                        .withName(name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+            }
         }
     }
 }

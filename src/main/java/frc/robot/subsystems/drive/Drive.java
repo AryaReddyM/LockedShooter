@@ -215,6 +215,9 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       driveInputs.currentPose = getPose();
 
       fieldPose.setRobotPose(driveInputs.currentPose);
+
+      Logger.recordOutput("Field/RobotPose", driveInputs.currentPose);
+      Logger.recordOutput("Field/RobotPoseArray", new Pose2d[] { driveInputs.currentPose });
     }
 
     // robotState updating (some logic has been redone twice)
