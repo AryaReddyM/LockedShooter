@@ -405,6 +405,8 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center to Fuel to Center", AutoCommands.getAutoByName(this, "Center to Fuel to Center (GAME)").get().getCommand(this));
+        autoChooser.addOption("Right to Fuel to Center", AutoCommands.getAutoByName(this, "Right to Fuel to Center (GAME)").get().getCommand(this));
         autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
