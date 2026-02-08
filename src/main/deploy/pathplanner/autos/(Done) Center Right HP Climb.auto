@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Center to Right Fuel"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Fuel to Center"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Center to HP"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HP Pickup"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HP to Climb"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

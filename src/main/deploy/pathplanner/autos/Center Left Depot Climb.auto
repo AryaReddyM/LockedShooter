@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right to Center"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Center to Fuel"
+            "pathName": "Center to Left Fuel"
           }
         },
         {
@@ -25,7 +19,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Climb"
+            "pathName": "Center to Depot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Depot to Climb"
           }
         }
       ]

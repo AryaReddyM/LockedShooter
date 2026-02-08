@@ -407,9 +407,10 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
         autoChooser.addOption("Center to Fuel to Center", AutoCommands.getAutoByName(this, "Center to Fuel to Center (GAME)").get().getCommand(this));
         autoChooser.addOption("Right Climb", AutoCommands.getAutoByName(this, "Right Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Left Depot & Climb", AutoCommands.getAutoByName(this, "Left Depot & Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Left Depot Climb", AutoCommands.getAutoByName(this, "Left Depot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center HP Climb", AutoCommands.getAutoByName(this, "Center HP Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center Right HP Climb", AutoCommands.getAutoByName(this, "Center Right HP Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
-
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }
 

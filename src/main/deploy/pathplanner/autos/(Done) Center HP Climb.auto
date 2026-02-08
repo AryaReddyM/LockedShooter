@@ -7,13 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Fuel"
+            "pathName": "Center to HP"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Left Fuel to Center"
+            "pathName": "HP Pickup"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HP to Center"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Center to Right Climb"
           }
         }
       ]

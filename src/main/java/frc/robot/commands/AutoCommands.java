@@ -49,7 +49,9 @@ public class AutoCommands {
             new waypointTestAuto(),
             new centerToFuelToCenter(),
             new rightClimb(),
-            new leftDepotClimb()
+            new leftDepotClimb(),
+            new centerHPClimb(),
+            new centerRightHPClimb()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
@@ -74,43 +76,6 @@ public class AutoCommands {
         }
 
         return pathMap;
-    }
-
-    public static class centerToFuelToCenter extends AutoClass {
-        public centerToFuelToCenter() {
-            this.name = "Center to Fuel to Center (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Fuel", "Left Fuel to Center" };
-        }
-
-        @Override
-        public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-
-                return new SequentialCommandGroup(
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Fuel")),
-                        new SequentialCommandGroup(
-                            new WaitCommand(2.5),
-                            new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
-                            })
-                        )
-                    ),
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Left Fuel to Center")),
-                        new SequentialCommandGroup(
-                            new WaitCommand(3.5),
-                            new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
-                            })
-                        )
-                    ))
-                        .withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            }
-        }
     }
 
     public static class testAuto extends AutoClass {
