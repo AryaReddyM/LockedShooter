@@ -31,9 +31,8 @@ public class IntakeConstants {
     // setpoints
     public static final double kExtensionStowSetpoint = 0;
     public static final double kExtensionIntakeSetpoint = 0;
-    public static final double kRollerIntakeVoltage = 0;
     public static final double kExtensionOuttakeSetpoint = 0;
-    public static final double kRollerOuttakeVoltage = 0;
+    public static final double kRollerOuttakeSpeed = 0;
     public static final double kRollerIntakeSpeed = 0;
 
 

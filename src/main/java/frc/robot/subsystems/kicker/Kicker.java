@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
 public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
@@ -28,7 +29,7 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     }
 
     public void shoot() {
-        kickerIO.setKickerVoltage(0);
+        kickerIO.setKickerSpeed(GetTuned.getNumber("Kicker/Shot Speed", KickerConstants.kKickerShootSpeed));
 
     }
 

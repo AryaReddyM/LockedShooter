@@ -236,6 +236,12 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         // { // shooter
+        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+
+        //     hubSupplier.get();
+        //     passSupplier.get();
+
         //     switch (robotState) {
         //         case 1:
         //             shooter = new Shooter(

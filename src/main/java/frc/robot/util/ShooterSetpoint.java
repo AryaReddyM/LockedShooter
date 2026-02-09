@@ -62,10 +62,10 @@ public class ShooterSetpoint {
         Rotation2d turretRotationRobotFrame = robotToTargetRotation
                 .minus(robotState.getLatestFieldToRobot().getValue().getRotation());
         Rotation2d turretRotationTurretFrame = turretRotationRobotFrame
-                .rotateBy(MathHelpers.kRotation2dPi).rotateBy(ShooterConstants.kTurretToShotCorrection);
+                .rotateBy(MathHelpers.kRotation2dPi).rotateBy(Rotation2d.fromDegrees(GetTuned.getNumber("Turret/ShotCorrection Degree", ShooterConstants.kTurretToShotCorrection.getDegrees())));
 
         // hood
-        var hoodZeroedAngle = Rotation2d.fromDegrees(HoodConstants.kHoodZeroedAngleDegrees);
+        var hoodZeroedAngle = Rotation2d.fromDegrees(GetTuned.getNumber("Hood/Zeroed Angle Degrees", HoodConstants.kHoodZeroedAngleDegrees));
         double hoodAngle = hoodZeroedAngle.getRadians() - pitchAngleRads;
 
         // Feedfowards
@@ -90,9 +90,9 @@ public class ShooterSetpoint {
                         robotToTargetTranslation.getZ() * robotToTargetTranslation.getZ());
 
         boolean validSetpont = true;
-        double shooterRPS = launchSpeedMetersPerSec / ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec;
-        if (shooterRPS > ShooterConstants.kShooterStage2RPSCap) {
-            shooterRPS = ShooterConstants.kShooterStage2RPSCap;
+        double shooterRPS = launchSpeedMetersPerSec / GetTuned.getNumber("Shooter/Ball Launch Vel MPS per RPS", ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec);
+        if (shooterRPS > GetTuned.getNumber("Shooter/Stage 2 RPS Cap", ShooterConstants.kShooterStage2RPSCap)) {
+            shooterRPS = GetTuned.getNumber("Shooter/Stage 2 RPS Cap", ShooterConstants.kShooterStage2RPSCap);
             validSetpont = false;
         }
 
@@ -119,8 +119,8 @@ public class ShooterSetpoint {
         var vRobot = robotState.getLatestMeasuredFieldRelativeChassisSpeeds();
         Translation3d d = target.minus(
                 new Translation3d(fieldToRobot.getValue().getX(), fieldToRobot.getValue().getY(),
-                        ShooterConstants.kBallReleaseHeight));
-        var hoodZeroedAngle = Rotation2d.fromDegrees(HoodConstants.kHoodZeroedAngleDegrees);
+                        GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight)));
+        var hoodZeroedAngle = Rotation2d.fromDegrees(GetTuned.getNumber("Hood/Zeroed Angle Degrees", HoodConstants.kHoodZeroedAngleDegrees));
 
         double apexHeight = maxPassHeight;
         double pitchAngleRads = 0.0;
@@ -133,7 +133,7 @@ public class ShooterSetpoint {
         for (int i = 0; i < max_num_iterations; ++i) {
             // Try to aim at our nominal apex height, then reduce it if we need to.
             final double kG = -9.81;
-            double vz = Math.sqrt(-2.0 * kG * (apexHeight - ShooterConstants.kBallReleaseHeight));
+            double vz = Math.sqrt(-2.0 * kG * (apexHeight - GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight)));
             double t_apex = vz / -kG;
             double t_fall = Math.sqrt(2.0 * apexHeight / -kG);
             double t_total = t_apex + t_fall;
@@ -149,12 +149,12 @@ public class ShooterSetpoint {
             // Solving exactly for the extremal hood position yields a quartic function, so
             // just binary search over
             // apex heights to find something close.
-            if (hoodAngle < HoodConstants.kHoodMinPositionRadians) {
+            if (hoodAngle < GetTuned.getNumber("Hood/Min Pos Rads", HoodConstants.kHoodMinPositionRadians)) {
                 // We have to aim lower. Don't remember the launch parameters because this angle
                 // is infeasible.
                 maxApexHeight = Math.min(apexHeight, maxApexHeight);
                 apexHeight = (maxApexHeight - minApexHeight) / 2.0 + minApexHeight;
-            } else if (apexHeight < ShooterConstants.kPassMaxApexHeight) {
+            } else if (apexHeight < GetTuned.getNumber("Shooter/Pass Max Apex Height", ShooterConstants.kPassMaxApexHeight)) {
                 // We can aim higher. Remember the parameters in case this is the best we find.
                 launchSpeedMetersPerSec = Math.sqrt(vz * vz + shotXY * shotXY);
                 robotToTargetRotation = new Rotation2d(vx, vy);
@@ -191,7 +191,7 @@ public class ShooterSetpoint {
     private static ShooterSetpoint fromAutoTarget(Translation3d speakerTarget, RobotState robotState) {
         var setpoint = fromSpeakerTarget(speakerTarget, robotState);
         if (Timer.getFPGATimestamp() - robotState.getAutoStartTime() <= 2) {
-            setpoint.shooterRPS = ShooterConstants.kPreloadShotRPS;
+            setpoint.shooterRPS = GetTuned.getNumber("Shooter/Preload Shot RPS", ShooterConstants.kPreloadShotRPS);
         }
         return setpoint;
     }
@@ -215,23 +215,23 @@ public class ShooterSetpoint {
                 target.getY() - fieldToRobot.getY()).getNorm();
 
         double launchSpeedRPS = 0.0;
-        if (distanceToTarget < ShooterConstants.kShooterStage2MaxShortRangeDistance) {
-            launchSpeedRPS = ShooterConstants.kShooterStage2RPSShortRange;
-        } else if (distanceToTarget > ShooterConstants.kShooterStage2MinLongRangeDistance) {
-            launchSpeedRPS = ShooterConstants.kShooterStage2RPSLongRange;
+        if (distanceToTarget < GetTuned.getNumber("Shooter/Stage 2 Max Short Range Dist", ShooterConstants.kShooterStage2MaxShortRangeDistance)) {
+            launchSpeedRPS = GetTuned.getNumber("Shooter/Stage 2 RPS Short Range", ShooterConstants.kShooterStage2RPSShortRange);
+        } else if (distanceToTarget > GetTuned.getNumber("Shooter/Stage 2 Min Long Range Dist", ShooterConstants.kShooterStage2MinLongRangeDistance)) {
+            launchSpeedRPS = GetTuned.getNumber("Shooter/Stage 2 RPS Long Range", ShooterConstants.kShooterStage2RPSLongRange);
         } else {
-            var x = (distanceToTarget - ShooterConstants.kShooterStage2MaxShortRangeDistance) /
-                    (ShooterConstants.kShooterStage2MinLongRangeDistance
-                            - ShooterConstants.kShooterStage2MaxShortRangeDistance);
-            launchSpeedRPS = Util.interpolate(ShooterConstants.kShooterStage2RPSShortRange,
-                    ShooterConstants.kShooterStage2RPSLongRange, x);
+            var x = (distanceToTarget - GetTuned.getNumber("Shooter/Stage 2 Max Short Range Dist", ShooterConstants.kShooterStage2MaxShortRangeDistance)) /
+                    (GetTuned.getNumber("Shooter/Stage 2 Min Long Range Dist", ShooterConstants.kShooterStage2MinLongRangeDistance)
+                            - GetTuned.getNumber("Shooter/Stage 2 Max Short Range Dist", ShooterConstants.kShooterStage2MaxShortRangeDistance));
+            launchSpeedRPS = Util.interpolate(GetTuned.getNumber("Shooter/Stage 2 RPS Short Range", ShooterConstants.kShooterStage2RPSShortRange),
+                    GetTuned.getNumber("Shooter/Stage 2 RPS Long Range", ShooterConstants.kShooterStage2RPSLongRange), x);
         }
 
         // if (overrideRPS.isPresent()) {
         // launchSpeedRPS = overrideRPS.get();
         // }
 
-        double launchSpeedMetersPerSec = ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec *
+        double launchSpeedMetersPerSec = GetTuned.getNumber("Shooter/Ball Launch Vel MPS per RPS", ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec) *
                 launchSpeedRPS;
 
         boolean kUseMotionCompensation = true;
@@ -251,7 +251,7 @@ public class ShooterSetpoint {
                 vShot = 1.01 * vShot;
             }
             Translation3d d = target.minus(
-                    new Translation3d(fieldToRobot.getX(), fieldToRobot.getY(), ShooterConstants.kBallReleaseHeight));
+                    new Translation3d(fieldToRobot.getX(), fieldToRobot.getY(), GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight)));
             var b = -2.0 * (d.getX() * vRobot.vxMetersPerSecond +
                     d.getY() * vRobot.vyMetersPerSecond);
             var c = d.getX() * d.getX() + d.getY() * d.getY() + d.getZ() * d.getZ();
@@ -277,7 +277,7 @@ public class ShooterSetpoint {
                     // But, v here is (distance / t), so v^2 * t^2 just becomes distance^2, which is
                     // c.
                     // That's neat, huh.
-                    drop += 0.5 * ShooterConstants.kBallLaunchLiftCoeff * c;
+                    drop += 0.5 * GetTuned.getNumber("Shooter/Ball Lift Coeff", ShooterConstants.kBallLaunchLiftCoeff) * c;
                 }
                 pitchAngleRads = Math.atan2((d.getZ() - drop) / t, xyVel);
                 vShot = Math.sqrt((d.getZ() - drop) * (d.getZ() - drop) / (t * t) + xyVel * xyVel);
@@ -288,7 +288,7 @@ public class ShooterSetpoint {
             robotToTargetRotation = new Rotation2d(
                     target.getX() - fieldToRobot.getX(),
                     target.getY() - fieldToRobot.getY());
-            var differential_height = target.getZ() - ShooterConstants.kBallReleaseHeight;
+            var differential_height = target.getZ() - GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight);
             pitchAngleRads = Math.atan2(differential_height, distanceToTarget);
             robotToTargetTranslation = new Translation3d(
                     target.getX() - fieldToRobot.getX(),

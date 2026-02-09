@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.RobotState;
-import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 
 public class PassTargetFactory {
@@ -19,7 +19,6 @@ public class PassTargetFactory {
     final static double kPrimaryYOffsetFromAmpWall = Units.inchesToMeters(72);
     final static double kSecondaryYOffsetFromAmpWall = Units.inchesToMeters(20);
 
-    final static double kNominalPoopHeight = FlywheelConstants.kPassMaxApexHeight;
     final static double kLineDrivePoopHeight = Units.inchesToMeters(36.0);
 
     public static Translation3d primaryForFarZone() {
@@ -28,7 +27,7 @@ public class PassTargetFactory {
         // Aim at the amp wall plus some margin in Y
         final double targetY = VisionConstants.kFieldWidthMeters - kPrimaryYOffsetFromAmpWall;
 
-        return new Translation3d(targetX, targetY, kNominalPoopHeight);
+        return new Translation3d(targetX, targetY, GetTuned.getNumber("Shooter/Pass Max Apex Height", ShooterConstants.kPassMaxApexHeight));
     }
 
     public static Translation3d generate(RobotState robotState) {

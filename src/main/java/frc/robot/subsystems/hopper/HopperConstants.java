@@ -26,6 +26,7 @@ public class HopperConstants {
 
     // setpoints
     public static final double kHopperShootSpeed = 0;
+    public static final double kHopperOuttakeSpeed = 0;
     
     
 }
