@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.util.DynamicPathGenerator;
 
@@ -90,5 +92,14 @@ public class ActionCommands {
         });
     }
 
-    
+    public static Command climbUp(RobotState state) {
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.UP)),
+            new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.IDLE))
+        );
+    }
+
+    public static Command climbDown(RobotState state) {
+        return new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.CLIMB));
+    }
 }
