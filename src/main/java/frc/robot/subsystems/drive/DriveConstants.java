@@ -150,4 +150,16 @@ public class DriveConstants {
 
   public static final double metersAccelTolerance = 0.075;
   public static final double radAccelTolerance = Math.PI / 16;
+
+
+
+  // path planner
+
+  public static double kABDriveP = 5.0;
+  public static double kABDriveI = 0.0;
+  public static double kABDriveD = 0.0;
+
+  public static double kABTurnP = 5.0;
+  public static double kABTurnI = 0.0;
+  public static double kABTurnD = 0.0;
 }

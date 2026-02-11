@@ -18,6 +18,8 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.PathPlannerLogging;
+
+import dev.doglog.DogLog;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
@@ -88,6 +90,14 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   private RobotState robotState;
 
+  public static double kABDriveP = DriveConstants.kABDriveP;
+  public static double kABDriveI = DriveConstants.kABDriveI;
+  public static double kABDriveD = DriveConstants.kABDriveD;
+
+  public static double kABTurnP = DriveConstants.kABTurnP;
+  public static double kAPTurnI = DriveConstants.kABTurnI;
+  public static double kAPTurnD = DriveConstants.kABTurnD;
+
   public Drive(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
@@ -112,24 +122,40 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     SparkOdometryThread.getInstance().start();
 
     // Configure AutoBuilder for PathPlanner
-    AutoBuilder.configure(
-        () -> robotState.getLatestFieldToRobotCenter(),
-        this::setPose,
-        () -> robotState.getLatestRobotRelativeChassisSpeed(),
-        this::runVelocity,
-        new PPHolonomicDriveController(
-            new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
-        ppConfig,
-        () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-        this);
-    PathPlannerLogging.setLogActivePathCallback(
-        (activePath) -> {
-          Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0]));
-        });
-    PathPlannerLogging.setLogTargetPoseCallback(
-        (targetPose) -> {
-          Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-        });
+
+    {
+      DogLog.tunable("Drive/AutoBuilder/Drive P", kABDriveP, newP -> {
+        kABDriveP = newP;
+        configureAutobuilder();;
+      });
+
+      DogLog.tunable("Drive/AutoBuilder/Drive I", kABDriveI, newI -> {
+        kABDriveI = newI;
+        configureAutobuilder();;
+      });
+
+      DogLog.tunable("Drive/AutoBuilder/Drive D", kABDriveD, newD -> {
+        kABDriveD = newD;
+        configureAutobuilder();;
+      });
+
+      DogLog.tunable("Drive/AutoBuilder/Turn P", kABTurnP, newP -> {
+        kABTurnP = newP;
+        configureAutobuilder();;
+      });
+
+      DogLog.tunable("Drive/AutoBuilder/Turn I", kABTurnI, newI -> {
+        kABTurnI = newI;
+        configureAutobuilder();;
+      });
+
+      DogLog.tunable("Drive/AutoBuilder/Turn D", kABTurnD, newD -> {
+        kABTurnD = newD;
+        configureAutobuilder();;
+      });
+    }
+
+    configureAutobuilder();
 
     // Configure SysId
     sysId = new SysIdRoutine(
@@ -201,6 +227,27 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     registerStateCommand(State.CROSSED, new InstantCommand(() -> stopWithX()));
     // Setup Commands for Pathfinding as needed
+  }
+
+  private void configureAutobuilder() {
+    AutoBuilder.configure(
+        () -> robotState.getLatestFieldToRobotCenter(),
+        this::setPose,
+        () -> robotState.getLatestRobotRelativeChassisSpeed(),
+        this::runVelocity,
+        new PPHolonomicDriveController(
+            new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+        ppConfig,
+        () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+        this);
+    PathPlannerLogging.setLogActivePathCallback(
+        (activePath) -> {
+          Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[0]));
+        });
+    PathPlannerLogging.setLogTargetPoseCallback(
+        (targetPose) -> {
+          Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+        });
   }
 
   @Override
