@@ -48,10 +48,14 @@ public class AutoCommands {
             new testAuto(),
             new waypointTestAuto(),
             new centerToFuelToCenter(),
-            new rightClimb(),
+            new rightFuelClimb(),
             new leftDepotClimb(),
             new centerHPClimb(),
-            new centerRightHPClimb()
+            new centerRightHPClimb(),
+            new centerLeftDepotClimb(),
+            new leftDepotFuel(),
+            new centerHPFuel(),
+            new rightHPFuel()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {

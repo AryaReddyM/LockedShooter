@@ -15,6 +15,7 @@ public class AutosConstants {
     public static final double hpToClimb = 2;
     //Depot
     public static final double depotToCenter = 1.8;
+    public static final double depotToClimb = 2;
     //Starting Fuel
     public static final double lFuelToCenter = 3.5;
     public static final double rFuelToCenter = 3.5;
