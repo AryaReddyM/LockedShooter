@@ -15,6 +15,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -796,6 +797,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     @Override
     protected void onTeleopStart() {
         setState(State.TRAVERSING);
+        drive.setFieldPoses("Auto Path", new ArrayList<>());
     }
 
     @Override
@@ -857,6 +859,11 @@ public class RobotState extends StateMachine<RobotState.State> {
                             drive.setFieldPoses();
                         }
 
+                        {
+                            PathPlannerLogging.setLogActivePathCallback((poses) -> {
+                                drive.setFieldPoses("Auto Path", poses);
+                            });
+                        }
                     } catch (Exception e) {
                         drive.setFieldPoses();
                         Elastic.sendNotification(

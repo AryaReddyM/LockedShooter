@@ -55,6 +55,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.util.RobotTime;
 import frc.robot.util.state.StateMachine;
 
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -557,6 +558,10 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   public void setFieldPoses(Pose2d... poses) {
     fieldPose.getObject("mainTrajectory").setPoses(poses);
+  }
+
+  public void setFieldPoses(String object, List<Pose2d> poses) {
+    fieldPose.getObject(object).setPoses(poses);
   }
 
   public enum State {
