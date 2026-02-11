@@ -1,4 +1,4 @@
-package frc.robot.subsystems.autos;
+package frc.robot.commands.autos;
 
 public class AutosConstants {
     //Wait times before changing states

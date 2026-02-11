@@ -7,11 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -19,8 +16,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
-import frc.robot.util.CustomAutoBuilder;
-import frc.robot.util.DynamicPathGenerator;
+import frc.robot.commands.autos.Autos;
 
 public class AutoCommands {
 
@@ -47,15 +43,14 @@ public class AutoCommands {
     private static final List<AutoClass> availableAutos = List.of(
             new testAuto(),
             new waypointTestAuto(),
-            new centerToFuelToCenter(),
-            new rightFuelClimb(),
-            new leftDepotClimb(),
-            new centerHPClimb(),
-            new centerRightHPClimb(),
-            new centerLeftDepotClimb(),
-            new leftDepotFuel(),
-            new centerHPFuel(),
-            new rightHPFuel()
+            new Autos.centerHPClimb(),
+            new Autos.centerHPFuel(),
+            new Autos.centerLeftDepotClimb(),
+            new Autos.centerRightHPClimb(),
+            new Autos.leftDepotClimb(),
+            new Autos.leftDepotFuel(),
+            new Autos.rightFuelClimb(),
+            new Autos.rightHPFuel()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
@@ -71,7 +66,7 @@ public class AutoCommands {
         return Optional.empty();
     }
 
-    private static Map<String, PathPlannerPath> getMapPath(String[] sequentialPathStrings) throws Exception {
+    public static Map<String, PathPlannerPath> getMapPath(String[] sequentialPathStrings) throws Exception {
         Map<String, PathPlannerPath> pathMap = new HashMap<>();
 
         for (String pathName : sequentialPathStrings) {
