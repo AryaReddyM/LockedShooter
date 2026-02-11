@@ -144,14 +144,16 @@ public class AutoCommands {
         public Command getCommand(RobotState state) {
             try {
                 Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-
+                new ActionCommands();
+                
                 return new SequentialCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Starting to Depot")),
                         new WaitCommand(2), // Temp seconds amount
                         AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting")),
-                        // Shoot or smth idk
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting"))
-                        // Shoot again
+                        ActionCommands.aimAndShoot(state),
+                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting")),
+                        ActionCommands.aimAndShoot(state)
+                        // Hang at current location
                         )
                         .withName(name);
             } catch (Exception e) {
