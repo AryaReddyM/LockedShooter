@@ -11,7 +11,7 @@ import edu.wpi.first.math.util.Units;
 
 public class DriveConstants {
 
-  public static final double maxSpeedMetersPerSec = 5.565648;
+  public static final double maxSpeedMetersPerSec = 5.265648;
   public static final double slowSpeedMetersPerSec = 2;
 
   public static final double odometryFrequency = 100.0; // Hz
@@ -54,7 +54,7 @@ public class DriveConstants {
   public static final int frontRightCanCoderId = 2;
   public static final int backRightCanCoderId = 3;
 
-  public static final int driveMotorCurrentLimit = 55; 
+  public static final int driveMotorCurrentLimit = 45; 
   public static final double wheelRadiusMeters = 0.0508;
   public static final double driveMotorReduction = 6.48;// Swerve X2i x3 with 10 pinion teeth
   public static DCMotor driveGearbox = DCMotor.getNEO(1);
@@ -65,25 +65,24 @@ public class DriveConstants {
 
 
   // Drive PID configuration
-  public static final double driveKp = 0.008;
+  public static final double driveKp = 0.01;
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
-  public static final double driveKf = 0.29;
 
   public static final double driveSimP = 0.05;
   public static final double driveSimD = 0.0;
   public static final double driveSimKs = 0.0;
   public static final double driveSimKv = 0.0789;
 
-  public static final double driveKs = 0.0;
-  public static final double driveKv = 0.29;
+  public static final double driveKs = 0.09186;
+  public static final double driveKv = 0.19819;
 
   public static final double driveIntegrationCap = .001;
   public static double turnIntegrationCap = .5;
 
   // Turn motor configuration
   public static final boolean turnInverted = true; // try to check this out
-  public static final int turnMotorCurrentLimit = 55;
+  public static final int turnMotorCurrentLimit = 45;
   public static final double turnMotorReduction = 12.1; // 9424.0 / 203.0;
   public static final DCMotor turnGearbox = DCMotor.getNeo550(1);
 

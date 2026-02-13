@@ -12,6 +12,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -76,7 +77,7 @@ public class AutoCommands {
     public static class testAuto extends AutoClass {
         public testAuto() {
             this.name = "Apple (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Depot" };
+            this.sequentialPathStrings = new String[] { "TESTONE" };
         }
 
         @Override
@@ -85,7 +86,14 @@ public class AutoCommands {
                 Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
 
                 return new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Depot")),
+                        new InstantCommand(() -> {
+                            PathPlannerPath startingPath = pathMap.get("TESTONE");
+                            if (startingPath.getStartingHolonomicPose().isPresent()) {
+                                // path needs to be flipped depending 
+                                state.getDrive().setPose(startingPath.getStartingHolonomicPose().get());
+                            }
+                        }),
+                        AutoBuilder.followPath(pathMap.get("TESTONE")),
                         new SequentialCommandGroup(
                                 new WaitCommand(1),
                                 new InstantCommand(() -> {

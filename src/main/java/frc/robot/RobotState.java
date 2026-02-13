@@ -839,25 +839,25 @@ public class RobotState extends StateMachine<RobotState.State> {
                     String autoName = autoCommand.getName();
 
                     try {
-                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
+                        // Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
-                        if (possibleAuto.isPresent()) {
-                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                        // if (possibleAuto.isPresent()) {
+                        //     List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
 
-                            List<Pose2d> allPoses = new ArrayList<>();
+                        //     List<Pose2d> allPoses = new ArrayList<>();
 
-                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                        //     boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
-                            for (PathPlannerPath path : pathGroup) {
-                                for (Pose2d pose : path.getPathPoses()) {
-                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
-                                }
-                            }
+                        //     for (PathPlannerPath path : pathGroup) {
+                        //         for (Pose2d pose : path.getPathPoses()) {
+                        //             allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                        //         }
+                        //     }
 
-                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-                        } else {
-                            drive.setFieldPoses();
-                        }
+                        //     drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        // } else {
+                        //     drive.setFieldPoses();
+                        // }
 
                         {
                             PathPlannerLogging.setLogActivePathCallback((poses) -> {

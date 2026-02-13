@@ -52,7 +52,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotState;
 import frc.robot.commands.DriveCommands;
+import frc.robot.util.Elastic;
 import frc.robot.util.RobotTime;
+import frc.robot.util.Elastic.Notification;
 import frc.robot.util.state.StateMachine;
 
 import java.util.List;
@@ -231,13 +233,14 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   }
 
   private void configureAutobuilder() {
+    Elastic.sendNotification(new Notification().withTitle("Auto Builder").withDescription("Auto builder reset"));
     AutoBuilder.configure(
         () -> robotState.getLatestFieldToRobotCenter(),
         this::setPose,
         () -> robotState.getLatestRobotRelativeChassisSpeed(),
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+            new PIDConstants(kABDriveP, kABDriveI, kABDriveD), new PIDConstants(kABTurnP, kABTurnI, kABTurnD)),
         ppConfig,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -496,6 +499,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
+    Elastic.sendNotification(new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
