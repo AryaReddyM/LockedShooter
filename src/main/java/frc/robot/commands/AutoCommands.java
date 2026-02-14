@@ -150,10 +150,11 @@ public class AutoCommands {
                     AutoBuilder.followPath(pathMap.get("Starting to Depot")),
                     new WaitCommand(2), // Temp seconds amount
                     AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting")),
-                    ActionCommands.aimAndShoot(state),
+                    //ActionCommands.aimAndShoot(state),
                     AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting")),
-                    ActionCommands.aimAndShoot(state),
-                    ActionCommands.climbUp(state)
+                    //ActionCommands.aimAndShoot(state),
+                    new AutoAlignToPoseCommand(state.getDrive(), state, state.getAprilTagPose(7), 0)
+                    //ActionCommands.climbUp(state)
                 )
                 .withName(name);
             }
