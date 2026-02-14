@@ -3,8 +3,8 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
-    "Depot Auto",
-    "New Folder"
+    "Depot Auto Paths",
+    "Outpost Depot Auto Paths"
   ],
   "autoFolders": [],
   "defaultMaxVel": 4.25,

@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.6428014324845401,
-        "y": 4.996656983447358
+        "x": 1.7311876871445409,
+        "y": 4.822607335388884
       },
       "isLocked": false,
       "linkedName": null
@@ -20,12 +20,12 @@
         "y": 7.302525641025641
       },
       "prevControl": {
-        "x": 1.153171596443395,
-        "y": 7.105604747087259
+        "x": 1.8898532099618013,
+        "y": 7.130038310689497
       },
       "nextControl": {
-        "x": 3.947218278069654,
-        "y": 7.427416749543753
+        "x": 3.863768557217326,
+        "y": 7.479950334762039
       },
       "isLocked": false,
       "linkedName": null
@@ -36,12 +36,12 @@
         "y": 7.25601282050937
       },
       "prevControl": {
-        "x": 6.43290169021888,
-        "y": 7.4677679638176855
+        "x": 6.25875571298167,
+        "y": 7.486722356689246
       },
       "nextControl": {
-        "x": 6.747817989156054,
-        "y": 7.057742940126142
+        "x": 7.611171196952551,
+        "y": 6.560264126953061
       },
       "isLocked": false,
       "linkedName": null
@@ -52,12 +52,12 @@
         "y": 1.000038461538462
       },
       "prevControl": {
-        "x": 8.461228983821101,
-        "y": 2.6465180217825046
+        "x": 8.088417144571865,
+        "y": 1.6689714185274527
       },
       "nextControl": {
-        "x": 6.707374280455521,
-        "y": 0.5847133556421881
+        "x": 6.359393643154301,
+        "y": 0.543600204043429
       },
       "isLocked": false,
       "linkedName": null
@@ -68,24 +68,24 @@
         "y": 0.9651538461538463
       },
       "prevControl": {
-        "x": 2.5104325369262246,
-        "y": 0.37286162994477634
+        "x": 2.7393367133349202,
+        "y": 0.5302810083804192
       },
       "nextControl": {
-        "x": 1.4006769655271216,
-        "y": 1.6100347691209036
+        "x": 1.49416464214484,
+        "y": 1.2425864329972016
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.5140128205082792,
-        "y": 3.732666666663217
+        "x": 1.548897435897437,
+        "y": 2.5000769230769233
       },
       "prevControl": {
-        "x": 1.3263974301464592,
-        "y": 3.4801846892632056
+        "x": 1.54321777437655,
+        "y": 1.8958850654959418
       },
       "nextControl": null,
       "isLocked": false,
@@ -95,10 +95,14 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 2.0,
-      "rotationDegrees": 90.0
+      "rotationDegrees": -90.0
     },
     {
-      "waypointRelativePos": 4,
+      "waypointRelativePos": 3.0,
+      "rotationDegrees": -90.0
+    },
+    {
+      "waypointRelativePos": 4.0,
       "rotationDegrees": 0.0
     }
   ],
@@ -106,8 +110,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.25,
+    "maxAcceleration": 5.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -118,7 +122,7 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Depot Auto",
+  "folder": "Depot Auto Paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
