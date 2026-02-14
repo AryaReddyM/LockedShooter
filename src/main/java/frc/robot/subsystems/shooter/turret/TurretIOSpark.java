@@ -4,7 +4,7 @@ import static frc.robot.util.SparkUtil.ifOk;
 
 import java.util.function.DoubleSupplier;
 
-
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -30,7 +30,7 @@ public class TurretIOSpark implements TurretIO {
     // Hardware objects
     private final SparkMax turret;
 
-    private final RelativeEncoder turretEncoder;
+    private final AbsoluteEncoder turretAbsoluteEncoder;
 
     // Closed loop controllers
     private final SparkClosedLoopController turretController;
@@ -40,7 +40,7 @@ public class TurretIOSpark implements TurretIO {
     public TurretIOSpark() {
         turret = new SparkMax(0, MotorType.kBrushless);
 
-        turretEncoder = turret.getEncoder();
+        turretAbsoluteEncoder = turret.getAbsoluteEncoder();
 
         turretController = turret.getClosedLoopController();
 
@@ -90,19 +90,21 @@ public class TurretIOSpark implements TurretIO {
         DogLog.tunable("Turret/Latency", TurretConstants.latencyComepnsationMS, (newVal) -> {
             latencyCompensatedMS = newVal;
         });
+
+        
     }
 
     @Override
     public void updateInputs(TurretIOInputs inputs) {
-        inputs.turretVelRadPerSec = turretEncoder.getVelocity();
+        inputs.turretVelRadPerSec = turretAbsoluteEncoder.getVelocity();
 
-        ifOk(turret, turretEncoder::getVelocity, (value) -> inputs.turretVelRadPerSec = value);
+        ifOk(turret, turretAbsoluteEncoder::getVelocity, (value) -> inputs.turretVelRadPerSec = value);
 
         ifOk(
                 turret,
-                turretEncoder::getPosition,
+                turretAbsoluteEncoder::getPosition,
                 (value) -> inputs.turretRotation2d = new Rotation2d(
-                        value + inputs.turretVelRadPerSec * latencyCompensatedMS / 1000));
+                        value + inputs.turretVelRadPerSec * latencyCompensatedMS / 1000).minus(TurretConstants.kTurretAbsEncoderOffset));
 
         ifOk(
                 turret,

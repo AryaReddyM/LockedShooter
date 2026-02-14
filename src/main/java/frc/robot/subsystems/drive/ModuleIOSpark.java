@@ -30,9 +30,11 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import dev.doglog.DogLog;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.util.SparkUtil;
 
 import java.util.Queue;
@@ -62,6 +64,9 @@ public class ModuleIOSpark implements ModuleIO {
   private final Queue<Double> timestampQueue;
   private final Queue<Double> drivePositionQueue;
   private final Queue<Double> turnPositionQueue;
+
+  private double kModuleS = driveKs;
+  private double kModuleV = driveKv;
 
   // Connection debouncers
   private final Debouncer driveConnectedDebounce =
@@ -139,11 +144,6 @@ public ModuleIOSpark(int module) {
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pid(driveKp, driveKi, driveKd)
         .iMaxAccum(driveIntegrationCap);
-
-    driveConfig
-        .closedLoop
-        .feedForward
-        .kV(driveKf);
         
     driveConfig
         .signals
@@ -154,6 +154,11 @@ public ModuleIOSpark(int module) {
         .appliedOutputPeriodMs(20)
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
+
+    driveConfig
+        .closedLoop
+        .feedForward
+        .kV(kModuleV);
 
     driveSpark.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     driveSpark.clearFaults();
@@ -180,11 +185,6 @@ public ModuleIOSpark(int module) {
         .pid(turnKp, turnKi, turnKd);
 
     turnConfig
-        .closedLoop
-        .feedForward
-        .kV(turnKv);
-
-    turnConfig
         .signals
         .primaryEncoderPositionAlwaysOn(true)
         .primaryEncoderPositionPeriodMs((int) (1000.0 / odometryFrequency))
@@ -194,23 +194,37 @@ public ModuleIOSpark(int module) {
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
 
+    turnConfig
+        .closedLoop
+        .feedForward
+        .kV(turnKv);
+
     // turnSpark.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     turnSpark.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     turnSpark.clearFaults();
 
+    // DogLog.tunable("Drive PID/kS", kModuleS, (newKs) -> {
+    //     kModuleS = newKs;
+    // });
+
+    // DogLog.tunable("Drive PID/kV", kModuleV, (newKv) -> {
+    //     kModuleV = newKv;
+    // });
+    
+
     SparkUtil.tunePID(
-        "Drive PID " + module, 
+        "Drive PID", 
         driveSpark, 
         driveConfig, 
-        new double[] {driveKp, driveKi, driveKd, driveKs, driveKv, 0, 0}, 
-        ResetMode.kResetSafeParameters, 
+        new double[] {driveKp, driveKi, driveKd, driveKs, driveKv, 0, 0},         ResetMode.kResetSafeParameters, 
         PersistMode.kPersistParameters,
         true,
         false
         );
 
+
     SparkUtil.tunePID(
-        "Turn PID " + module,
+        "Turn PID",
         turnSpark,
         turnConfig,
         new double [] {turnKp, turnKi, turnKd, 0, turnKv, 0, 0},
@@ -291,7 +305,7 @@ public ModuleIOSpark(int module) {
 
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
-    double ffVolts = driveKs * Math.signum(velocityRadPerSec) + driveKv * velocityRadPerSec;
+    double ffVolts = kModuleS * Math.signum(velocityRadPerSec) + kModuleV * velocityRadPerSec;
     driveController.setSetpoint(
         velocityRadPerSec,
         ControlType.kVelocity,

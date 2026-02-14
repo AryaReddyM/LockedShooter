@@ -15,6 +15,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -236,6 +237,12 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         // { // shooter
+        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+
+        //     hubSupplier.get();
+        //     passSupplier.get();
+
         //     switch (robotState) {
         //         case 1:
         //             shooter = new Shooter(
@@ -798,6 +805,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     @Override
     protected void onTeleopStart() {
         setState(State.TRAVERSING);
+        drive.setFieldPoses("Auto Path", new ArrayList<>());
     }
 
     @Override
@@ -839,26 +847,31 @@ public class RobotState extends StateMachine<RobotState.State> {
                     String autoName = autoCommand.getName();
 
                     try {
-                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
+                        // Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
-                        if (possibleAuto.isPresent()) {
-                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                        // if (possibleAuto.isPresent()) {
+                        //     List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
 
-                            List<Pose2d> allPoses = new ArrayList<>();
+                        //     List<Pose2d> allPoses = new ArrayList<>();
 
-                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                        //     boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
-                            for (PathPlannerPath path : pathGroup) {
-                                for (Pose2d pose : path.getPathPoses()) {
-                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
-                                }
-                            }
+                        //     for (PathPlannerPath path : pathGroup) {
+                        //         for (Pose2d pose : path.getPathPoses()) {
+                        //             allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                        //         }
+                        //     }
 
-                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-                        } else {
-                            drive.setFieldPoses();
+                        //     drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        // } else {
+                        //     drive.setFieldPoses();
+                        // }
+
+                        {
+                            PathPlannerLogging.setLogActivePathCallback((poses) -> {
+                                drive.setFieldPoses("Auto Path", poses);
+                            });
                         }
-
                     } catch (Exception e) {
                         drive.setFieldPoses();
                         Elastic.sendNotification(
