@@ -422,6 +422,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Right HP Fuel", AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
         autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
         autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
+        autoChooser.addOption("Outpost Auto", AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }

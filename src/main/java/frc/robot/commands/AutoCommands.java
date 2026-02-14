@@ -234,6 +234,37 @@ public class AutoCommands {
         @Override
         public Command getCommand(RobotState state) {
             try {
+                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
+                return new SequentialCommandGroup(
+                        new InstantCommand(
+                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                        AutoBuilder.followPath(pathMap.get("Starting to Outpost - AR")),
+                        // new WaitCommand(2), // Temp seconds amount
+                        AutoBuilder.followPath(pathMap.get("Outpost to 1st Shooting - AR")),
+                        // ActionCommands.aimAndShoot(state),
+                        AutoBuilder.followPath(pathMap.get("1st Shooting to Depot - AR")),
+                        // ActionCommands.aimAndShoot(state),
+                        AutoBuilder.followPath(pathMap.get("Depot to 2nd Shooting - AR"))
+                // new AutoAlignToPoseCommand(state.getDrive(), state, tagPos, 0)
+                // ActionCommands.climbUp(state)
+                )
+                        .withName(name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    public static class rightHPFuel extends AutoClass {
+        public rightHPFuel() {
+            this.name = "Right HP Fuel (GAME)";
+            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel",
+                    "Right Fuel to Center", "Center to HP", "HP Pickup", "HP to Center" };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
@@ -288,37 +319,6 @@ public class AutoCommands {
                                 ))).withName(name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
-            }
-        }
-    }
-
-    public static class rightHPFuel extends AutoClass {
-        public rightHPFuel() {
-            this.name = "Right HP Fuel (GAME)";
-            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel",
-                    "Right Fuel to Center", "Center to HP", "HP Pickup", "HP to Center" };
-        }
-
-        @Override
-        public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-                return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Starting to Outpost - AR")),
-                        // new WaitCommand(2), // Temp seconds amount
-                        AutoBuilder.followPath(pathMap.get("Outpost to 1st Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to Depot - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        AutoBuilder.followPath(pathMap.get("Depot to 2nd Shooting - AR"))
-                // new AutoAlignToPoseCommand(state.getDrive(), state, tagPos, 0)
-                // ActionCommands.climbUp(state)
-                )
-                        .withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
             }
         }
     }
