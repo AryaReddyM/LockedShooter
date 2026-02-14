@@ -534,6 +534,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                                         new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                                 drive)
                                 .ignoringDisable(true));
+
+        Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
+            .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
+                    new Rotation2d(Units.degreesToRadians(270))));
         // controller
         //         .y()
         //         .onTrue(
@@ -771,14 +775,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                         FIELD_LENGTH - bluePose.getX(),
                         FIELD_WIDTH - bluePose.getY()),
                 bluePose.getRotation().rotateBy(Rotation2d.fromDegrees(180)));
-    }
-
-    public Pose2d getAprilTagPose(int ID) {
-        Pose2d pos = VisionConstants.kAprilTagLayout.getTagPose(ID).get().toPose2d()
-                .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
-                        new Rotation2d(Units.degreesToRadians(270))));
-
-        return pos;
     }
 
     public void updateLogger() {
