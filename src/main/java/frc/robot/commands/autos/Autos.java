@@ -20,7 +20,7 @@ public class Autos {
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
             this.name = "Left Depot Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Left to Center", "Center to Depot", "Depot to Center", "Center to Climb"};
+            this.sequentialPathStrings = new String[] { "Left to Center", "Center to Depot", "Depot to Center", "Center to Left Climb"};
         }
 
         @Override
@@ -58,7 +58,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Climb")),
+                        AutoBuilder.followPath(pathMap.get("Center to Left Climb")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
@@ -67,7 +67,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -75,7 +75,7 @@ public class Autos {
     public static class rightFuelClimb extends AutoClass {
         public rightFuelClimb() {
             this.name = "Right Fuel Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel", "Right Fuel to Center", "Center to Climb"};
+            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel", "Right Fuel to Center", "Center to Right Climb"};
         }
 
         @Override
@@ -114,7 +114,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Climb")),
+                        AutoBuilder.followPath(pathMap.get("Center to Right Climb")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
@@ -123,7 +123,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -169,7 +169,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -228,7 +228,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -286,7 +286,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -350,7 +350,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -407,7 +407,7 @@ public class Autos {
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -474,7 +474,7 @@ public class Autos {
                     )
                     ).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }

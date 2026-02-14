@@ -136,7 +136,7 @@ public class AutoCommands {
                                 })))
                         .withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -208,7 +208,7 @@ public class AutoCommands {
                 )
                         .withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -276,7 +276,7 @@ public class AutoCommands {
                                 // })
                                 ))).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
