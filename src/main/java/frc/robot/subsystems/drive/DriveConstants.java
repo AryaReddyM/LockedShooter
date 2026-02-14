@@ -31,10 +31,10 @@ public class DriveConstants {
 //   public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875)); // can 2
 //   public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375)); // can 3
 
-  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375));
-  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375));
-  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875+0.5));
-  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375+0.5));
+  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375+0.5));
+  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375+0.5));
+  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875));
+  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375));
 
 
   public static final int pigeonCanId = 50;
@@ -154,11 +154,11 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 5.0;
+  public static double kABDriveP = 6.0;
   public static double kABDriveI = 0.0;
   public static double kABDriveD = 0.0;
 
-  public static double kABTurnP = 5.0;
+  public static double kABTurnP = 6.0;
   public static double kABTurnI = 0.0;
   public static double kABTurnD = 0.0;
 }

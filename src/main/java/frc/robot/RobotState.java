@@ -413,6 +413,8 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
         autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
+        autoChooser.addOption("Right HP Fuel", AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }
@@ -534,9 +536,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 drive)
                                 .ignoringDisable(true));
 
-        Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(13).get().toPose2d()
-                .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
-                        new Rotation2d(Units.degreesToRadians(270))));
+        Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
+                .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0),
+                        new Rotation2d(Units.degreesToRadians(0))));
         controller
                 .y()
                 .onTrue(
@@ -759,7 +761,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
     }
 
-    private Pose2d flipPoseForRed(Pose2d bluePose) {
+    public static Pose2d flipPoseForRed(Pose2d bluePose) {
         double FIELD_LENGTH = 16.54;
         double FIELD_WIDTH = 8.21;
 
@@ -798,6 +800,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     protected void onTeleopStart() {
         setState(State.TRAVERSING);
         drive.setFieldPoses("Auto Path", new ArrayList<>());
+        drive.setFieldPoses();
     }
 
     @Override
@@ -839,28 +842,31 @@ public class RobotState extends StateMachine<RobotState.State> {
                     String autoName = autoCommand.getName();
 
                     try {
-                        // Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
+                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
-                        // if (possibleAuto.isPresent()) {
-                        //     List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                        if (possibleAuto.isPresent()) {
+                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
 
-                        //     List<Pose2d> allPoses = new ArrayList<>();
+                            List<Pose2d> allPoses = new ArrayList<>();
 
-                        //     boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
-                        //     for (PathPlannerPath path : pathGroup) {
-                        //         for (Pose2d pose : path.getPathPoses()) {
-                        //             allPoses.add(isRed ? flipPoseForRed(pose) : pose);
-                        //         }
-                        //     }
+                            for (PathPlannerPath path : pathGroup) {
+                                for (Pose2d pose : path.getPathPoses()) {
+                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                                }
+                            }
 
-                        //     drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-                        // } else {
-                        //     drive.setFieldPoses();
-                        // }
+                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        } else {
+                            drive.setFieldPoses();
+                        }
 
                         {
                             PathPlannerLogging.setLogActivePathCallback((poses) -> {
+                                if (poses.size() > 0) {
+                                    drive.setFieldPoses();
+                                }
                                 drive.setFieldPoses("Auto Path", poses);
                             });
                         }
