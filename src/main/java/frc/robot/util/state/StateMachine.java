@@ -531,7 +531,7 @@ public abstract class StateMachine<E extends Enum<E>> extends SubsystemBase {
     cancelStateCommand();
 
     currentState = state;
-    Elastic.sendNotification(new Notification().withTitle(getSubsystem()).withDescription("Changed state to " + state.toString()).withDisplaySeconds(1).withLevel(NotificationLevel.INFO));
+    // Elastic.sendNotification(new Notification().withTitle(getSubsystem()).withDescription("Changed state to " + state.toString()).withDisplaySeconds(1).withLevel(NotificationLevel.INFO));
 
     clearFlags();
     if (stateCommands.containsKey(state)) {

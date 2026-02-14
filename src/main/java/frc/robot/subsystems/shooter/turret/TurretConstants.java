@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter.turret;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 public class TurretConstants {
 
     public static final int kTurretCanID = 0;
@@ -15,6 +17,9 @@ public class TurretConstants {
     public static final double kTurretMaxAccel = 0;
     public static final double kTurretCruiseVel = 0;
     public static final double kTurretDeviationErr = 0;
+
+    public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
+
 
 
     // factors

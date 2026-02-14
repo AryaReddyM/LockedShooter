@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
 public class Climb extends StateMachine<Climb.State> implements ClimbIO{
@@ -28,16 +29,16 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO{
     }
 
     public void stow() {
-        climbIO.setClimbPosition(ClimbConstants.kClimbStowPos);
+        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Stow Setpoint", ClimbConstants.kClimbStowPos));
     }
     
     public void up() {
-        climbIO.setClimbPosition(ClimbConstants.kClimbUpPos);
+        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Up Setpoint", ClimbConstants.kClimbUpPos));
 
     }
 
     public void down(){
-        climbIO.setClimbPosition(ClimbConstants.kClimbDownPos);
+        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Down Setpoint", ClimbConstants.kClimbDownPos));
 
     }
 

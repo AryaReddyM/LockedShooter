@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
 public class Hopper extends StateMachine<Hopper.State> implements HopperIO{
@@ -28,11 +29,11 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO{
     }
 
     public void shoot() {
-        hopperIO.setHopperVoltage(0);
+        hopperIO.setHopperSpeed(GetTuned.getNumber("Hopper/Shoot Speed", HopperConstants.kHopperShootSpeed));
     }
 
     public void outake() {
-        hopperIO.setHopperVoltage(0);
+        hopperIO.setHopperSpeed(GetTuned.getNumber("Hopper/Outtake Speed", HopperConstants.kHopperOuttakeSpeed));
     }
 
     public void stop() {

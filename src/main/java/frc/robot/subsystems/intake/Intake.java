@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
 public class Intake extends StateMachine<Intake.State> implements IntakeIO{
@@ -28,24 +29,23 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO{
     }
 
     public void stow() {
-        intakeIO.setExtensionPosition(IntakeConstants.kExtensionStowSetpoint);
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Stow Setpoint", IntakeConstants.kExtensionStowSetpoint));
         intakeIO.stopRollers();
     }
 
     public void intakeidle() {
-        intakeIO.setExtensionPosition(IntakeConstants.kExtensionIntakeSetpoint);
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
         intakeIO.stopRollers();
     }
     
     public void intake() {
-        System.out.println("Intake");
-        intakeIO.setExtensionPosition(IntakeConstants.kExtensionIntakeSetpoint);
-        intakeIO.setRollerVoltage(IntakeConstants.kRollerIntakeVoltage);
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
+        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
 
     public void outake(){
-        intakeIO.setExtensionPosition(IntakeConstants.kExtensionOuttakeSetpoint);
-        intakeIO.setRollerVoltage(IntakeConstants.kRollerOuttakeVoltage);
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Outtake Setpoint", IntakeConstants.kExtensionOuttakeSetpoint));
+        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
     }
 
     public void stop() {

@@ -11,7 +11,7 @@ import edu.wpi.first.math.util.Units;
 
 public class DriveConstants {
 
-  public static final double maxSpeedMetersPerSec = 5.565648;
+  public static final double maxSpeedMetersPerSec = 5.265648;
   public static final double slowSpeedMetersPerSec = 2;
 
   public static final double odometryFrequency = 100.0; // Hz
@@ -26,29 +26,35 @@ public class DriveConstants {
       new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
   };
 
-  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.21435546875)); // can 1
-  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.083251953125)); // can 2
-  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.31787109375)); // can 3
-  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.28271484375)); // can 4
+//   public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375)); // can 4
+//   public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375)); // can 1
+//   public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875)); // can 2
+//   public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375)); // can 3
+
+  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375));
+  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375));
+  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875+0.5));
+  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375+0.5));
+
 
   public static final int pigeonCanId = 50;
 
-  public static final int frontLeftDriveCanId = 2;
-  public static final int backLeftDriveCanId = 6;
+  public static final int frontLeftDriveCanId = 8;
+  public static final int backLeftDriveCanId = 2;
   public static final int frontRightDriveCanId = 4;
-  public static final int backRightDriveCanId = 8;
+  public static final int backRightDriveCanId = 6;
 
-  public static final int frontLeftTurnCanId = 9;
-  public static final int backLeftTurnCanId = 7;
-  public static final int frontRightTurnCanId = 3;
+  public static final int frontLeftTurnCanId = 3;
+  public static final int backLeftTurnCanId = 9;
+  public static final int frontRightTurnCanId = 7;
   public static final int backRightTurnCanId = 5;
 
-  public static final int frontLeftCanCoderId = 1;
-  public static final int backLeftCanCoderId = 3;
+  public static final int frontLeftCanCoderId = 4;
+  public static final int backLeftCanCoderId = 1;
   public static final int frontRightCanCoderId = 2;
-  public static final int backRightCanCoderId = 4;
+  public static final int backRightCanCoderId = 3;
 
-  public static final int driveMotorCurrentLimit = 55; 
+  public static final int driveMotorCurrentLimit = 45; 
   public static final double wheelRadiusMeters = 0.0508;
   public static final double driveMotorReduction = 6.48;// Swerve X2i x3 with 10 pinion teeth
   public static DCMotor driveGearbox = DCMotor.getNEO(1);
@@ -58,25 +64,24 @@ public class DriveConstants {
   public static final double driveEncoderVelocityFactor =  (2 * Math.PI / 6.48) / 60; // Wheel Rad/Sec
 
   // Drive PID configuration
-  public static final double driveKp = 0.008;
+  public static final double driveKp = 0.01;
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
-  public static final double driveKf = 0.29;
 
   public static final double driveSimP = 0.05;
   public static final double driveSimD = 0.0;
   public static final double driveSimKs = 0.0;
   public static final double driveSimKv = 0.0789;
 
-  public static final double driveKs = 0.0;
-  public static final double driveKv = 0.29;
+  public static final double driveKs = 0.09186;
+  public static final double driveKv = 0.19819;
 
   public static final double driveIntegrationCap = .001;
   public static double turnIntegrationCap = .5;
 
   // Turn motor configuration
   public static final boolean turnInverted = true; // try to check this out
-  public static final int turnMotorCurrentLimit = 55;
+  public static final int turnMotorCurrentLimit = 45;
   public static final double turnMotorReduction = 12.1; // 9424.0 / 203.0;
   public static final DCMotor turnGearbox = DCMotor.getNeo550(1);
 
@@ -143,4 +148,16 @@ public class DriveConstants {
 
   public static final double metersAccelTolerance = 0.075;
   public static final double radAccelTolerance = Math.PI / 16;
+
+
+
+  // path planner
+
+  public static double kABDriveP = 5.0;
+  public static double kABDriveI = 0.0;
+  public static double kABDriveD = 0.0;
+
+  public static double kABTurnP = 5.0;
+  public static double kABTurnI = 0.0;
+  public static double kABTurnD = 0.0;
 }
