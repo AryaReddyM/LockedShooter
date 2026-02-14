@@ -30,6 +30,7 @@ public class Autos {
 
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
@@ -84,6 +85,7 @@ public class Autos {
 
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
@@ -137,6 +139,7 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     AutoBuilder.followPath(pathMap.get("Center to HP")),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("HP Pickup")),
@@ -187,6 +190,7 @@ public class Autos {
                         new WaitCommand(AutosConstants.shootingPause)
                     ),
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to Right Fuel")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
@@ -241,6 +245,7 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                         new WaitCommand(AutosConstants.shootingPause)
                     ),
@@ -296,9 +301,9 @@ public class Autos {
         public Command getCommand(RobotState state) {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
@@ -363,6 +368,7 @@ public class Autos {
 
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to HP")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToHP),
@@ -419,6 +425,7 @@ public class Autos {
 
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
