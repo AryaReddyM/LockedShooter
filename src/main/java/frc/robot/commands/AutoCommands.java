@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
@@ -20,6 +21,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -35,6 +37,8 @@ import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
+import java.util.function.Supplier;
+
 
 public class AutoCommands {
 
@@ -80,47 +84,47 @@ public class AutoCommands {
 
     // // DONT FORGET THIS
     // private static final List<AutoClass> availableAutos = List.of(
-    //         new testAuto(),
-    //         new waypointTestAuto(),
-    //         new pathfindingTemplate()
-    //         // new depotAuto(),
-    //         // new rightHPFuel(),
-    //         // new Autos.centerHPClimb(),
-    //         // new Autos.centerHPFuel(),
-    //         // new Autos.centerLeftDepotClimb(),
-    //         // new Autos.centerRightHPClimb(),
-    //         // new Autos.leftDepotClimb(),
-    //         // new Autos.leftDepotFuel(),
-    //         // new Autos.rightFuelClimb(),
-    //         // new Autos.rightHPFuel(),
-    //         // new outpostAuto()
+    // new testAuto(),
+    // new waypointTestAuto(),
+    // new pathfindingTemplate()
+    // // new depotAuto(),
+    // // new rightHPFuel(),
+    // // new Autos.centerHPClimb(),
+    // // new Autos.centerHPFuel(),
+    // // new Autos.centerLeftDepotClimb(),
+    // // new Autos.centerRightHPClimb(),
+    // // new Autos.leftDepotClimb(),
+    // // new Autos.leftDepotFuel(),
+    // // new Autos.rightFuelClimb(),
+    // // new Autos.rightHPFuel(),
+    // // new outpostAuto()
     // );
 
     private static final List<AutoClass> availableAutos = initializeAutos();
 
-private static List<AutoClass> initializeAutos() {
-    List<AutoClass> autos = new ArrayList<>();
+    private static List<AutoClass> initializeAutos() {
+        List<AutoClass> autos = new ArrayList<>();
 
-    autos.add(new testAuto());
-    autos.add(new waypointTestAuto());
-    autos.add(new pathfindingTemplate());
+        autos.add(new testAuto());
+        autos.add(new waypointTestAuto());
+        autos.add(new pathfindingTemplate());
 
-    Class<?>[] innerClasses = Autos.class.getDeclaredClasses();
-    for (Class<?> clazz : innerClasses) {
-        if (AutoClass.class.isAssignableFrom(clazz)) {
-            try {
-                AutoClass instance = (AutoClass) clazz.getDeclaredConstructor().newInstance();
-                if (autos.stream().noneMatch(a -> a.getClass().equals(clazz))) {
-                    autos.add(instance);
+        Class<?>[] innerClasses = Autos.class.getDeclaredClasses();
+        for (Class<?> clazz : innerClasses) {
+            if (AutoClass.class.isAssignableFrom(clazz)) {
+                try {
+                    AutoClass instance = (AutoClass) clazz.getDeclaredConstructor().newInstance();
+                    if (autos.stream().noneMatch(a -> a.getClass().equals(clazz))) {
+                        autos.add(instance);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Skipping " + clazz.getSimpleName() + ": " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.out.println("Skipping " + clazz.getSimpleName() + ": " + e.getMessage());
             }
         }
-    }
 
-    return autos;
-}
+        return autos;
+    }
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
         if (name == "CUSTOM AUTO (GAME)") {
@@ -206,8 +210,8 @@ private static List<AutoClass> initializeAutos() {
     }
 
     public static class pathfindingTemplate extends AutoClass {
-        
-        List<Command> pathfindAutos;
+
+        List<Supplier<Command>> pathfindAutos;
         List<Pose2d> goalPoses;
 
         PathConstraints constraints = DriveConstants.pathConstraint;
@@ -217,32 +221,33 @@ private static List<AutoClass> initializeAutos() {
             this.name = "Pathfinding (GAME)";
             this.sequentialPathStrings = new String[] {};
 
-
             pathfindAutos = new ArrayList<>();
             goalPoses = new ArrayList<>();
 
             Pose2d goalPose = new Pose2d(6, 5, Rotation2d.fromDegrees(180));
-            pathfindAutos.add(DynamicPathGenerator.pathfindAuto(goalPose));
+            pathfindAutos.add(() -> DynamicPathGenerator.pathfindAuto(goalPose));
             goalPoses.add(goalPose);
 
             Pose2d depotGoalPose = new Pose2d(
                     VisionConstants.Outpost.centerPoint.getX(),
                     VisionConstants.Outpost.centerPoint.getY(),
                     Rotation2d.fromDegrees(0) // intake looking at the place?
-                );
-            pathfindAutos.add(DynamicPathGenerator.pathfindAuto(depotGoalPose));
+            );
+            pathfindAutos.add(() -> DynamicPathGenerator.pathfindAuto(new Pose2d()));
             goalPoses.add(depotGoalPose);
         }
 
         @Override
         public Command getCommand(RobotState state) {
+            
             return new SequentialCommandGroup(
-            pathfindAutos.get(0),
-            new InstantCommand(() -> {
-                state.getDrive().setPose(goalPoses.get(0));
-            }),
-            pathfindAutos.get(1)
-            ).withName(name);
+                    new InstantCommand(() -> state.getDrive().setPose(
+                        new Pose2d()
+                        // new Pose2d(state.getDrive().getPose().getX(), state.getDrive().getPose().getY(), Rotation2d.fromDegrees(0))
+                    )), // knowing the init rot is VERY important, dont interfere with pos
+                    new DeferredCommand(() -> pathfindAutos.get(0).get(), Set.of(state.getDrive())),
+                    new DeferredCommand(() -> pathfindAutos.get(1).get(), Set.of(state.getDrive()))
+                    ).withName(name);
         }
 
         @Override
@@ -250,14 +255,16 @@ private static List<AutoClass> initializeAutos() {
             List<PathPlannerPath> pathList = new ArrayList<>();
 
             pathList.add(DynamicPathGenerator.getPathFromWaypoints(PathPlannerPath.waypointsFromPoses(
-                state.getLatestFieldToRobot().getValue(),
-                goalPoses.get(0)
-            ), Optional.of(this.constraints), new IdealStartingState(0, state.getLatestFieldToRobot().getValue().getRotation()),new GoalEndState(0, goalPoses.get(0).getRotation())));
+                    state.getLatestFieldToRobot().getValue(),
+                    goalPoses.get(0)), Optional.of(this.constraints),
+                    new IdealStartingState(0, state.getLatestFieldToRobot().getValue().getRotation()),
+                    new GoalEndState(0, goalPoses.get(0).getRotation())));
 
             pathList.add(DynamicPathGenerator.getPathFromWaypoints(PathPlannerPath.waypointsFromPoses(
-                goalPoses.get(0),
-                goalPoses.get(1)
-            ), Optional.of(this.constraints), new IdealStartingState(0, goalPoses.get(0).getRotation()),new GoalEndState(0, goalPoses.get(1).getRotation())));
+                    goalPoses.get(0),
+                    goalPoses.get(1)), Optional.of(this.constraints),
+                    new IdealStartingState(0, goalPoses.get(0).getRotation()),
+                    new GoalEndState(0, goalPoses.get(1).getRotation())));
 
             return pathList;
         }

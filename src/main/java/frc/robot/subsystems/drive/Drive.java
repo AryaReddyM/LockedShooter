@@ -27,6 +27,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -48,6 +49,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotState;
@@ -129,32 +131,38 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     {
       DogLog.tunable("Drive/AutoBuilder/Drive P", kABDriveP, newP -> {
         kABDriveP = newP;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
 
       DogLog.tunable("Drive/AutoBuilder/Drive I", kABDriveI, newI -> {
         kABDriveI = newI;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
 
       DogLog.tunable("Drive/AutoBuilder/Drive D", kABDriveD, newD -> {
         kABDriveD = newD;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
 
       DogLog.tunable("Drive/AutoBuilder/Turn P", kABTurnP, newP -> {
         kABTurnP = newP;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
 
       DogLog.tunable("Drive/AutoBuilder/Turn I", kABTurnI, newI -> {
         kABTurnI = newI;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
 
       DogLog.tunable("Drive/AutoBuilder/Turn D", kABTurnD, newD -> {
         kABTurnD = newD;
-        configureAutobuilder();;
+        configureAutobuilder();
+        ;
       });
     }
 
@@ -203,33 +211,29 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private void registerStateCommands() {
     registerStateCommand(State.IDLE, new InstantCommand(() -> stop()));
 
-    setDefaultCommand(DriveCommands.joystickDrive(
+    setDefaultCommand(DriveCommands.smartDrive(
         this,
+        () -> -robotState.getController().getLeftY(),
+        () -> -robotState.getController().getLeftX(),
+        () -> -robotState.getController().getRightX(),
         () -> {
-          if (getState() == State.CROSSED || getState() == State.IDLE) {
-            return 0.0;
-          } else {
-            return -robotState.getController().getLeftY();
-          }
+          // This only runs if the state is TRAVERSING_AT_ANGLE
+          Pose2d target = robotState.getDriveAnglePos();
 
+          Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
+          Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(180)); // the offset is for the robot's dir (cam look)
+
+          driveInputs.driveAtAngleGoal = target;
+          driveInputs.driveAtAngleDesired = new Pose2d(getPose().getX(), getPose().getY(), goal);
+
+          return goal;
         },
-        () -> {
-          if (getState() == State.CROSSED || getState() == State.IDLE) {
-            return 0.0;
-          } else {
-            return -robotState.getController().getLeftX();
-          }
-        },
-        () -> {
-          if (getState() == State.TRAVERSING_AT_ANGLE || getState() == State.CROSSED || getState() == State.IDLE) {
-            return 0.0; // Return a double for rotation speed
-          } else {
-            return -robotState.getController().getRightX();
-          }
-        }));
+        this::getState // Pass the state supplier
+    ));
 
     registerStateCommand(State.CROSSED, new InstantCommand(() -> stopWithX()));
     // Setup Commands for Pathfinding as needed
+
   }
 
   private void configureAutobuilder() {
@@ -499,7 +503,8 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
-    Elastic.sendNotification(new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
+    Elastic.sendNotification(
+        new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 

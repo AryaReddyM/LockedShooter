@@ -13,6 +13,9 @@ public interface DriveIO {
     public Pose2d currentPose = new Pose2d();
     public Pose2d goalPose = new Pose2d();
 
+    public Pose2d driveAtAngleGoal = new Pose2d();
+    public Pose2d driveAtAngleDesired = new Pose2d();
+
     public ChassisSpeeds chassieSpeeds = new ChassisSpeeds();
     public SwerveModuleState[] optimizedModStates = new SwerveModuleState[] {};
     public SwerveModuleState[] modStates = new SwerveModuleState[] {};
