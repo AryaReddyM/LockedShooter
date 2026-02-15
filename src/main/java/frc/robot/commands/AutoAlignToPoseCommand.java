@@ -38,16 +38,27 @@ public class AutoAlignToPoseCommand extends Command {
     private double metersAccelTolerance = DriveConstants.metersAccelTolerance;
     private double radAccelTolerance = DriveConstants.radAccelTolerance;
 
-
+    private AlignType autoAlignType;
 
     public AutoAlignToPoseCommand(
             Drive driveSubsystem,
             RobotState robotState,
             Pose2d targetLocation,
-            double constraintFactor) {
+            double constraintFactor
+    ) {
+        this(driveSubsystem, robotState, targetLocation, constraintFactor, AlignType.DEFAULT);
+    }
+
+    public AutoAlignToPoseCommand(
+            Drive driveSubsystem,
+            RobotState robotState,
+            Pose2d targetLocation,
+            double constraintFactor,
+            AlignType alignType) {
         this.driveSubsystem = driveSubsystem;
         this.targetLocation = targetLocation;
         this.robotState = robotState;
+        this.autoAlignType = alignType;
         this.driveController =
                 new ProfiledPIDController(
                         DriveConstants.kDriveToPointP,
@@ -169,6 +180,16 @@ public class AutoAlignToPoseCommand extends Command {
                                 MathHelpers.transform2dFromTranslation(
                                         new Translation2d(driveVelocityScalar, 0.0)))
                         .getTranslation();
+
+        
+        if (autoAlignType.equals(AlignType.ROTATION)) {
+                driveVelocity = new Translation2d();
+        }
+
+        if (autoAlignType.equals(AlignType.TRANSLATION)) {
+                thetaVelocity = 0;
+        }
+        
         driveSubsystem.runVelocity(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         driveVelocity.getX(),
@@ -192,5 +213,11 @@ public class AutoAlignToPoseCommand extends Command {
     private void setTolerance() {
         driveController.setTolerance(metersTolerance, metersAccelTolerance);
         thetaController.setTolerance(radiansTolerance, radAccelTolerance);
+    }
+
+    public enum AlignType {
+        DEFAULT,
+        ROTATION,
+        TRANSLATION
     }
 }

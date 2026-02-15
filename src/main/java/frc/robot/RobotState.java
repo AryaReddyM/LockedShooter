@@ -40,6 +40,7 @@ import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.ClimbIO;
 import frc.robot.subsystems.climb.ClimbIOSim;
@@ -424,6 +425,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
         autoChooser.addOption("Outpost Auto", AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
 
+        autoChooser.addOption("Pathfinding Auto", AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
+
+
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }
 
@@ -549,8 +553,20 @@ public class RobotState extends StateMachine<RobotState.State> {
                         new Rotation2d(Units.degreesToRadians(0))));
         controller
                 .y()
-                .onTrue(
+                .whileTrue(
                         new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
+
+        controller // not accounting rotation (no need for this just to test)
+                .leftBumper()
+                .whileTrue(
+                    new AutoAlignToPoseCommand(drive, this, tagPos, 1.0, AlignType.TRANSLATION)
+                );
+
+        controller // looks around the tag while being held
+                .rightBumper()
+                .whileTrue(
+                    new AutoAlignToPoseCommand(drive, this, VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d(), 1.0, AlignType.ROTATION)
+                );
     }
 
     public Drive getDrive() {
@@ -853,7 +869,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                         Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
                         if (possibleAuto.isPresent()) {
-                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList(this);
 
                             List<Pose2d> allPoses = new ArrayList<>();
 

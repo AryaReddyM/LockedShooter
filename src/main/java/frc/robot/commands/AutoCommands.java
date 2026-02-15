@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.IdealStartingState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -23,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.commands.autos.Autos;
 import frc.robot.commands.autos.AutosConstants;
@@ -42,7 +46,7 @@ public class AutoCommands {
             return new PrintCommand("Unfilled");
         }
 
-        public List<PathPlannerPath> getAutoDisplayList() {
+        public List<PathPlannerPath> getAutoDisplayList(RobotState state) {
             try {
                 Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
 
@@ -74,21 +78,49 @@ public class AutoCommands {
         }
     }
 
-    // DONT FORGET THIS
-    private static final List<AutoClass> availableAutos = List.of(
-            new testAuto(),
-            new waypointTestAuto(),
-            new depotAuto(),
-            new rightHPFuel(),
-            new Autos.centerHPClimb(),
-            new Autos.centerHPFuel(),
-            new Autos.centerLeftDepotClimb(),
-            new Autos.centerRightHPClimb(),
-            new Autos.leftDepotClimb(),
-            new Autos.leftDepotFuel(),
-            new Autos.rightFuelClimb(),
-            new Autos.rightHPFuel(),
-            new outpostAuto());
+    // // DONT FORGET THIS
+    // private static final List<AutoClass> availableAutos = List.of(
+    //         new testAuto(),
+    //         new waypointTestAuto(),
+    //         new pathfindingTemplate()
+    //         // new depotAuto(),
+    //         // new rightHPFuel(),
+    //         // new Autos.centerHPClimb(),
+    //         // new Autos.centerHPFuel(),
+    //         // new Autos.centerLeftDepotClimb(),
+    //         // new Autos.centerRightHPClimb(),
+    //         // new Autos.leftDepotClimb(),
+    //         // new Autos.leftDepotFuel(),
+    //         // new Autos.rightFuelClimb(),
+    //         // new Autos.rightHPFuel(),
+    //         // new outpostAuto()
+    // );
+
+    private static final List<AutoClass> availableAutos = initializeAutos();
+
+private static List<AutoClass> initializeAutos() {
+    List<AutoClass> autos = new ArrayList<>();
+
+    autos.add(new testAuto());
+    autos.add(new waypointTestAuto());
+    autos.add(new pathfindingTemplate());
+
+    Class<?>[] innerClasses = Autos.class.getDeclaredClasses();
+    for (Class<?> clazz : innerClasses) {
+        if (AutoClass.class.isAssignableFrom(clazz)) {
+            try {
+                AutoClass instance = (AutoClass) clazz.getDeclaredConstructor().newInstance();
+                if (autos.stream().noneMatch(a -> a.getClass().equals(clazz))) {
+                    autos.add(instance);
+                }
+            } catch (Exception e) {
+                System.out.println("Skipping " + clazz.getSimpleName() + ": " + e.getMessage());
+            }
+        }
+    }
+
+    return autos;
+}
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
         if (name == "CUSTOM AUTO (GAME)") {
@@ -162,7 +194,7 @@ public class AutoCommands {
         }
 
         @Override
-        public List<PathPlannerPath> getAutoDisplayList() {
+        public List<PathPlannerPath> getAutoDisplayList(RobotState state) {
             List<PathPlannerPath> pathList = new ArrayList<>();
 
             if (waypointGeneratedPath != null) {
@@ -173,153 +205,32 @@ public class AutoCommands {
         }
     }
 
-    public static class depotAuto extends AutoClass {
-        Pose2d tagPos;
+    public static class pathfindingTemplate extends AutoClass {
+        Command pathfindingAuto;
+        PathConstraints constraints = DriveConstants.pathConstraint;
+        Pose2d goalPose = new Pose2d(5, 0, Rotation2d.fromDegrees(180));
 
-        public depotAuto() {
-            this.name = "Depot (GAME)";
-            this.sequentialPathStrings = new String[] {
-                    "Starting to Depot - AR",
-                    "Depot to 1st Shooting - AR",
-                    "1st Shooting to 2nd Shooting - AR"
-            };
-
-            tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
-                    .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
-                            new Rotation2d(Units.degreesToRadians(270))));
+        public pathfindingTemplate() {
+            this.name = "Pathfinding (GAME)";
+            this.sequentialPathStrings = new String[] {};
+            DynamicPathGenerator.pathfindAuto(this.goalPose);
         }
 
         @Override
         public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-                new ActionCommands();
-
-                return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
-                        new WaitCommand(2), // Temp seconds amount
-                        AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        new AutoAlignToPoseCommand(state.getDrive(), state, tagPos, 0)
-                // ActionCommands.climbUp(state)
-                )
-                        .withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            }
-        }
-    }
-
-    public static class outpostAuto extends AutoClass {
-        Pose2d tagPos;
-
-        public outpostAuto() {
-            this.name = "Outpost (GAME)";
-            this.sequentialPathStrings = new String[] {
-                    "Starting to Outpost - AR",
-                    "Outpost to 1st Shooting - AR",
-                    "1st Shooting to Depot - AR",
-                    "Depot to 2nd Shooting - AR"
-            };
-
-            tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
-                    .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
-                            new Rotation2d(Units.degreesToRadians(270))));
+            return pathfindingAuto;
         }
 
         @Override
-        public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = getMapPath(sequentialPathStrings);
-                return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Starting to Outpost - AR")),
-                        // new WaitCommand(2), // Temp seconds amount
-                        AutoBuilder.followPath(pathMap.get("Outpost to 1st Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to Depot - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        AutoBuilder.followPath(pathMap.get("Depot to 2nd Shooting - AR"))
-                // new AutoAlignToPoseCommand(state.getDrive(), state, tagPos, 0)
-                // ActionCommands.climbUp(state)
-                )
-                        .withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            }
-        }
-    }
+        public List<PathPlannerPath> getAutoDisplayList(RobotState state) {
+            List<PathPlannerPath> pathList = new ArrayList<>();
 
-    public static class rightHPFuel extends AutoClass {
-        public rightHPFuel() {
-            this.name = "Right HP Fuel (GAME)";
-            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel",
-                    "Right Fuel to Center", "Center to HP", "HP Pickup", "HP to Center" };
-        }
+            pathList.add(DynamicPathGenerator.getPathFromWaypoints(PathPlannerPath.waypointsFromPoses(
+                state.getLatestFieldToRobot().getValue(),
+                this.goalPose
+            ), Optional.of(this.constraints), new IdealStartingState(0, state.getLatestFieldToRobot().getValue().getRotation()),new GoalEndState(0, this.goalPose.getRotation())));
 
-        @Override
-        public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-
-                return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Right to Center")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(AutosConstants.rightToCenter)
-                                // new InstantCommand(() -> {
-                                // //state.getShooter().requestTransition(State.SHOOTING); // uncomment when
-                                // shooter is ready
-
-                                // })
-                                )),
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Center to Right Fuel")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(AutosConstants.centerToRFuel)
-                                // new InstantCommand(() -> {
-                                // //state.getIntake().requestTransition(State.INTAKING); // uncomment when
-                                // intake is ready
-                                // })
-                                )),
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Right Fuel to Center")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(AutosConstants.rightToCenter)
-                                // new InstantCommand(() -> {
-                                // //state.getShooter().requestTransition(State.SHOOTING); // uncomment when
-                                // shooter is ready
-                                // })
-                                )),
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Center to HP")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(AutosConstants.centerToHP)
-                                // new InstantCommand(() -> {
-                                // //state.getIntake().requestTransition(State.INTAKING); // uncomment when
-                                // intake is ready
-                                // })
-                                )),
-                        AutoBuilder.followPath(pathMap.get("HP Pickup")),
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("HP to Center")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(AutosConstants.hpToCenter)
-                                // new InstantCommand(() -> {
-                                // //state.getShooter().requestTransition(State.SHOOTING); // uncomment when
-                                // shooter is ready
-                                // })
-                                ))).withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
-            }
+            return pathList;
         }
     }
 }
