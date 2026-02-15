@@ -211,6 +211,15 @@ public class AutoAlignToPoseCommand extends Command {
 
     @Override
     public boolean isFinished() {
+
+        if (autoAlignType.equals(AlignType.ROTATION)) {
+                return targetLocation.equals(null) || thetaController.atGoal();
+        }
+
+        if (autoAlignType.equals(AlignType.TRANSLATION)) {
+                return targetLocation.equals(null) || driveController.atGoal();
+        }
+
         return targetLocation.equals(null)
                 || (driveController.atGoal() && thetaController.atGoal());
     }

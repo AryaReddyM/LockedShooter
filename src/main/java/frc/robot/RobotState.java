@@ -786,8 +786,8 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public static Pose2d flipPoseForRed(Pose2d bluePose) {
-        double FIELD_LENGTH = 16.54;
-        double FIELD_WIDTH = 8.21;
+        double FIELD_LENGTH = VisionConstants.fieldLength;
+        double FIELD_WIDTH = VisionConstants.fieldWidth;
 
         return new Pose2d(
                 new Translation2d(
@@ -828,8 +828,10 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     @Override
-    protected void onAutonomousStart() {
-        registerStateCommand(State.AUTO, autoChooser.get());
+    protected void onAutonomousStart() {;
+        if (autoChooser.get() != null) {
+            registerStateCommand(State.AUTO, autoChooser.get());
+        }
         setState(State.AUTO);
 
     }
@@ -883,6 +885,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
                             drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
                         } else {
+                            System.out.println("OO");
                             drive.setFieldPoses();
                         }
 

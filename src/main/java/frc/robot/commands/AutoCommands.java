@@ -206,19 +206,43 @@ private static List<AutoClass> initializeAutos() {
     }
 
     public static class pathfindingTemplate extends AutoClass {
-        Command pathfindingAuto;
+        
+        List<Command> pathfindAutos;
+        List<Pose2d> goalPoses;
+
         PathConstraints constraints = DriveConstants.pathConstraint;
-        Pose2d goalPose = new Pose2d(5, 0, Rotation2d.fromDegrees(180));
+        // Pose2d goalPose = new Pose2d(5, 5, Rotation2d.fromDegrees(180));
 
         public pathfindingTemplate() {
             this.name = "Pathfinding (GAME)";
             this.sequentialPathStrings = new String[] {};
-            DynamicPathGenerator.pathfindAuto(this.goalPose);
+
+
+            pathfindAutos = new ArrayList<>();
+            goalPoses = new ArrayList<>();
+
+            Pose2d goalPose = new Pose2d(6, 5, Rotation2d.fromDegrees(180));
+            pathfindAutos.add(DynamicPathGenerator.pathfindAuto(goalPose));
+            goalPoses.add(goalPose);
+
+            Pose2d depotGoalPose = new Pose2d(
+                    VisionConstants.Outpost.centerPoint.getX(),
+                    VisionConstants.Outpost.centerPoint.getY(),
+                    Rotation2d.fromDegrees(0) // intake looking at the place?
+                );
+            pathfindAutos.add(DynamicPathGenerator.pathfindAuto(depotGoalPose));
+            goalPoses.add(depotGoalPose);
         }
 
         @Override
         public Command getCommand(RobotState state) {
-            return pathfindingAuto;
+            return new SequentialCommandGroup(
+            pathfindAutos.get(0),
+            new InstantCommand(() -> {
+                state.getDrive().setPose(goalPoses.get(0));
+            }),
+            pathfindAutos.get(1)
+            ).withName(name);
         }
 
         @Override
@@ -227,8 +251,13 @@ private static List<AutoClass> initializeAutos() {
 
             pathList.add(DynamicPathGenerator.getPathFromWaypoints(PathPlannerPath.waypointsFromPoses(
                 state.getLatestFieldToRobot().getValue(),
-                this.goalPose
-            ), Optional.of(this.constraints), new IdealStartingState(0, state.getLatestFieldToRobot().getValue().getRotation()),new GoalEndState(0, this.goalPose.getRotation())));
+                goalPoses.get(0)
+            ), Optional.of(this.constraints), new IdealStartingState(0, state.getLatestFieldToRobot().getValue().getRotation()),new GoalEndState(0, goalPoses.get(0).getRotation())));
+
+            pathList.add(DynamicPathGenerator.getPathFromWaypoints(PathPlannerPath.waypointsFromPoses(
+                goalPoses.get(0),
+                goalPoses.get(1)
+            ), Optional.of(this.constraints), new IdealStartingState(0, goalPoses.get(0).getRotation()),new GoalEndState(0, goalPoses.get(1).getRotation())));
 
             return pathList;
         }
