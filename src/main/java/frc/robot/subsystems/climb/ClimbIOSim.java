@@ -19,7 +19,7 @@ public class ClimbIOSim implements ClimbIO {
   private final DCMotorSim motorSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(ClimbConstants.kClimbP, 0, ClimbConstants.kClimbD);
+  private PIDController motorController = new PIDController(ClimbConstants.climbKp, 0, ClimbConstants.climbKd);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
 
@@ -49,10 +49,10 @@ public class ClimbIOSim implements ClimbIO {
     motorSim.update(0.02);
 
     // Update drive inputs
-    inputs.posRad = motorSim.getAngularPositionRad();
-    inputs.velPerSec = motorSim.getAngularVelocityRadPerSec();
-    inputs.appliedVolts = motorAppliedVolts;
-    inputs.currentAmps = Math.abs(motorSim.getCurrentDrawAmps());
+    inputs.climbPositionRad = motorSim.getAngularPositionRad();
+    inputs.climbVelocityRadPerSec = motorSim.getAngularVelocityRadPerSec();
+    inputs.climbAppliedVolts = motorAppliedVolts;
+    inputs.climbCurrentAmps = Math.abs(motorSim.getCurrentDrawAmps());
 
   }
 

@@ -40,23 +40,23 @@ public class ClimbIOSpark implements ClimbIO {
     SparkMaxConfig climbConfig = new SparkMaxConfig();
     
     climbConfig 
-        .inverted(climbInverted) 
+        .inverted(ClimbConstants.climbInverted) 
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(climbMotorCurrentLimit)
+        .smartCurrentLimit(ClimbConstants.climbMotorCurrentLimit)
         .voltageCompensation(12.0);
     climbConfig
         .encoder
-        .positionConversionFactor(climbEncoderPositionFactor)
-        .velocityConversionFactor(climbEncoderVelocityFactor);
+        .positionConversionFactor(ClimbConstants.climbEncoderPositionFactor)
+        .velocityConversionFactor(ClimbConstants.climbEncoderVelocityFactor);
     climbConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(true)
-        .pid(climbKp, climbKi, climbKd)
+        .pid(ClimbConstants.climbKp, ClimbConstants.climbKi, ClimbConstants.climbKd)
         .maxMotion
-        .maxAcceleration(climbMaxAcceleration)
-        .cruiseVelocity(climbCruiseVelocity)
-        .allowedProfileError(climbAllowedProfileError);
+        .maxAcceleration(ClimbConstants.climbMaxAcceleration)
+        .cruiseVelocity(ClimbConstants.climbCruiseVelocity)
+        .allowedProfileError(ClimbConstants.climbAllowedProfileError);
     climbConfig
         .signals
         .primaryEncoderPositionAlwaysOn(true)
@@ -70,10 +70,10 @@ public class ClimbIOSpark implements ClimbIO {
         climb.clearFaults();
 
     SparkUtil.tunePID(
-        "Climb PID " + module, 
+        "Climb PID ", 
         climb, 
         climbConfig, 
-        new double [] {climbKp, climbKi, climbKd, 0, climbKf, 0, 0},
+        new double [] {ClimbConstants.climbKp, ClimbConstants.climbKi, ClimbConstants.climbKd, 0, ClimbConstants.climbKf, 0, 0},
         ResetMode.kResetSafeParameters, 
         PersistMode.kPersistParameters,
         false,
@@ -83,13 +83,13 @@ public class ClimbIOSpark implements ClimbIO {
 
     @Override
     public void updateInputs(ClimbIOInputs inputs) {
-        ifOk(climb, climbEncoder::getPosition, (value) -> inputs.posRad = value);
-        ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(climb, climbEncoder::getPosition, (value) -> inputs.climbPositionRad = value);
+        ifOk(climb, climbEncoder::getVelocity, (value) -> inputs.climbVelocityRadPerSec = value);
         ifOk(
                 climb,
                 new DoubleSupplier[] { climb::getAppliedOutput, climb::getBusVoltage },
-                (values) -> inputs.appliedVolts = values[0] * values[1]);
-        ifOk(climb, climb::getOutputCurrent, (value) -> inputs.currentAmps = value);
+                (values) -> inputs.climbAppliedVolts = values[0] * values[1]);
+        ifOk(climb, climb::getOutputCurrent, (value) -> inputs.climbCurrentAmps = value);
     }
 
     @Override
