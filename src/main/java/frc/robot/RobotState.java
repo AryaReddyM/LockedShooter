@@ -861,7 +861,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             {
                 Command newAutoCommand = autoChooser.get();
 
-                if (newAutoCommand != autoCommand) {
+                if (newAutoCommand != autoCommand && newAutoCommand != null) {
                     autoCommand = newAutoCommand;
                     String autoName = autoCommand.getName();
 
@@ -951,7 +951,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));
 
-        SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
+        if (autoChooser.get() != null) {
+            SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
+        }
     }
 
     public enum State {

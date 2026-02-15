@@ -148,6 +148,11 @@ public class AutoAlignToPoseCommand extends Command {
 
         double currentDistance =
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation());
+
+        if (autoAlignType.equals(AlignType.ROTATION)) {
+                currentDistance = 0;
+        }
+
         double ffScaler =
                 MathUtil.clamp(
                         (currentDistance - ffMinRadius) / (ffMaxRadius - ffMinRadius), 0.0, 1.0);
