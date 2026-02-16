@@ -7,25 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to HP"
+            "pathName": "Center to HP (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "HP Pickup"
+            "pathName": "HP Pickup (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "HP to Center"
+            "pathName": "HP to Center (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Right Climb"
+            "pathName": "Center to Right Climb (LT)"
           }
         }
       ]

@@ -20,7 +20,7 @@ public class Autos {
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
             this.name = "Left Depot Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Left to Center", "Center to Depot", "Depot to Center", "Center to Climb"};
+            this.sequentialPathStrings = new String[] { "Left to Center (LT)", "Center to Depot (LT)", "Depot to Center (LT)", "Center to Left Climb (LT)"};
         }
 
         @Override
@@ -31,7 +31,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Left to Center")),
+                        AutoBuilder.followPath(pathMap.get("Left to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
                             new InstantCommand(() -> {
@@ -40,7 +40,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Depot")),
+                        AutoBuilder.followPath(pathMap.get("Center to Depot (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToDepot),
                             new InstantCommand(() -> {
@@ -49,7 +49,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Depot to Center")),
+                        AutoBuilder.followPath(pathMap.get("Depot to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToCenter),
                             new InstantCommand(() -> {
@@ -58,7 +58,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Climb")),
+                        AutoBuilder.followPath(pathMap.get("Center to Left Climb (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
@@ -75,7 +75,7 @@ public class Autos {
     public static class rightFuelClimb extends AutoClass {
         public rightFuelClimb() {
             this.name = "Right Fuel Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Right to Center", "Center to Right Fuel", "Right Fuel to Center", "Center to Climb"};
+            this.sequentialPathStrings = new String[] { "Right to Center (LT)", "Center to Right Fuel (LT)", "Right Fuel to Center (LT)", "Center to Right Climb (LT)"};
         }
 
         @Override
@@ -86,7 +86,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new ParallelCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Right to Center")),
+                        AutoBuilder.followPath(pathMap.get("Right to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
@@ -96,7 +96,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Right Fuel")),
+                        AutoBuilder.followPath(pathMap.get("Center to Right Fuel (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
@@ -105,7 +105,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Right Fuel to Center")),
+                        AutoBuilder.followPath(pathMap.get("Right Fuel to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
@@ -114,7 +114,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Center to Climb")),
+                        AutoBuilder.followPath(pathMap.get("Center to Right Climb (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
@@ -131,7 +131,7 @@ public class Autos {
     public static class centerHPClimb extends AutoClass {
         public centerHPClimb() {
             this.name = "Center HP Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to HP", "HP Pickup", "HP to Center", "Center to Right Climb"};
+            this.sequentialPathStrings = new String[] { "Center to HP (LT)", "HP Pickup (LT)", "HP to Center (LT)", "Center to Right Climb (LT)"};
         }
 
         @Override
@@ -140,9 +140,9 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                    AutoBuilder.followPath(pathMap.get("Center to HP")),
+                    AutoBuilder.followPath(pathMap.get("Center to HP (LT)")),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("HP Pickup")),
+                        AutoBuilder.followPath(pathMap.get("HP Pickup (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
@@ -151,7 +151,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("HP to Center")),
+                        AutoBuilder.followPath(pathMap.get("HP to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
@@ -177,7 +177,7 @@ public class Autos {
     public static class centerRightHPClimb extends AutoClass {
         public centerRightHPClimb() {
             this.name = "Center Right HP Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Right Fuel", "Right Fuel to Center", "Center to HP", "HP Pickup", "HP to Climb"};
+            this.sequentialPathStrings = new String[] { "Center to Right Fuel", "Right Fuel to Center", "Center to HP", "HP Pickup", "HP to Right Climb"};
         }
 
         @Override
@@ -219,7 +219,7 @@ public class Autos {
                     ),
                     AutoBuilder.followPath(pathMap.get("HP Pickup")),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("HP to Climb")),
+                        AutoBuilder.followPath(pathMap.get("HP to Right Climb")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToClimb),
                             new InstantCommand(() -> {
@@ -236,7 +236,7 @@ public class Autos {
     public static class centerLeftDepotClimb extends AutoClass {
         public centerLeftDepotClimb() {
             this.name = "Center Left Depot Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Left Fuel", "Left Fuel to Center", "Center to Depot", "Depot to Climb"};
+            this.sequentialPathStrings = new String[] { "Center to Left Fuel", "Left Fuel to Center", "Center to Depot", "Depot to Left Climb"};
         }
 
         @Override
@@ -277,7 +277,7 @@ public class Autos {
                         )
                     ),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Depot to Climb")),
+                        AutoBuilder.followPath(pathMap.get("Depot to Left Climb")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToClimb),
                             new InstantCommand(() -> {
