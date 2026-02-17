@@ -14,6 +14,9 @@ public class HoodConstants {
     public static final double kHoodCruiseVel = 0;
     public static final double kHoodDeviationErr = 0;
 
+    public static final double kHoodSimP = 0.7;
+    public static final double kHoodSimD = 0.2;
+
     // factors
     public static final double kHoodPositionConversionFactor = 0;
     public static final double kHoodVelocityConversionFactor = 0;

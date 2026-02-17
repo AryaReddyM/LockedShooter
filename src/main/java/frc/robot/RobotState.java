@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -202,7 +203,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // drive intialization
         {
-            lookAtPose = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d();
+            lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero) : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
 
             switch (robotState) {
                 case 1:
@@ -223,6 +224,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             new ModuleIOSim(),
                             new ModuleIOSim(),
                             this);
+                    break;
                 default:
                     drive = new Drive(
                             new GyroIO() {
@@ -241,61 +243,59 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         // { // shooter
-        // hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        // passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-        // hubSupplier.get();
-        // passSupplier.get();
+        //     hubSupplier.get();
+        //     passSupplier.get();
 
-        // switch (robotState) {
-        // case 1:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIOSpark(),
-        // new HoodIOSpark(),
-        // new FlywheelIOSpark()
-        // );
-        // break;
-        // case 2:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIOSim(),
-        // new HoodIOSim(),
-        // new FlywheelIOSim()
-        // );
-        // break;
-        // default:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIO() {},
-        // new HoodIO() {},
-        // new FlywheelIO() {}
-        // );
-        // break;
-        // }
+        //     switch (robotState) {
+        //         case 1:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIOSpark(),
+        //                     new HoodIOSpark(),
+        //                     new FlywheelIOSpark());
+        //             break;
+        //         case 2:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIOSim(),
+        //                     new HoodIOSim(),
+        //                     new FlywheelIOSim());
+        //             break;
+        //         default:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIO() {
+        //                     },
+        //                     new HoodIO() {
+        //                     },
+        //                     new FlywheelIO() {
+        //                     });
+        //             break;
+        //     }
         // }
 
         // { // climb
-        // switch (robotState) {
-        // case 1:
-        // climb = new Climb(
-        // new ClimbIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // climb = new Climb(
-        // new ClimbIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // climb = new Climb(
-        // new ClimbIO() {},
-        // this
-        // );
-        // break;
-        // }
+        //     switch (robotState) {
+        //         case 1:
+        //             climb = new Climb(
+        //                     new ClimbIOSpark(),
+        //                     this);
+        //             break;
+        //         case 2:
+        //             climb = new Climb(
+        //                     new ClimbIOSim(),
+        //                     this);
+        //             break;
+        //         default:
+        //             climb = new Climb(
+        //                     new ClimbIO() {
+        //                     },
+        //                     this);
+        //             break;
+        //     }
         // }
 
         // { // hopper
@@ -322,26 +322,24 @@ public class RobotState extends StateMachine<RobotState.State> {
         // }
 
         // { // intake
-        // switch (robotState) {
-        // case 1:
-        // intake = new Intake(
-        // new IntakeIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // intake = new Intake(
-        // new IntakeIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // intake = new Intake(
-        // new IntakeIO() {},
-        // this
-        // );
-        // break;
-        // }
+        //     switch (robotState) {
+        //         case 1:
+        //             intake = new Intake(
+        //                     new IntakeIOSpark(),
+        //                     this);
+        //             break;
+        //         case 2:
+        //             intake = new Intake(
+        //                     new IntakeIOSim(),
+        //                     this);
+        //             break;
+        //         default:
+        //             intake = new Intake(
+        //                     new IntakeIO() {
+        //                     },
+        //                     this);
+        //             break;
+        //     }
         // }
 
         // { // kicker
@@ -549,8 +547,8 @@ public class RobotState extends StateMachine<RobotState.State> {
     private void setupControllerBindings() {
         controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
-                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        // controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
+        // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller // TODO turn this off in a real game (SWITCH KEYBINDS)
@@ -570,10 +568,31 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .whileTrue(
                         new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
 
-        controller // not accounting rotation (no need for this just to test)
-                .leftBumper()
-                .whileTrue(
-                        new AutoAlignToPoseCommand(drive, this, tagPos, 1.0, AlignType.TRANSLATION));
+        // controller
+        //         .x()
+        //         .onTrue(shooter.transitionCommand(Shooter.State.SHOOTING))
+        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        // controller
+        //         .a()
+        //         .onTrue(shooter.transitionCommand(Shooter.State.PASSING))
+        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+
+        // controller
+        //     .a()
+        //     .onTrue(climb.transitionCommand(Climb.State.UP)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        // controller
+        //     .x()
+        //     .onTrue(climb.transitionCommand(Climb.State.CLIMB)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        // controller
+        //     .x()
+        //     .onTrue(intake.transitionCommand(Intake.State.INTAKE)).onFalse(intake.transitionCommand(Intake.State.STOW));
+
+        // controller // not accounting rotation (no need for this just to test)
+        // .leftBumper()
+        // .whileTrue(
+        // new AutoAlignToPoseCommand(drive, this, tagPos, 1.0, AlignType.TRANSLATION));
 
         // controller // looks around the tag while being held
         // .rightBumper()
@@ -858,8 +877,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
             AutoCommands.getAutoByName(this, autoName).ifPresentOrElse(
                     (autoClass) -> registerStateCommand(State.AUTO, autoClass.getCommand(this)),
-                    () -> registerStateCommand(State.AUTO, selected)
-            );
+                    () -> registerStateCommand(State.AUTO, selected));
         }
 
         setState(State.AUTO);

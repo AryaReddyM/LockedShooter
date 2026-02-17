@@ -24,7 +24,7 @@ public class ClimbIOSpark implements ClimbIO {
     private final SparkMax climb;
 
     private final RelativeEncoder climbEncoder;
-
+    private double desiredPos = 0.0;
     // Closed loop controllers
     private final SparkClosedLoopController climbController;
 
@@ -85,6 +85,7 @@ public class ClimbIOSpark implements ClimbIO {
                 new DoubleSupplier[] { climb::getAppliedOutput, climb::getBusVoltage },
                 (values) -> inputs.appliedVolts = values[0] * values[1]);
         ifOk(climb, climb::getOutputCurrent, (value) -> inputs.currentAmps = value);
+        inputs.desiredPos = desiredPos;
     }
 
     @Override
@@ -94,6 +95,7 @@ public class ClimbIOSpark implements ClimbIO {
 
     @Override
     public void setClimbPosition(double position) {
+        this.desiredPos = position;
         climbController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
     }
 

@@ -11,6 +11,9 @@ public class IntakeConstants {
     public static final double kRollerI = 0;
     public static final double kRollerD = 0;
 
+    public static final double kRollerSimP = 0;
+    public static final double kRollerSimD = 0;
+
     // Extension PID
 
     public static final double kExtensionP = 0;
@@ -19,6 +22,9 @@ public class IntakeConstants {
     public static final double kExtensionMaxAccel = 0;
     public static final double kExtensionCruiseVel = 0;
     public static final double kExtensionDeviationErr = 0;
+
+    public static final double kExtensionSimP = 0.3;
+    public static final double kExtensionSimD = 0;
 
 
     // factors
@@ -29,9 +35,9 @@ public class IntakeConstants {
     public static final double kExtensionVelocityConversionFactor = 0;
 
     // setpoints
-    public static final double kExtensionStowSetpoint = 0;
-    public static final double kExtensionIntakeSetpoint = 0;
-    public static final double kExtensionOuttakeSetpoint = 0;
+    public static final double kExtensionStowSetpoint = -0.1;
+    public static final double kExtensionIntakeSetpoint = -1;
+    public static final double kExtensionOuttakeSetpoint = -1;
     public static final double kRollerOuttakeSpeed = 0;
     public static final double kRollerIntakeSpeed = 0;
 

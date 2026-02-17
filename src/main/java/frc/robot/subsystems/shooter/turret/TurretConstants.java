@@ -20,6 +20,9 @@ public class TurretConstants {
 
     public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
 
+    public static final double kTurretSimP = 0.7;
+    public static final double kTurretSimD = 0.2;
+
 
 
     // factors

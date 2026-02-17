@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter.turret;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public interface TurretIO {
@@ -13,6 +14,10 @@ public interface TurretIO {
 
     public double appliedVolts = 0.0;
     public double currentAmps = 0.0;
+
+    public double desiredPos = 0.0;
+
+    public Pose3d robotTurretPos = new Pose3d();
   }
 
   default void updateInputs(TurretIOInputs inputs) {}

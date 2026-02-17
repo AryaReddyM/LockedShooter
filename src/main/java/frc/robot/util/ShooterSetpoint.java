@@ -131,12 +131,12 @@ public class ShooterSetpoint {
         double minApexHeight = 0.0;
         double maxApexHeight = apexHeight;
         for (int i = 0; i < max_num_iterations; ++i) {
-            // Try to aim at our nominal apex height, then reduce it if we need to.
             final double kG = -9.81;
             double vz = Math.sqrt(-2.0 * kG * (apexHeight - GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight)));
             double t_apex = vz / -kG;
             double t_fall = Math.sqrt(2.0 * apexHeight / -kG);
             double t_total = t_apex + t_fall;
+            
             double vx = (d.getX() - vRobot.vxMetersPerSecond * t_total) / t_total;
             double vy = (d.getY() - vRobot.vyMetersPerSecond * t_total) / t_total;
 
@@ -145,31 +145,36 @@ public class ShooterSetpoint {
 
             double hoodAngle = hoodZeroedAngle.getRadians() - pitchAngleRads;
 
-            // Hood needs to go too far vertical, so we need to reduce apex height.
-            // Solving exactly for the extremal hood position yields a quartic function, so
-            // just binary search over
-            // apex heights to find something close.
             if (hoodAngle < GetTuned.getNumber("Hood/Min Pos Rads", HoodConstants.kHoodMinPositionRadians)) {
-                // We have to aim lower. Don't remember the launch parameters because this angle
-                // is infeasible.
                 maxApexHeight = Math.min(apexHeight, maxApexHeight);
                 apexHeight = (maxApexHeight - minApexHeight) / 2.0 + minApexHeight;
             } else if (apexHeight < GetTuned.getNumber("Shooter/Pass Max Apex Height", ShooterConstants.kPassMaxApexHeight)) {
-                // We can aim higher. Remember the parameters in case this is the best we find.
                 launchSpeedMetersPerSec = Math.sqrt(vz * vz + shotXY * shotXY);
-                robotToTargetRotation = new Rotation2d(vx, vy);
+                
+                // Safe Rotation Assignment
+                if (shotXY > 1e-6) {
+                    robotToTargetRotation = new Rotation2d(vx, vy);
+                } else {
+                    robotToTargetRotation = MathHelpers.kRotation2dZero;
+                }
+
                 minApexHeight = Math.max(apexHeight, minApexHeight);
                 apexHeight = (maxApexHeight - minApexHeight) / 2.0 + minApexHeight;
             } else {
-                // Found an exact solution that achieves our nominal apex height.
                 launchSpeedMetersPerSec = Math.sqrt(vz * vz + shotXY * shotXY);
-                robotToTargetRotation = new Rotation2d(vx, vy);
+
+                // Safe Rotation Assignment
+                if (shotXY > 1e-6) {
+                    robotToTargetRotation = new Rotation2d(vx, vy);
+                } else {
+                    robotToTargetRotation = MathHelpers.kRotation2dZero;
+                }
                 break;
             }
         }
         return makeSetpoint(robotState, robotToTargetRotation, d, pitchAngleRads, launchSpeedMetersPerSec);
     }
-
+    
     public static Supplier<ShooterSetpoint> autoSetpointSupplier(RobotState robotState) {
         return autoSetpointSupplier(() -> BallTargetFactory.generate(robotState), robotState);
     }
@@ -264,7 +269,9 @@ public class ShooterSetpoint {
             var shot = new Translation3d((d.getX() - vRobot.vxMetersPerSecond * t) / t,
                     (d.getY() - vRobot.vyMetersPerSecond * t) / t,
                     (d.getZ() / t));
-            robotToTargetRotation = new Rotation2d(shot.getX(), shot.getY());
+            
+            robotToTargetRotation = (Math.abs(shot.getX()) < 1e-6 && Math.abs(shot.getY()) < 1e-6) ? MathHelpers.kRotation2dZero : new Rotation2d(shot.getX(), shot.getY());
+            
             var xyVel = Math.sqrt(shot.getX() * shot.getX() + shot.getY() * shot.getY());
             pitchAngleRads = Math.atan2(shot.getZ(), xyVel);
 
@@ -285,7 +292,7 @@ public class ShooterSetpoint {
             launchSpeedMetersPerSec = vShot;
             robotToTargetTranslation = d;
         } else {
-            robotToTargetRotation = new Rotation2d(
+            robotToTargetRotation = (Math.abs(target.getX() - fieldToRobot.getX()) < 1e-6 && Math.abs(target.getY() - fieldToRobot.getY()) < 1e-6) ? MathHelpers.kRotation2dZero : new Rotation2d(
                     target.getX() - fieldToRobot.getX(),
                     target.getY() - fieldToRobot.getY());
             var differential_height = target.getZ() - GetTuned.getNumber("Shooter/Ball Release Height", ShooterConstants.kBallReleaseHeight);

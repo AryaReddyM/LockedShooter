@@ -10,6 +10,7 @@ package frc.robot.subsystems.climb;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -19,9 +20,10 @@ public class ClimbIOSim implements ClimbIO {
   private final DCMotorSim motorSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(ClimbConstants.kClimbP, 0, ClimbConstants.kClimbD);
+  private PIDController motorController = new PIDController(ClimbConstants.kClimbSimP, 0, ClimbConstants.kClimbSimD);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
+  private double desiredPos = 0.0;
 
   public ClimbIOSim() {
     // Create drive and turn sim models
@@ -38,8 +40,7 @@ public class ClimbIOSim implements ClimbIO {
   public void updateInputs(ClimbIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
-      motorAppliedVolts =
-          motorFFVolts + motorController.calculate(motorSim.getAngularVelocityRadPerSec());
+      motorAppliedVolts = motorController.calculate(motorSim.getAngularPositionRad());
     } else {
       motorController.reset();
     }
@@ -54,6 +55,8 @@ public class ClimbIOSim implements ClimbIO {
     inputs.appliedVolts = motorAppliedVolts;
     inputs.currentAmps = Math.abs(motorSim.getCurrentDrawAmps());
 
+    inputs.desiredPos = this.desiredPos;
+
   }
 
   @Override
@@ -66,7 +69,10 @@ public class ClimbIOSim implements ClimbIO {
   public void setClimbPosition(double pos) {
     motorClosedLoop = true;
     motorController.setSetpoint(pos);
+    this.desiredPos = pos;
   }
+
+  // no vel and turret to rot im tired
 
   @Override
   public void stopClimb() {

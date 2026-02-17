@@ -12,6 +12,11 @@ public class ClimbConstants {
     public static final double kClimbCruiseVel = 2000;
     public static final double kClimbDeviationErr = 0.05;
 
+    public static final double kClimbSimP = 0.002;
+    public static final double kClimbSimD = 0;
+
+    public static final double kClimberBaseHeight = 0.4;
+
     // factors
     public static final double kClimbPositionConversionFactor = 1.0 / 16.0;
     public static final double kClimbVelocityConversionFactor = (1.0 / 16.0) / 60.0;
@@ -22,7 +27,7 @@ public class ClimbConstants {
 
     // setpoints
     public static final double kClimbStowPos = 0;
-    public static final double kClimbUpPos = 2.0;
-    public static final double kClimbDownPos = 1.0;
+    public static final double kClimbUpPos = 0.25;
+    public static final double kClimbDownPos = 0.05;
     
 }

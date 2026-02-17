@@ -69,10 +69,10 @@ public class DriveConstants {
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
 
-  public static final double driveSimP = 0.05;
+  public static final double driveSimP = 0.1;
   public static final double driveSimD = 0.0;
-  public static final double driveSimKs = 0.0;
-  public static final double driveSimKv = 0.0789;
+  public static final double driveSimKs = 0.8186;
+  public static final double driveSimKv = 2;
 
   public static final double driveKs = 0.09186;
   public static final double driveKv = 0.19819;
@@ -97,7 +97,7 @@ public class DriveConstants {
   public static final double turnKd = 0.0;
   public static final double turnKv = 0.0;
 
-  public static final double turnSimP = 8.0;
+  public static final double turnSimP = 3.0;
   public static final double turnSimD = 0.0;
 
   public static final double turnPIDMinInput = 0; // Radians
@@ -133,7 +133,7 @@ public class DriveConstants {
   public static double kDriveToPointI = 0.0; // dont use
   public static double kDriveToPointD = 0; // dont use
 
-  public static double kMaxLinearAcceleration = 3.5;
+  public static double kMaxLinearAcceleration = 5.0;
 
   public static double kDriveToPointHeadingP = 3;
   public static double kDriveToPointHeadingI = 0.0;
