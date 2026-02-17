@@ -19,6 +19,8 @@ public class DriveConstants {
   public static final double wheelBase = Units.inchesToMeters(28); // TODO CHANGE
   public static final double driveBaseRadius = Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 
+  public static final double kBumperHeight = Units.inchesToMeters(7);
+
   public static final Translation2d[] moduleTranslations = new Translation2d[] {
       new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
       new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),

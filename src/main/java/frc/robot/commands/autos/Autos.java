@@ -20,6 +20,10 @@ import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.AutoCommands.AutoClass;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.Shooter.State;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.vision.VisionConstants;
 
 public class Autos {
@@ -36,13 +40,13 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -51,7 +55,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToDepot),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -60,7 +64,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -69,7 +73,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -91,14 +95,13 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready//state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
-
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready//state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -107,7 +110,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -116,7 +119,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -125,7 +128,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -153,16 +156,16 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("HP to Center")),
                         new SequentialCommandGroup(
-                            new WaitCommand(AutosConstants.hpToCenter),
+                            // new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -171,7 +174,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -192,17 +195,17 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    // new ParallelCommandGroup(
+                    //     state.getShooter().requestTransition(Shooter.State.SHOOTING), // uncomment when shooter is ready
+                    //     new WaitCommand(AutosConstants.shootingPause)
+                    // ),
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
-                        new WaitCommand(AutosConstants.shootingPause)
-                    ),
-                    new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to Right Fuel")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -211,7 +214,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -220,7 +223,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToHP),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -230,7 +233,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -251,17 +254,17 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
-                    new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
-                        new WaitCommand(AutosConstants.shootingPause)
-                    ),
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    // new ParallelCommandGroup(
+                    //     //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                    //     new WaitCommand(AutosConstants.shootingPause)
+                    // ),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Center to Left Fuel")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToLFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -270,7 +273,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.lFuelToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -279,7 +282,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToDepot),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -288,7 +291,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -309,13 +312,13 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
 
                             })
                         )
@@ -325,7 +328,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToDepot),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -334,7 +337,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -343,7 +346,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToLFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ), 
@@ -352,7 +355,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.lFuelToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )).withName(name);
@@ -374,13 +377,13 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to HP")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToHP),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
 
                             })
                         )
@@ -391,7 +394,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -400,7 +403,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ), 
@@ -409,7 +412,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )).withName(name);
@@ -431,13 +434,13 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
 
                             })
                         )
@@ -447,7 +450,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -456,7 +459,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ), 
@@ -465,7 +468,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToHP),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -475,7 +478,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )
@@ -552,14 +555,28 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(
                                 () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                        AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
-                        new WaitCommand(2), // Temp seconds amount
+                        
+                        new ParallelCommandGroup(
+                             AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
+                             new SequentialCommandGroup(
+                                new WaitCommand(1),
+                                new InstantCommand(() -> {
+                                    state.getIntake().requestTransition(Intake.State.INTAKE);
+                                }),
+
+                                new WaitCommand(1.5),
+                                ActionCommands.aimAndShoot(state)
+                             )
+                        ),
                         AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
+                        new WaitCommand(1),
+                        new InstantCommand(() -> {
+                            state.getShooter().requestTransition(State.IDLE);
+                        }),
                         AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
-                        // ActionCommands.aimAndShoot(state),
-                        new AutoAlignToPoseCommand(state.getDrive(), state, tagPos, 0)
-                // ActionCommands.climbUp(state)
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.STOW);
+                        })
                 )
                         .withName(name);
             } catch (Exception e) {

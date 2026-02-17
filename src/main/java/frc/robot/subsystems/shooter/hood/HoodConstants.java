@@ -30,7 +30,7 @@ public class HoodConstants {
 //TODO
     public static final double kHoodPositionTolerance = 0.1;
     public static final double kHoodMinPositionRadians = 0.0;
-    public static final double kHoodZeroedAngleDegrees = 51.7;
+    public static final double kHoodZeroedAngleDegrees = 0;
     public static final double kHoodEpsilon = Units.degreesToRadians(1.0);
     public static final double kHoodShootingEpsilon = Units.degreesToRadians(5.0);
 

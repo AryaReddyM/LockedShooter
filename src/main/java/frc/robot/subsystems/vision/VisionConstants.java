@@ -6,7 +6,9 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -47,9 +49,12 @@ public class VisionConstants {
         // THIS IS SOMETHING WE NEED TO DO
         public static final double kTurretToRobotCenterX = Units.inchesToMeters(2.3115);
         public static final double kTurretToRobotCenterY = 0;
-        public static final Transform2d kTurretToRobotCenter = new Transform2d(
-                        new Translation2d(VisionConstants.kTurretToRobotCenterX, VisionConstants.kTurretToRobotCenterY),
-                        new Rotation2d());
+        public static final double kTurretToRobotCenterZ = 0;
+
+        public static final Transform3d kTurretToRobotCenter = new Transform3d(
+                new Translation3d(VisionConstants.kTurretToRobotCenterX, VisionConstants.kTurretToRobotCenterY, VisionConstants.kTurretToRobotCenterZ),
+                Rotation3d.kZero
+        );
 
         public static final Transform2d kTurretCameraToRobotCenter = new Transform2d();
         public static final Transform2d kBCameraToRobotCenter = new Transform2d();
@@ -347,7 +352,7 @@ public class VisionConstants {
                                 kAprilTagLayout.getTagPose(29).get().getY());
         }
 
-         public static class FieldConstants {
+        public static class FieldConstants {
         public static final Distance FIELD_LENGTH = Inches.of(650.12);
         public static final Distance FIELD_WIDTH = Inches.of(316.64);
 

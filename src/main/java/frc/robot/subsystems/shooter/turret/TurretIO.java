@@ -20,6 +20,18 @@ public interface TurretIO {
     public Pose3d robotTurretPos = new Pose3d();
   }
 
+  @AutoLog
+    public static class SetpointLog {
+        public double shooterRPS = 0.0;
+        public double shooterStage1RPS = 14.4;
+        public double turretRadiansFromCenter = 0.0;
+        public double turretFF = 0.0;
+        public double hoodRadians = 0.0;
+        public double hoodFF = 0.0;
+        public double height = 0.0;
+        public boolean isValid = true;        
+    }
+
   default void updateInputs(TurretIOInputs inputs) {}
 
 

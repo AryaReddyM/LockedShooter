@@ -128,7 +128,7 @@ public class AutoAlignToPoseCommand extends Command {
                 thetaController.setTolerance(Units.degreesToRadians(2.0));
 
                 driveController.setTolerance(0.04);
-                driveSubsystem.setFieldPoses(robotState.getLatestFieldToRobotCenter(), targetLocation);
+                driveSubsystem.setFieldPoses(robotState.getLatestFieldToRobot().getValue(), targetLocation);
                 driveSubsystem.setTargetPose(targetLocation);
         }
 

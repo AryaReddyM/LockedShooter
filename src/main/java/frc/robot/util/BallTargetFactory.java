@@ -16,25 +16,22 @@ public class BallTargetFactory {
     static InterpolatingTreeMap<Double, Double> heightMap = new InterpolatingTreeMap<Double, Double>(
             InverseInterpolator.forDouble(), Interpolator.forDouble());
     static { // TODO fix (distance meters, vertical offsetMeters)
-        heightMap.put(1.5, 0.08);
-        heightMap.put(1.8, 0.04);
-        heightMap.put(2.6, 0.02);
+        // heightMap.put(1.5, 0.08);
+        // heightMap.put(1.8, 0.04);
+        heightMap.put(2.6, 0.0);
         heightMap.put(4.0, 0.0);
     }
     static InterpolatingTreeMap<Double, Double> distanceOffsetMap = new InterpolatingTreeMap<>(
             InverseInterpolator.forDouble(), Interpolator.forDouble());
     static { // TODO fix (distance meters, lateral offset)
-        distanceOffsetMap.put(1.4, Units.inchesToMeters(12.0));
+        distanceOffsetMap.put(1.4, Units.inchesToMeters(0.0));
         distanceOffsetMap.put(3.0, Units.inchesToMeters(0.0));
     }
 
-    static Double kXDistanceOffset = Units.inchesToMeters(6.0);
+    static Double kXDistanceOffset = Units.inchesToMeters(0);
 
     public static Translation3d generate(RobotState robotState) {
         // uncomment to calibrate shooter to center of the face above the goal
-        // return robotState.isRedAlliance() ? Constants.kRedSpeakerTopPose :
-        // Constants.kBlueSpeakerTopPose;
-
         var speakerPose = robotState.isRedAlliance() ? VisionConstants.kRedHubPose
                 : VisionConstants.kBlueHubPose;
 
@@ -53,6 +50,7 @@ public class BallTargetFactory {
         speakerPose = new Translation3d(
                 speakerPose.getX() + offSet.getX(), speakerPose.getY() + offSet.getY(),
                 speakerPose.getZ() + heightMap.get(distance));
+            
         Logger.recordOutput("targetPose", speakerPose);
         Logger.recordOutput("targetPose2d", new Translation2d(speakerPose.getX(), speakerPose.getY()));
         return speakerPose;

@@ -1,5 +1,13 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inch;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -20,12 +29,17 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -47,6 +61,7 @@ import frc.robot.subsystems.climb.ClimbIO;
 import frc.robot.subsystems.climb.ClimbIOSim;
 import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
@@ -65,6 +80,7 @@ import frc.robot.subsystems.kicker.KickerIO;
 import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
@@ -83,6 +99,7 @@ import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
+import frc.robot.util.FuelSim;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.MathHelpers;
@@ -112,6 +129,9 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
+
+    private FuelSim fuelSim = new FuelSim();
+    private double simFuelCount = 0;
 
     private CommandXboxController controller = new CommandXboxController(0);
 
@@ -203,7 +223,9 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // drive intialization
         {
-            lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero) : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
+            lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)
+                    ? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero)
+                    : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
 
             switch (robotState) {
                 case 1:
@@ -239,6 +261,37 @@ public class RobotState extends StateMachine<RobotState.State> {
                             }, this);
 
             }
+
+            fuelSim.spawnStartingFuel();
+
+            fuelSim.start();
+            fuelSim.enableAirResistance();
+
+            SmartDashboard.putData(Commands.runOnce(() -> {
+                fuelSim.clearFuel();
+                fuelSim.spawnStartingFuel();
+            })
+                    .withName("Reset Fuel")
+                    .ignoringDisable(true));
+
+            fuelSim.registerRobot(
+                    Meter.of(DriveConstants.trackWidth),
+                    Meter.of(DriveConstants.wheelBase),
+                    Meter.of(DriveConstants.kBumperHeight),
+                    drive::getPose,
+                    this::getLatestDesiredFieldRelativeChassisSpeed);
+
+            // fuelSim.registerIntake(
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
+            //                 .in(Meters),
+            //         -Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         () -> intake.getState() == Intake.State.INTAKE,
+            //         () -> {
+            //             simFuelCount++;
+            //         });
+
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
@@ -578,17 +631,26 @@ public class RobotState extends StateMachine<RobotState.State> {
         //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
 
         // controller
-        //     .a()
-        //     .onTrue(climb.transitionCommand(Climb.State.UP)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+        //         .a()
+        //         .onTrue(climb.transitionCommand(Climb.State.UP)).onFalse(climb.transitionCommand(Climb.State.IDLE));
 
         // controller
-        //     .x()
-        //     .onTrue(climb.transitionCommand(Climb.State.CLIMB)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+        //         .x()
+        //         .onTrue(climb.transitionCommand(Climb.State.CLIMB)).onFalse(climb.transitionCommand(Climb.State.IDLE));
 
         // controller
-        //     .x()
-        //     .onTrue(intake.transitionCommand(Intake.State.INTAKE)).onFalse(intake.transitionCommand(Intake.State.STOW));
+        //         .x()
+        //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+        //         .onFalse(intake.transitionCommand(Intake.State.STOW));
 
+        // controller
+        //         .leftBumper()
+        //         .onTrue(new InstantCommand(() -> {
+        //             fuelSim.launchFuel(MetersPerSecond.of(hubSupplier.get().getShooterRPS() * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+        //                     Degrees.of(90).minus(Radians.of(hubSupplier.get().getHoodRadians())),
+        //                     Radians.of(hubSupplier.get().getTurretRadiansFromCenter()),
+        //                     Inches.of(hubSupplier.get().getHeight()));
+        //         }));
         // controller // not accounting rotation (no need for this just to test)
         // .leftBumper()
         // .whileTrue(
@@ -671,6 +733,18 @@ public class RobotState extends StateMachine<RobotState.State> {
         return enablePathCancel.get();
     }
 
+    public double getSimFuelCount() {
+        return simFuelCount;
+    }
+
+    public FuelSim getFuelSim() {
+        return fuelSim;
+    }
+
+    public void setSimFuelCount(double val) {
+        simFuelCount = val;
+    }
+
     public CustomAutoBuilder getCustomAutoBuilder() {
         return customAutoBuilder;
     }
@@ -715,10 +789,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         delta = delta.times(lookaheadTimeS);
         return fieldToRobot
                 .exp(new Twist2d(delta.vxMetersPerSecond, delta.vyMetersPerSecond, delta.omegaRadiansPerSecond));
-    }
-
-    public Pose2d getLatestFieldToRobotCenter() {
-        return fieldToRobot.getLatest().getValue().transformBy(VisionConstants.kTurretToRobotCenter);
     }
 
     // This has rotation and radians to allow for wrapping tracking.
@@ -860,6 +930,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         Logger.recordOutput("RobotState/DesiredChassisSpeedFieldFrame", getLatestDesiredFieldRelativeChassisSpeed());
         Logger.recordOutput("RobotState/MeasuredChassisSpeedFieldFrame", getLatestMeasuredFieldRelativeChassisSpeeds());
         Logger.recordOutput("RobotState/FusedChassisSpeedFieldFrame", getLatestFusedFieldRelativeChassisSpeed());
+        
+        // Logger.processInputs("Setpoint/Pass", ShooterSetpoint.getLog(getCurrentPassSetpoint()));
+        // Logger.processInputs("Setpoint/Shoot", ShooterSetpoint.getLog(getCurrentHubSetpoint()));
     }
 
     @Override
@@ -886,6 +959,10 @@ public class RobotState extends StateMachine<RobotState.State> {
     @Override
     protected void determineSelf() {
         setState(State.TRAVERSING);
+    }
+
+    public void updateSimulation() {
+        fuelSim.updateSim();
     }
 
     @Override

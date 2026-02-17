@@ -244,7 +244,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private void configureAutobuilder() {
     Elastic.sendNotification(new Notification().withTitle("Auto Builder").withDescription("Auto builder reset"));
     AutoBuilder.configure(
-        () -> robotState.getLatestFieldToRobotCenter(),
+        () -> robotState.getLatestFieldToRobot().getValue(),
         this::setPose,
         () -> robotState.getLatestRobotRelativeChassisSpeed(),
         this::runVelocity,

@@ -8,10 +8,12 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.hood.HoodConstants;
+import frc.robot.subsystems.shooter.turret.SetpointLogAutoLogged;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLog;
 public class ShooterSetpoint {
     public static Optional<Double> overrideRPS = Optional.empty();
 
@@ -21,25 +23,28 @@ public class ShooterSetpoint {
     private double turretFF;
     private double hoodRadians;
     private double hoodFF;
+    private double height;
     private boolean isValid;
 
     public ShooterSetpoint(double shooterRPS, double turretRadiansFromCenter, double turretFF, double hoodRadians,
-            double hoodFF, boolean isValid) {
+            double hoodFF, double height, boolean isValid) {
         this.shooterRPS = shooterRPS;
         this.turretRadiansFromCenter = turretRadiansFromCenter;
         this.turretFF = turretFF;
         this.hoodRadians = hoodRadians;
         this.hoodFF = hoodFF;
+        this.height = height;
         this.isValid = isValid;
     }
 
     public ShooterSetpoint(double shooterRPS, double turretRadiansFromCenter, double turretFF, double hoodRadians,
-            double hoodFF) {
+            double hoodFF, double height) {
         this.shooterRPS = shooterRPS;
         this.turretRadiansFromCenter = turretRadiansFromCenter;
         this.turretFF = turretFF;
         this.hoodRadians = hoodRadians;
         this.hoodFF = hoodFF;
+        this.height = height;
         this.isValid = true;
     }
 
@@ -100,7 +105,7 @@ public class ShooterSetpoint {
                 turretRotationTurretFrame.getRadians(),
                 turretFF,
                 hoodAngle,
-                hoodFF, validSetpont);
+                hoodFF, robotToTargetTranslation.getZ(), validSetpont);
     }
 
     public static Supplier<ShooterSetpoint> passSetpointSupplier(RobotState robotState) {
@@ -174,15 +179,6 @@ public class ShooterSetpoint {
         }
         return makeSetpoint(robotState, robotToTargetRotation, d, pitchAngleRads, launchSpeedMetersPerSec);
     }
-    
-    public static Supplier<ShooterSetpoint> autoSetpointSupplier(RobotState robotState) {
-        return autoSetpointSupplier(() -> BallTargetFactory.generate(robotState), robotState);
-    }
-
-    public static Supplier<ShooterSetpoint> autoSetpointSupplier(Supplier<Translation3d> speakerTargetPoint,
-            RobotState robotState) {
-        return () -> fromAutoTarget(speakerTargetPoint.get(), robotState);
-    }
 
     public static Supplier<ShooterSetpoint> speakerSetpointSupplier(RobotState robotState) {
         return speakerSetpointSupplier(() -> BallTargetFactory.generate(robotState), robotState);
@@ -191,14 +187,6 @@ public class ShooterSetpoint {
     public static Supplier<ShooterSetpoint> speakerSetpointSupplier(Supplier<Translation3d> targetPoint,
             RobotState robotState) {
         return () -> fromSpeakerTarget(targetPoint.get(), robotState);
-    }
-
-    private static ShooterSetpoint fromAutoTarget(Translation3d speakerTarget, RobotState robotState) {
-        var setpoint = fromSpeakerTarget(speakerTarget, robotState);
-        if (Timer.getFPGATimestamp() - robotState.getAutoStartTime() <= 2) {
-            setpoint.shooterRPS = GetTuned.getNumber("Shooter/Preload Shot RPS", ShooterConstants.kPreloadShotRPS);
-        }
-        return setpoint;
     }
 
     private static ShooterSetpoint fromSpeakerTarget(Translation3d target, RobotState robotState) {
@@ -327,5 +315,22 @@ public class ShooterSetpoint {
 
     public double getHoodFF() {
         return hoodFF;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public static SetpointLogAutoLogged getLog(ShooterSetpoint setpoint) {
+        SetpointLogAutoLogged log = new SetpointLogAutoLogged();
+        log.height = setpoint.getHeight();
+        log.shooterRPS = setpoint.getShooterRPS();
+        log.turretRadiansFromCenter = setpoint.getTurretRadiansFromCenter();
+        log.turretFF = setpoint.getTurretFF();
+        log.hoodRadians = setpoint.getHoodRadians();
+        log.hoodFF = setpoint.getHoodFF();
+        log.isValid = setpoint.isValid;
+        
+        return log;
     }
 }

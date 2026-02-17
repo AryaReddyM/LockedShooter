@@ -1,6 +1,9 @@
 package frc.robot.subsystems.shooter.flywheel;
 
+import static edu.wpi.first.units.Units.Inches;
+
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public class FlywheelConstants {
 
@@ -10,7 +13,7 @@ public class FlywheelConstants {
 
 
     // Flywheel PID
-    public static final double kFlywheelP = 0;
+    public static final double kFlywheelP = 0.2;
     public static final double kFlywheelI = 0;
     public static final double kFlywheelD = 0;
     public static final double kFlywheelMaxAccel = 0;
@@ -21,6 +24,8 @@ public class FlywheelConstants {
     // factors
     public static final double kFlywheelPositionConversionFactor = 0;
     public static final double kFlywheelVelocityConversionFactor = 0;
+
+    public static final Distance kFlywheelRadius = Inches.of(2);
 
 
     // Configuration
