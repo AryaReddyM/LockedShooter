@@ -27,6 +27,7 @@ public class ClimbIOSpark implements ClimbIO {
     private double desiredPos = 0.0;
     // Closed loop controllers
     private final SparkClosedLoopController climbController;
+    private final SparkMaxConfig climbConfig;
 
     public ClimbIOSpark() {
 
@@ -37,7 +38,7 @@ public class ClimbIOSpark implements ClimbIO {
         climbController = climb.getClosedLoopController();
 
         // Configure extention motor
-        SparkMaxConfig climbConfig = new SparkMaxConfig();
+        climbConfig = new SparkMaxConfig();
         climbConfig
                 .inverted(ClimbConstants.kClimbinverted)
                 .idleMode(IdleMode.kBrake)
@@ -73,7 +74,6 @@ public class ClimbIOSpark implements ClimbIO {
                 PersistMode.kPersistParameters,
                 false,
                 true);
-
     }
 
     @Override
@@ -102,5 +102,25 @@ public class ClimbIOSpark implements ClimbIO {
     @Override
     public void stopClimb() {
         climb.stopMotor();
+    }
+
+    @Override
+    public void setCurrentLimit(double limit) {
+        climbConfig.apply(climbConfig.smartCurrentLimit((int) limit));
+    }
+
+    @Override
+    public void setMotorOutput(double output) {
+        climb.set(output);
+    }
+
+    @Override
+    public double getMotorCurrent() {
+        return climb.getOutputCurrent();
+    }
+
+    @Override
+    public void zeroEncoder() {
+        climbEncoder.setPosition(0);
     }
 }

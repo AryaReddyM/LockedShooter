@@ -22,4 +22,9 @@ public interface ClimbIO {
 
   public default void stopClimb() {}
 
+  public default void setCurrentLimit(double limit) {}
+  public default void setMotorOutput(double output) {}
+  public default double getMotorCurrent() {return 5.0;};
+  public default void zeroEncoder() {};
+
 }
