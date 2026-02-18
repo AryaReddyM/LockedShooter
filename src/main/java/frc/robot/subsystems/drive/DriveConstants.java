@@ -73,8 +73,8 @@ public class DriveConstants {
 
   public static final double driveSimP = 0.1;
   public static final double driveSimD = 0.0;
-  public static final double driveSimKs = 0.8186;
-  public static final double driveSimKv = 2;
+  public static final double driveSimKs = 0.9;
+  public static final double driveSimKv = 3;
 
   public static final double driveKs = 0.09186;
   public static final double driveKv = 0.19819;
@@ -156,11 +156,11 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 6.0;
+  public static double kABDriveP = 20.0;
   public static double kABDriveI = 0.0;
-  public static double kABDriveD = 0.0;
+  public static double kABDriveD = 1.0;
 
-  public static double kABTurnP = 6.0;
+  public static double kABTurnP = 12.0;
   public static double kABTurnI = 0.0;
-  public static double kABTurnD = 0.0;
+  public static double kABTurnD = 1.0;
 }

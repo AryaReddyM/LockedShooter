@@ -60,9 +60,15 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             if (state.robotState == 2) {
                 robotToTurrRot = Rotation2d.fromRadians(inputs.desiredPos);
 
-                turretVisualizer.updateFuel(
+                if (state.getShooter().getState() == Shooter.State.PASSING || state.getShooter().getState() == Shooter.State.PASS_TRACKING) {
+                    turretVisualizer.updateFuel(
+                    MetersPerSecond.of(state.getCurrentPassSetpoint().getShooterRPS() * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec), 
+                    Degrees.of(90).minus(Radians.of(state.getCurrentPassSetpoint().getHoodRadians())));
+                } else  {
+                    turretVisualizer.updateFuel(
                     MetersPerSecond.of(state.getCurrentHubSetpoint().getShooterRPS() * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec), 
                     Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())));
+                }
 
                 if (state.getShooter().getState() == Shooter.State.SHOOTING && state.getSimFuelCount() > 0 && (timer.hasElapsed(0.08))) {
                     state.setSimFuelCount(state.getSimFuelCount()-1);

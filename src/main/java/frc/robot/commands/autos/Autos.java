@@ -575,8 +575,10 @@ public class Autos {
                         }),
                         AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
                         new InstantCommand(() -> {
+                            state.getShooter().requestTransition(State.SHOOTING);
                             state.getIntake().requestTransition(Intake.State.STOW);
-                        })
+                        }),
+                        new WaitCommand(5)
                 )
                         .withName(name);
             } catch (Exception e) {

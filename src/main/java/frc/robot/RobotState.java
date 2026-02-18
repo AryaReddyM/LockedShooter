@@ -31,8 +31,11 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -646,10 +649,19 @@ public class RobotState extends StateMachine<RobotState.State> {
         // controller
         //         .leftBumper()
         //         .onTrue(new InstantCommand(() -> {
-        //             fuelSim.launchFuel(MetersPerSecond.of(hubSupplier.get().getShooterRPS() * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
-        //                     Degrees.of(90).minus(Radians.of(hubSupplier.get().getHoodRadians())),
-        //                     Radians.of(hubSupplier.get().getTurretRadiansFromCenter()),
-        //                     Inches.of(hubSupplier.get().getHeight()));
+
+        //             Supplier<ShooterSetpoint> supplier = hubSupplier;
+
+        //             if (shooter.getState() == Shooter.State.PASSING) {
+        //                 supplier = passSupplier;
+        //             }
+
+        //             fuelSim.launchFuel(
+        //                     MetersPerSecond.of(supplier.get().getShooterRPS()
+        //                             * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+        //                     Degrees.of(90).minus(Radians.of(supplier.get().getHoodRadians())),
+        //                     Radians.of(supplier.get().getTurretRadiansFromCenter()),
+        //                     Inches.of(supplier.get().getHeight()));
         //         }));
         // controller // not accounting rotation (no need for this just to test)
         // .leftBumper()
@@ -930,9 +942,11 @@ public class RobotState extends StateMachine<RobotState.State> {
         Logger.recordOutput("RobotState/DesiredChassisSpeedFieldFrame", getLatestDesiredFieldRelativeChassisSpeed());
         Logger.recordOutput("RobotState/MeasuredChassisSpeedFieldFrame", getLatestMeasuredFieldRelativeChassisSpeeds());
         Logger.recordOutput("RobotState/FusedChassisSpeedFieldFrame", getLatestFusedFieldRelativeChassisSpeed());
-        
-        // Logger.processInputs("Setpoint/Pass", ShooterSetpoint.getLog(getCurrentPassSetpoint()));
-        // Logger.processInputs("Setpoint/Shoot", ShooterSetpoint.getLog(getCurrentHubSetpoint()));
+
+        // Logger.processInputs("Setpoint/Pass",
+        // ShooterSetpoint.getLog(getCurrentPassSetpoint()));
+        // Logger.processInputs("Setpoint/Shoot",
+        // ShooterSetpoint.getLog(getCurrentHubSetpoint()));
     }
 
     @Override
@@ -953,6 +967,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                     () -> registerStateCommand(State.AUTO, selected));
         }
 
+        Logger.recordOutput("Auto Trajectory 3D", new Transform3d[] {});
         setState(State.AUTO);
     }
 
@@ -1007,6 +1022,13 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 }
                             }
 
+                            Transform3d[] transformArray = allPoses.stream()
+                                    .map(pose -> new Transform3d(
+                                            new Translation3d(pose.getX(), pose.getY(), 0.0),
+                                            new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
+                                    .toArray(Transform3d[]::new);
+
+                            Logger.recordOutput("Auto Trajectory 3D", transformArray);
                             drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
                         } else {
                             System.out.println("OO");
@@ -1019,6 +1041,13 @@ public class RobotState extends StateMachine<RobotState.State> {
                                     drive.setFieldPoses();
                                 }
                                 drive.setFieldPoses("Auto Path", poses);
+
+                                Transform3d[] transformArray = poses.stream()
+                                    .map(pose -> new Transform3d(
+                                            new Translation3d(pose.getX(), pose.getY(), 0.0),
+                                            new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
+                                    .toArray(Transform3d[]::new);
+                                Logger.recordOutput("Pathplanner Trajectory", transformArray);
                             });
                         }
                     } catch (Exception e) {
