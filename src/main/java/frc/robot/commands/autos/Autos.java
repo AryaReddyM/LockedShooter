@@ -28,6 +28,103 @@ import frc.robot.subsystems.vision.VisionConstants;
 
 public class Autos {
 
+    //Aarush's Autos
+    public static class depotSideDepotMidHalfSweep extends AutoClass {
+        public depotSideDepotMidHalfSweep() {
+            this.name = "Depot Side Depot Mid Half Sweep (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Depot Side to Depot", 
+                    "Depot Intaking", 
+                    "Depot to Mid Under Trench", 
+                    "Mid Depot Side Half Sweep", 
+                    "Mid Depot Half to Home Over Bump"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot Side to Depot")),
+                        new InstantCommand(() -> {
+                                state.getIntake().requestTransition(Intake.State.IDLE); 
+                            }),
+                        new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            })                        
+                    ),
+                    // MAYBE SHOOT DEPENDING ON HOW LONG IT TAKES TO SPIN UP IF TOO LONG SHOOT AFTER INTAKING
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot Intaking")),
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.INTAKE); 
+                        })  
+                    ),
+
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.IDLE); 
+                        }),  
+                        //need to test and figure out timings 
+                        new SequentialCommandGroup(
+                            new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                            }),
+                            new WaitCommand(2), // need to figure out 
+                            new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            })
+                        ),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1),//need to figure out
+                            AutoBuilder.followPath(pathMap.get("Depot to Mid Under Trench"))
+                        )
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Half Sweep")),
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.INTAKE); 
+                        })
+                    ),
+                    
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Half to Home Over Bump")),
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.STOW); 
+                        })
+                    ),
+
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.IDLE); 
+                        }),
+                        new InstantCommand(() -> {
+                            state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                        }),
+                        new WaitCommand(5)//need to figure out
+                    ),
+                    
+                    new InstantCommand(() -> {
+                            state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                        })
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+
+
+    //Other Autos
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
             this.name = "Left Depot Climb (GAME)";
@@ -83,6 +180,7 @@ public class Autos {
         }
     }
     
+
     public static class rightFuelClimb extends AutoClass {
         public rightFuelClimb() {
             this.name = "Right Fuel Climb (GAME)";
