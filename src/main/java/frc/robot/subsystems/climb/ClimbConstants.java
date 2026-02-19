@@ -1,5 +1,10 @@
 package frc.robot.subsystems.climb;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 
 public class ClimbConstants {
 
@@ -37,4 +42,9 @@ public class ClimbConstants {
 
     public static final int kBeamBreakerIdOne = 1;
     public static final int kBeamBreakerIdTwo = 2;
+
+
+    public static final Transform3d climbOrigin = new Transform3d(new Translation3d(
+        Units.inchesToMeters(0.938), Units.inchesToMeters(12.733), Units.inchesToMeters(1.621)
+    ), new Rotation3d());
 }

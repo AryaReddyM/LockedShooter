@@ -47,10 +47,11 @@ public class VisionConstants {
         public static final double kTurretToCameraBY = 0;
 
         // THIS IS SOMETHING WE NEED TO DO
-        public static final double kTurretToRobotCenterX = Units.inchesToMeters(2.3115);
-        public static final double kTurretToRobotCenterY = 0;
-        public static final double kTurretToRobotCenterZ = 0;
+        public static final double kTurretToRobotCenterX = Units.inchesToMeters(3.390);
+        public static final double kTurretToRobotCenterY = Units.inchesToMeters(4.750);
+        public static final double kTurretToRobotCenterZ = Units.inchesToMeters(13.935);
 
+        // TODO
         public static final Transform3d kTurretToRobotCenter = new Transform3d(
                 new Translation3d(VisionConstants.kTurretToRobotCenterX, VisionConstants.kTurretToRobotCenterY, VisionConstants.kTurretToRobotCenterZ),
                 Rotation3d.kZero

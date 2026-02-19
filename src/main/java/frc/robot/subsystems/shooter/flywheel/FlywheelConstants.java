@@ -34,7 +34,5 @@ public class FlywheelConstants {
 
 
     // setpoints
-    public static final double kFlywheelShootSpeed = 0;
-    
-    
+    public static final double kSlowSpeed = 0;
 }

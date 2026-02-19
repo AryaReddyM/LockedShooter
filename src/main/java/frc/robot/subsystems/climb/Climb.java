@@ -5,6 +5,10 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -36,7 +40,6 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         this.leftSensor = leftSensor;
         this.rightSensor = rightSensor;
 
-
         LoggedMechanismRoot2d climbRoot = climbMechanism.getRoot("Climber", 1.85, 0);
         LoggedMechanismLigament2d climbElevatorBase = climbRoot
                 .append(new LoggedMechanismLigament2d("elevator", ClimbConstants.kClimberBaseHeight, 90));
@@ -56,13 +59,24 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         leftSensor.updateInputs(leftInputs);
         rightSensor.updateInputs(rightInputs);
 
-
         Logger.processInputs("Climb", inputs);
         Logger.processInputs("Left Sensor", leftInputs);
         Logger.processInputs("Right Sensor", rightInputs);
 
         climbElevatorExtension.setLength(inputs.desiredPos);
         Logger.recordOutput("Climb/Mechanism", climbMechanism);
+
+
+        Pose3d elevatorBasePose = new Pose3d(state.getLatestFieldToRobot().getValue())
+                .plus(ClimbConstants.climbOrigin);
+        Logger.recordOutput("Climb/Elevator Pose", elevatorBasePose);
+
+        Logger.recordOutput("Climb/Extension Pose",
+                elevatorBasePose.plus(
+                        new Transform3d(
+                                new Translation3d(0, 0, inputs.desiredPos),
+                                new Rotation3d()
+                        )));
     }
 
     public void stow() {

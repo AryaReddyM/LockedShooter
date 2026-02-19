@@ -1,5 +1,8 @@
 package frc.robot.subsystems.shooter.hood;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class HoodConstants {
@@ -36,4 +39,7 @@ public class HoodConstants {
 
     public static final double kFenderShotRadians = Units.degreesToRadians(0);
 
+    public static final Transform3d turretToHood = new Transform3d(new Translation3d(
+        Units.inchesToMeters(4.145), Units.inchesToMeters(0.954), Units.inchesToMeters(2.260)
+    ), new Rotation3d());
 }

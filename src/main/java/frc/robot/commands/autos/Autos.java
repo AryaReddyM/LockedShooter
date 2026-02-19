@@ -33,11 +33,11 @@ public class Autos {
         public depotSideDepotMidHalfSweep() {
             this.name = "Depot Side Depot Mid Half Sweep (GAME)";
             this.sequentialPathStrings = new String[] { 
-                    "Depot Side to Depot", 
+                    "Start Depot Side to Depot", 
                     "Depot Intaking", 
                     "Depot to Mid Under Trench", 
                     "Mid Depot Side Half Sweep", 
-                    "Mid Depot Half to Home Over Bump"
+                    "Mid Depot Half to Home Depot Over Bump"
                 };
         }
 
@@ -49,7 +49,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Depot Side to Depot")),
+                        AutoBuilder.followPath(pathMap.get("StartDepot Side to Depot")),
                         new InstantCommand(() -> {
                                 state.getIntake().requestTransition(Intake.State.IDLE); 
                             }),
@@ -94,7 +94,7 @@ public class Autos {
                     ),
                     
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Mid Depot Half to Home Over Bump")),
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Half to Home Depot Over Bump")),
                         new InstantCommand(() -> {
                             state.getIntake().requestTransition(Intake.State.STOW); 
                         })
@@ -107,12 +107,13 @@ public class Autos {
                         new InstantCommand(() -> {
                             state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                         }),
-                        new WaitCommand(5)//need to figure out
+                        new WaitCommand(1)//need to figure out
                     ),
                     
                     new InstantCommand(() -> {
                             state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
-                        })
+                        }),
+                    ActionCommands.autoClimb(state)
 
                 ).withName(name);
 
@@ -647,43 +648,44 @@ public class Autos {
         @Override
         public Command getCommand(RobotState state) {
             // state.getDrive().setPose(new Pose2d(0, 10, Rotation2d.kZero));
-            return ActionCommands.autoClimb(state);
-            // try {
-            //     Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-            //     new ActionCommands();
+            // return ActionCommands.autoClimb(state);
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+                new ActionCommands();
 
-            //     return new SequentialCommandGroup(
-            //             new InstantCommand(
-            //                     () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                return new SequentialCommandGroup(
+                        new InstantCommand(
+                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         
-            //             new ParallelCommandGroup(
-            //                  AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
-            //                  new SequentialCommandGroup(
-            //                     new WaitCommand(1),
-            //                     new InstantCommand(() -> {
-            //                         state.getIntake().requestTransition(Intake.State.INTAKE);
-            //                     }),
+                        new ParallelCommandGroup(
+                             AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
+                             new SequentialCommandGroup(
+                                new WaitCommand(1),
+                                new InstantCommand(() -> {
+                                    state.getIntake().requestTransition(Intake.State.INTAKE);
+                                }),
 
-            //                     new WaitCommand(1.5),
-            //                     ActionCommands.aimAndShoot(state)
-            //                  )
-            //             ),
-            //             AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
-            //             new WaitCommand(1),
-            //             new InstantCommand(() -> {
-            //                 state.getShooter().requestTransition(State.IDLE);
-            //             }),
-            //             AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
-            //             new InstantCommand(() -> {
-            //                 state.getShooter().requestTransition(State.SHOOTING);
-            //                 state.getIntake().requestTransition(Intake.State.STOW);
-            //             }),
-            //             new WaitCommand(5)
-            //     )
-            //             .withName(name);
-            // } catch (Exception e) {
-            //     return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            // }
+                                new WaitCommand(1.5),
+                                ActionCommands.aimAndShoot(state)
+                             )
+                        ),
+                        AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
+                        new WaitCommand(1),
+                        new InstantCommand(() -> {
+                            state.getShooter().requestTransition(State.IDLE);
+                        }),
+                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
+                        new InstantCommand(() -> {
+                            state.getShooter().requestTransition(State.SHOOTING);
+                            state.getIntake().requestTransition(Intake.State.STOW);
+                        }),
+                        new WaitCommand(5),
+                        ActionCommands.autoClimb(state)
+                )
+                        .withName(name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+            }
         }
     }
 
