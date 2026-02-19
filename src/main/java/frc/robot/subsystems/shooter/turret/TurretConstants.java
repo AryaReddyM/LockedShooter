@@ -91,9 +91,8 @@ public class TurretConstants {
             TOF_MAP.put(1.55, 1.23);
         }
 
-        public static final Distance DISTANCE_ABOVE_FUNNEL = Inches.of(20);
-        public static final Distance FLYWHEEL_RADIUS = Inches.of(2);
-        public static final Angle MIN_TURN_ANGLE = Rotations.of(-0.55);
-        public static final Angle MAX_TURN_ANGLE = Rotations.of(0.55);
+        public static final Distance kdistanceAboveFunnel = Inches.of(20);
+        public static final Angle kMinTurnAngle = Rotations.of(-0.55);
+        public static final Angle kMaxTurnAngle = Rotations.of(0.55);
     
 }

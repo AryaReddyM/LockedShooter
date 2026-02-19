@@ -29,16 +29,6 @@ public class HoodConstants {
     public static final int kHoodCurrentLimit = 10;
 
     // setpoints
-    public static final double kHoodStowPos = 0;
-//TODO
-    public static final double kHoodPositionTolerance = 0.1;
-    public static final double kHoodMinPositionRadians = 0.0;
-    public static final double kHoodZeroedAngleDegrees = 0;
-    public static final double kHoodEpsilon = Units.degreesToRadians(1.0);
-    public static final double kHoodShootingEpsilon = Units.degreesToRadians(5.0);
-
-    public static final double kFenderShotRadians = Units.degreesToRadians(0);
-
     public static final Transform3d turretToHood = new Transform3d(new Translation3d(
         Units.inchesToMeters(4.145), Units.inchesToMeters(0.954), Units.inchesToMeters(2.260)
     ), new Rotation3d());

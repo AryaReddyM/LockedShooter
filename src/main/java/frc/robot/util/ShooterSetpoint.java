@@ -77,8 +77,7 @@ public class ShooterSetpoint {
                         ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec);
         if (overrideRPS.isPresent())
             shooterRPS = overrideRPS.get();
-        boolean validSetpoint = shooterRPS <= GetTuned.getNumber("Shooter/Stage 2 RPS Cap",
-                ShooterConstants.kShooterStage2RPSCap);
+        boolean validSetpoint = true;
 
         return new ShooterSetpoint(shooterRPS,
                 turretAngle.getRadians(),

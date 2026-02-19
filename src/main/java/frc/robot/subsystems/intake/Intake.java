@@ -51,8 +51,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                         .plus(IntakeConstants.intakeOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, -inputs.desiredExtensionPos, 0)
-                        )));
+                                new Rotation3d(0, -inputs.desiredExtensionPos, 0))));
     }
 
     public void stow() {

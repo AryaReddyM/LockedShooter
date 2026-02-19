@@ -2,6 +2,8 @@ package frc.robot.subsystems.climb;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import com.revrobotics.spark.ClosedLoopSlot;
+
 public interface ClimbIO {
   @AutoLog
   public static class ClimbIOInputs {
@@ -19,6 +21,7 @@ public interface ClimbIO {
   public default void setClimbVoltage(double volts) {}
 
   public default void setClimbPosition(double position) {}
+  public default void setClimbPosition(double position, ClosedLoopSlot slot) {}
 
   public default void stopClimb() {}
 

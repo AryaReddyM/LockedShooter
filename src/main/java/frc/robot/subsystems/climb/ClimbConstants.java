@@ -11,12 +11,18 @@ public class ClimbConstants {
     public static final int kClimbCanID = 17;
 
     // Climb PID
-    public static final double kClimbP = 0.1;
+    public static final double kClimbP = 20;
     public static final double kClimbI = 0;
     public static final double kClimbD = 0;
-    public static final double kClimbMaxAccel = 1000;
-    public static final double kClimbCruiseVel = 2000;
+
+    public static final double kClimbMaxAccel = 4000;
+    public static final double kClimbCruiseVel = 7000;
     public static final double kClimbDeviationErr = 0.05;
+
+    public static final double kClimbActionP = 7;
+
+    public static final double kClimbActionMaxAccel = 600;
+    public static final double kClimbActionCruiseVel = 600;
 
     public static final double kClimbSimP = 0.002;
     public static final double kClimbSimD = 0;
@@ -29,16 +35,16 @@ public class ClimbConstants {
 
     // Configuration
     public static final boolean kClimbinverted = false;
-    public static final int kClimbCurrentLimit = 30;
+    public static final int kClimbCurrentLimit = 50;
 
     // setpoints
     public static final double kClimbStowPos = 0;
-    public static final double kClimbUpPos = 0.3;
-    public static final double kClimbDownPos = 0.05;
+    public static final double kClimbUpPos = 3.5;
+    public static final double kClimbDownPos = 1.5;
 
-    public static final double kLowerCurrentLimit = 6;
-    public static final double kLowerMotorOutput = -0.1;
-    public static final double kZeroCurrentThreshold = 4;
+    public static final double kLowerCurrentLimit = 20;
+    public static final double kLowerMotorOutput = -0.08;
+    public static final double kZeroCurrentThreshold = 20;
 
     public static final int kBeamBreakerIdOne = 1;
     public static final int kBeamBreakerIdTwo = 2;

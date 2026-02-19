@@ -6,6 +6,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import dev.doglog.DogLog;
@@ -28,6 +30,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.RobotTime;
+import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.TurretVisualizer;
 import frc.robot.util.state.StateMachine;
 
@@ -65,10 +68,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
     public void update() {
         turretIO.updateInputs(inputs);
         {
-            Rotation2d robotToTurrRot = inputs.turretRotation2d;
-
             if (state.robotState == 2) {
-                robotToTurrRot = Rotation2d.fromRadians(inputs.desiredPos);
 
                 if (state.getShooter().getState() == Shooter.State.PASSING
                         || state.getShooter().getState() == Shooter.State.PASS_TRACKING) {
@@ -83,17 +83,18 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                             Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())));
                 }
 
-                if (state.getShooter().getState() == Shooter.State.SHOOTING && state.getSimFuelCount() > 0
+                if ((state.getShooter().getState() == Shooter.State.SHOOTING || state.getShooter().getState() == Shooter.State.PASSING) && state.getSimFuelCount() > 0
                         && (timer.hasElapsed(0.08))) {
                     state.setSimFuelCount(state.getSimFuelCount() - 1);
                     timer.reset();
 
+                    ShooterSetpoint currentSetpoint = (state.getShooter().getState() == Shooter.State.SHOOTING) ? state.getCurrentHubSetpoint() : state.getCurrentPassSetpoint();
                     state.getFuelSim().launchFuel(
-                            MetersPerSecond.of(state.getCurrentHubSetpoint().getShooterRPS()
+                            MetersPerSecond.of(currentSetpoint.getShooterRPS()
                                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
-                            Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())),
-                            Radians.of(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()),
-                            Inches.of(state.getCurrentHubSetpoint().getHeight()));
+                            Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
+                            Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
+                            Inches.of(currentSetpoint.getHeight()));
                 }
             }
             inputs.robotTurretPos = new Pose3d(
@@ -128,7 +129,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                         .plus(VisionConstants.kTurretToRobotCenter)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, 0, inputs.turretRotation2d.getRadians())
+                                new Rotation3d(0, 0, inputs.desiredPos)
                         )));
     }
 

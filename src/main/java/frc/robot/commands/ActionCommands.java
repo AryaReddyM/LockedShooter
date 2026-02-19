@@ -50,24 +50,6 @@ public class ActionCommands {
                 new GoalEndState(0, new Rotation2d()));
     }
 
-    public static PathPlannerPath startOwnCenterToDepot() {
-        return DynamicPathGenerator.getPathFromWaypoints(
-                PathPlannerPath.waypointsFromPoses(
-                        new Pose2d(4, 4, Rotation2d.fromDegrees(180)),
-                        new Pose2d(0.5, 6, Rotation2d.fromDegrees(180))),
-                Optional.empty(),
-                new GoalEndState(0, Rotation2d.fromDegrees(180)));
-    }
-
-    public static PathPlannerPath depotToHang() {
-        return DynamicPathGenerator.getPathFromWaypoints(
-                PathPlannerPath.waypointsFromPoses(
-                        new Pose2d(0.5, 6, Rotation2d.fromDegrees(180)),
-                        new Pose2d(0.5, 4.5, Rotation2d.fromDegrees(90))),
-                Optional.empty(),
-                new GoalEndState(0, Rotation2d.fromDegrees(90)));
-    }
-
     public static Command aimAndShoot(RobotState state) {
         return new SequentialCommandGroup(
                 new InstantCommand(() -> state.getShooter().requestTransition(Shooter.State.HUB_TRACKING)),
@@ -75,39 +57,47 @@ public class ActionCommands {
                 new InstantCommand(() -> state.getShooter().requestTransition(Shooter.State.SHOOTING)));
     }
 
-    public static Command aimAtProperItem(RobotState state) {
-        return new InstantCommand(() -> {
-            // Pose2d robotPose = state.getLatestFieldToRobot().getValue();
+    public static Command shootOrPassBasedOnPos(RobotState state) {
+        return new DeferredCommand(() -> {
+            boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
 
-            // some checks here to see if we are in OUR side or not
-            // var alliance = DriverStation.getAlliance();
-            // boolean isRed = alliance.isPresent() && alliance.get() ==
-            // DriverStation.Alliance.Red;
+            double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+            double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
 
-            // Logic: If Red, "our area" is the right side (high X). If Blue, left side (low
-            // X).
-            // Adjust the 8.75 threshold based on where the 2026 "midline" actually is.
-            // boolean inOurArea = isRed ? (robotPose.getX() > 8.75) : (robotPose.getX() <
-            // 8.75);
-            /// THIS IS AI AND IT WONT WORK PROBABLY (TEMPLATE CODE ^)
+            boolean shouldShoot = isBlue
+                    ? currentPose.getX() <= blueHubX
+                    : currentPose.getX() >= redHubX;
 
-            boolean inOurArea = true;
-
-            state.getShooter().requestTransition(inOurArea ? Shooter.State.HUB_TRACKING : Shooter.State.PASS_TRACKING);
-        });
+            if (shouldShoot) {
+                return state.getShooter().transitionCommand(Shooter.State.SHOOTING);
+            } else {
+                return state.getShooter().transitionCommand(Shooter.State.PASSING);
+            }
+        }, Set.of(state.getShooter()));
     }
 
-    public static Command climbUp(RobotState state) {
-        return new SequentialCommandGroup(
-                new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.UP)),
-                new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.IDLE)));
+    public static Command trackBasedOnPos(RobotState state) {
+        return new DeferredCommand(() -> {
+            boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+
+            double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+            double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+
+            boolean shouldShoot = isBlue
+                    ? currentPose.getX() <= blueHubX
+                    : currentPose.getX() >= redHubX;
+
+            if (shouldShoot) {
+                return state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING);
+            } else {
+                return state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING);
+            }
+        }, Set.of(state.getShooter()));
     }
 
-    public static Command climbDown(RobotState state) {
-        return new InstantCommand(() -> state.getClimb().requestTransition(Climb.State.CLIMB));
-    }
-
-    public static Command autoClimb(RobotState state) {
+    public static Command autoClimbV2(RobotState state) {
         return new DeferredCommand(() -> {
 
             boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
@@ -126,12 +116,12 @@ public class ActionCommands {
             double direction = isLeftSide ? 1.0 : -1.0;
 
             if (!isBlue) {
-                chosenUpright = isLeftSide ? right: left;
+                chosenUpright = isLeftSide ? right : left;
                 chosenUpright = Util.flipRedBlueXY(new Translation3d(chosenUpright)).toTranslation2d();
             }
 
             Translation2d preClimbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.75 * direction));
-            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.44 * direction));
+            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.42 * direction));
 
             Pose2d preClimbPose = new Pose2d(preClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
@@ -139,18 +129,68 @@ public class ActionCommands {
             return new SequentialCommandGroup(
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
-                    new WaitCommand(0.5),
+                    new WaitCommand(0.35),
                     new AutoAlignToPoseCommand(state.getDrive(), state, finalPose, 1),
                     // new ToFAutoAlignToPoseCommand(
-                    //         state.getDrive(),
-                    //         state,
-                    //         finalPose,
-                    //         1,
-                    //         () -> state.getClimb().getLeftSensorDistance(),
-                    //         () -> state.getClimb().getRightSensorDistance()),
+                    // state.getDrive(),
+                    // state,
+                    // finalPose,
+                    // 1,
+                    // () -> state.getClimb().getLeftSensorDistance(),
+                    // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive()));
+        }, Set.of(state.getDrive(), state.getClimb()));
+    }
+
+      public static Command autoClimb(RobotState state) {
+        return new DeferredCommand(() -> {
+
+            boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+
+            Translation2d center = VisionConstants.Tower.centerPoint;
+            Translation2d left = VisionConstants.Tower.leftUpright;
+            Translation2d right = VisionConstants.Tower.rightUpright;
+
+            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+
+            double robotY = currentPose.getY();
+            boolean isLeftSide = robotY > center.getY();
+
+            Translation2d chosenUpright = isLeftSide ? left : right;
+            double rotationDeg = isLeftSide ? 180.0 : 0.0;
+            double direction = isLeftSide ? 1.0 : -1.0;
+
+            if (!isBlue) {
+                chosenUpright = isLeftSide ? right : left;
+                chosenUpright = Util.flipRedBlueXY(new Translation3d(chosenUpright)).toTranslation2d();
+            }
+
+            Translation2d preClimbTranslation = chosenUpright.plus(new Translation2d(0.4 * direction, 0.75 * direction));
+            Translation2d alignClimbTranslation = chosenUpright.plus(new Translation2d(0.4 * direction, 0.42 * direction));
+
+            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.42 * direction));
+
+            Pose2d preClimbPose = new Pose2d(preClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
+            Pose2d alignClimbPose = new Pose2d(alignClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
+            Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
+
+            return new SequentialCommandGroup(
+                    new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
+                    state.getClimb().transitionCommand(Climb.State.UP),
+                    new WaitCommand(0.35),
+                    new AutoAlignToPoseCommand(state.getDrive(), state, alignClimbPose, 1),
+                    new AutoAlignToPoseCommand(state.getDrive(), state, finalPose, 1),
+                    // new ToFAutoAlignToPoseCommand(
+                    // state.getDrive(),
+                    // state,
+                    // finalPose,
+                    // 1,
+                    // () -> state.getClimb().getLeftSensorDistance(),
+                    // () -> state.getClimb().getRightSensorDistance()),
+                    state.getClimb().transitionCommand(Climb.State.DOWN));
+
+        }, Set.of(state.getDrive(), state.getClimb()));
     }
 
 }

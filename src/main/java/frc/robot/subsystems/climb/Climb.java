@@ -5,6 +5,8 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
+import com.revrobotics.spark.ClosedLoopSlot;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -16,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.commands.ActionCommands;
+import frc.robot.util.Elastic;
+import frc.robot.util.Elastic.Notification;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
@@ -42,7 +46,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
 
         LoggedMechanismRoot2d climbRoot = climbMechanism.getRoot("Climber", 1.85, 0);
         LoggedMechanismLigament2d climbElevatorBase = climbRoot
-                .append(new LoggedMechanismLigament2d("elevator", ClimbConstants.kClimberBaseHeight, 90));
+                .append(new LoggedMechanismLigament2d("elevator", ClimbConstants.kClimberBaseHeight, 90)); // TODO conversion because its not in meters!
         climbElevatorExtension = climbElevatorBase
                 .append(new LoggedMechanismLigament2d("extension", 0, 0, 10, new Color8Bit(255, 0, 0)));
 
@@ -74,7 +78,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         Logger.recordOutput("Climb/Extension Pose",
                 elevatorBasePose.plus(
                         new Transform3d(
-                                new Translation3d(0, 0, inputs.desiredPos),
+                                new Translation3d(0, 0, inputs.desiredPos * ClimbConstants.kClimbPositionConversionFactor),
                                 new Rotation3d()
                         )));
     }
@@ -89,24 +93,28 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     }
 
     public void down() {
-        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Down Setpoint", ClimbConstants.kClimbDownPos));
+        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Down Setpoint", ClimbConstants.kClimbDownPos), ClosedLoopSlot.kSlot1);
     }
 
     public void stop() {
         climbIO.stopClimb();
     }
 
-    public Command zero() {
+     public Command zero() {
         return run(() -> {
-            climbIO.setCurrentLimit(ClimbConstants.kLowerCurrentLimit); // lower current limit
-            climbIO.setMotorOutput(ClimbConstants.kLowerMotorOutput); // slow downward
+            climbIO.setMotorOutput(GetTuned.getNumber("Climb/Lower Motor Output", ClimbConstants.kLowerMotorOutput));
         })
-                .until(() -> climbIO.getMotorCurrent() > ClimbConstants.kZeroCurrentThreshold) // detect stall
-                .finallyDo(interrupted -> {
-                    climbIO.setMotorOutput(0);
-                    climbIO.zeroEncoder();
-                    climbIO.setCurrentLimit(ClimbConstants.kClimbCurrentLimit);
-                });
+        .beforeStarting(() -> {
+            climbIO.setCurrentLimit(GetTuned.getNumber("Climb/Lower Current Limit", ClimbConstants.kLowerCurrentLimit));
+        })
+        .until(() -> inputs.currentAmps > GetTuned.getNumber("Climb/Zero Current Threshold", ClimbConstants.kZeroCurrentThreshold))
+        .finallyDo(interrupted -> {
+            climbIO.stopClimb();
+            climbIO.zeroEncoder();
+            climbIO.setCurrentLimit(ClimbConstants.kClimbCurrentLimit);
+            requestTransition(State.STOW);
+            Elastic.sendNotification(new Notification().withTitle("Climb Zero").withDescription("Climb has been zeroed!"));
+        });
     }
 
     public double getLeftSensorDistance() {
@@ -118,7 +126,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.STOW, State.IDLE, State.UP, State.CLIMB, State.DOWN);
+        addOmniTransitions(State.STOW, State.IDLE, State.UP, State.DOWN);
     }
 
     private void registerStateCommands() {
@@ -126,8 +134,6 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         registerStateCommand(State.IDLE, Commands.run(() -> stop()));
         registerStateCommand(State.UP, Commands.run(() -> up()));
         registerStateCommand(State.DOWN, Commands.run(() -> down()));
-
-        registerStateCommand(State.CLIMB, ActionCommands.autoClimb(state));
     }
 
     @Override
@@ -141,7 +147,6 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         STOW,
         IDLE,
         UP,
-        CLIMB,
         DOWN,
         // flags
 

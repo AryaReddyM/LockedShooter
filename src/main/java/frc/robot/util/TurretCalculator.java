@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.turret.TurretConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 
@@ -39,14 +40,20 @@ public class TurretCalculator {
 
     // see https://www.desmos.com/geometry/l4edywkmha
     public static Angle calculateAngleFromVelocity(Pose2d robot, LinearVelocity velocity, Translation3d target) {
-        double g = MetersPerSecondPerSecond.of(9.81).in(InchesPerSecondPerSecond);
+        double g = GetTuned.getNumber(
+                "Turret/Gravity InchesPerSec2",
+                MetersPerSecondPerSecond.of(9.81).in(InchesPerSecondPerSecond));
+
         double vel = velocity.in(InchesPerSecond);
         double x_dist = getDistanceToTarget(robot, target).in(Inches);
         double y_dist = target.getMeasureZ()
                 .minus(VisionConstants.kTurretToRobotCenter.getMeasureZ())
                 .in(Inches);
+
         double angle = Math.atan(
-                ((vel * vel) + Math.sqrt(Math.pow(vel, 4) - g * (g * x_dist * x_dist + 2 * y_dist * vel * vel)))
+                ((vel * vel)
+                        + Math.sqrt(Math.pow(vel, 4)
+                                - g * (g * x_dist * x_dist + 2 * y_dist * vel * vel)))
                         / (g * x_dist));
         return Radians.of(angle);
     }
@@ -77,9 +84,19 @@ public class TurretCalculator {
         Translation2d direction = target.toTranslation2d().minus(turretTranslation);
         double angle = MathUtil.inputModulus(
                 direction.getAngle().minus(robot.getRotation()).getRotations(), -0.5, 0.5);
+
+        double maxTurn = GetTuned.getNumber(
+                "Turret/MaxTurnRot",
+                TurretConstants.kMaxTurnAngle.in(Rotations));
+
+        double minTurn = GetTuned.getNumber(
+                "Turret/MinTurnRot",
+                TurretConstants.kMinTurnAngle.in(Rotations));
+
         double current = currentAngle.in(Rotations);
-        if (current > 0 && angle + 1 <= TurretConstants.MAX_TURN_ANGLE.in(Rotations)) angle += 1;
-        if (current < 0 && angle - 1 >= TurretConstants.MIN_TURN_ANGLE.in(Rotations)) angle -= 1;
+        if (current > 0 && angle + 1 <= maxTurn) angle += 1;
+        if (current < 0 && angle - 1 >= minTurn) angle -= 1;
+
         Logger.recordOutput("Turret/DesiredAzimuthRad", angle);
         return Rotations.of(angle);
     }
@@ -95,16 +112,29 @@ public class TurretCalculator {
     // see https://www.desmos.com/calculator/ezjqolho6g
     public static ShotData calculateShotFromFunnelClearance(
             Pose2d robot, Translation3d actualTarget, Translation3d predictedTarget) {
+
         double x_dist = getDistanceToTarget(robot, predictedTarget).in(Inches);
         double y_dist = predictedTarget
                 .getMeasureZ()
                 .minus(VisionConstants.kTurretToRobotCenter.getMeasureZ())
                 .in(Inches);
-        double g = 386;
-        double r = VisionConstants.FieldConstants.FUNNEL_RADIUS.in(Inches)
-                * x_dist
+
+        double g = GetTuned.getNumber("Turret/Gravity Funnel InchesPerSec2", 386);
+
+        double funnelRadius = GetTuned.getNumber(
+                "Turret/FunnelRadiusIn",
+                VisionConstants.FieldConstants.FUNNEL_RADIUS.in(Inches));
+
+        double funnelHeight = GetTuned.getNumber(
+                "Turret/FunnelHeightIn",
+                VisionConstants.FieldConstants.FUNNEL_HEIGHT
+                        .plus(TurretConstants.kdistanceAboveFunnel)
+                        .in(Inches));
+
+        double r = funnelRadius * x_dist
                 / getDistanceToTarget(robot, actualTarget).in(Inches);
-        double h = VisionConstants.FieldConstants.FUNNEL_HEIGHT.plus(TurretConstants.DISTANCE_ABOVE_FUNNEL).in(Inches);
+        double h = funnelHeight;
+
         double A1 = x_dist * x_dist;
         double B1 = x_dist;
         double D1 = y_dist;
@@ -118,12 +148,14 @@ public class TurretCalculator {
         double b = (D1 - A1 * a) / B1;
         double theta = Math.atan(b);
         double v0 = Math.sqrt(-g / (2 * a * (Math.cos(theta)) * (Math.cos(theta))));
+
         if (Double.isNaN(v0) || Double.isNaN(theta)) {
             v0 = 0;
             theta = 0;
         }
+
         return new ShotData(
-                linearToAngularVelocity(InchesPerSecond.of(v0), TurretConstants.FLYWHEEL_RADIUS),
+                linearToAngularVelocity(InchesPerSecond.of(v0), FlywheelConstants.kFlywheelRadius),
                 Radians.of(Math.PI / 2 - theta),
                 predictedTarget);
     }
@@ -131,14 +163,15 @@ public class TurretCalculator {
     // use an iterative lookahead approach to determine shot parameters for a moving robot
     public static ShotData iterativeMovingShotFromFunnelClearance(
             Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
-        // Perform initial estimation (assuming unmoving robot) to get time of flight estimate
+
         ShotData shot = calculateShotFromFunnelClearance(robot, target, target);
         Distance distance = getDistanceToTarget(robot, target);
         Time timeOfFlight = calculateTimeOfFlight(shot.getExitVelocity(), shot.getHoodAngle(), distance);
         Translation3d predictedTarget = target;
 
-        // Iterate the process, getting better time of flight estimations and updating the predicted target accordingly
-        for (int i = 0; i < iterations; i++) {
+        int iters = (int) GetTuned.getNumber("Turret/PredictionIterations", iterations);
+
+        for (int i = 0; i < iters; i++) {
             predictedTarget = predictTargetPos(target, fieldSpeeds, timeOfFlight);
             shot = calculateShotFromFunnelClearance(robot, target, predictedTarget);
             timeOfFlight = calculateTimeOfFlight(
@@ -150,14 +183,17 @@ public class TurretCalculator {
 
     public static ShotData iterativeMovingShotFromMap(
             Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
+
         double distance = getDistanceToTarget(robot, target).in(Meters);
         ShotData shot = TurretConstants.SHOT_MAP.get(distance);
         shot = new ShotData(shot.exitVelocity, shot.hoodAngle, target);
+
         Time timeOfFlight = Seconds.of(TurretConstants.TOF_MAP.get(distance));
         Translation3d predictedTarget = target;
 
-        // Iterate the process, getting better time of flight estimations and updating the predicted target accordingly
-        for (int i = 0; i < iterations; i++) {
+        int iters = (int) GetTuned.getNumber("Turret/PredictionIterationsMap", iterations);
+
+        for (int i = 0; i < iters; i++) {
             predictedTarget = predictTargetPos(target, fieldSpeeds, timeOfFlight);
             distance = getDistanceToTarget(robot, predictedTarget).in(Meters);
             shot = TurretConstants.SHOT_MAP.get(distance);
@@ -182,7 +218,7 @@ public class TurretCalculator {
         }
 
         public LinearVelocity getExitVelocity() {
-            return angularToLinearVelocity(RadiansPerSecond.of(this.exitVelocity), TurretConstants.FLYWHEEL_RADIUS);
+            return angularToLinearVelocity(RadiansPerSecond.of(this.exitVelocity), FlywheelConstants.kFlywheelRadius);
         }
 
         public Angle getHoodAngle() {

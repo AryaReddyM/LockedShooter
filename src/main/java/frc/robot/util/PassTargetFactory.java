@@ -41,10 +41,6 @@ public class PassTargetFactory {
             target = Util.flipRedBlueXY(target);
         }
 
-        // if (robotX > (kFarWingX + kFarWingPoopBuffer)) {
-        //     target.plus(new Translation3d(0, 0, ShooterConstants.kPassMaxApexHeight - kLineDrivePoopHeight));
-        // }
-
         Logger.recordOutput("Poop Pose", target);
 
         return target;

@@ -171,7 +171,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -227,7 +227,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -273,7 +273,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToClimb),
                             new InstantCommand(() -> {
-                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -332,7 +332,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToClimb),
                             new InstantCommand(() -> {
-                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
@@ -390,7 +390,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToClimb),
                             new InstantCommand(() -> {
-                                state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);

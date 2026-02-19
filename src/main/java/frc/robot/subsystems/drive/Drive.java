@@ -58,6 +58,7 @@ import frc.robot.RobotState;
 import frc.robot.commands.DriveCommands;
 import frc.robot.util.Elastic;
 import frc.robot.util.RobotTime;
+import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.state.StateMachine;
 

@@ -76,20 +76,16 @@ public class Hood extends StateMachine<Hood.State> {
             }
         }
 
-        Pose3d robotPose = new Pose3d(state.getLatestFieldToRobot().getValue());
-
         Logger.recordOutput("Hood/Pose",
-                robotPose
+                new Pose3d(state.getLatestFieldToRobot().getValue())
                         .plus(VisionConstants.kTurretToRobotCenter)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, 0, state.getShooter().getTurret().getDesiredPos())
-                        ))
+                                new Rotation3d(0, 0, state.getShooter().getTurret().getDesiredPos())))
                         .plus(HoodConstants.turretToHood)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, -inputs.desiredPos, 0)
-                        )));
+                                new Rotation3d(0, -inputs.desiredPos, 0))));
     }
 
     @Override

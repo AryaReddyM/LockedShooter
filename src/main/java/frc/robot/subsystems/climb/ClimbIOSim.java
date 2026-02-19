@@ -8,6 +8,8 @@
 package frc.robot.subsystems.climb;
 
 
+import com.revrobotics.spark.ClosedLoopSlot;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -70,6 +72,11 @@ public class ClimbIOSim implements ClimbIO {
     motorClosedLoop = true;
     motorController.setSetpoint(pos);
     this.desiredPos = pos;
+  }
+
+  @Override
+  public void setClimbPosition(double pos, ClosedLoopSlot slot) {
+    setClimbPosition(pos);
   }
 
   // no vel and turret to rot im tired
