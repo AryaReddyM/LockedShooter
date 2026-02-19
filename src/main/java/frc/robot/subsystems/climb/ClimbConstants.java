@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climb;
 
+
 public class ClimbConstants {
 
     public static final int kClimbCanID = 17;
@@ -27,12 +28,13 @@ public class ClimbConstants {
 
     // setpoints
     public static final double kClimbStowPos = 0;
-    public static final double kClimbUpPos = 0.25;
+    public static final double kClimbUpPos = 0.3;
     public static final double kClimbDownPos = 0.05;
-
 
     public static final double kLowerCurrentLimit = 6;
     public static final double kLowerMotorOutput = -0.1;
     public static final double kZeroCurrentThreshold = 4;
-    
+
+    public static final int kBeamBreakerIdOne = 1;
+    public static final int kBeamBreakerIdTwo = 2;
 }

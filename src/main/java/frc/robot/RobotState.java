@@ -59,6 +59,9 @@ import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
+import frc.robot.subsystems.climb.BeamBreakerIO;
+import frc.robot.subsystems.climb.BeamBreakerSim;
+import frc.robot.subsystems.climb.BeamBreakerTOF;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.ClimbIO;
 import frc.robot.subsystems.climb.ClimbIOSim;
@@ -333,26 +336,33 @@ public class RobotState extends StateMachine<RobotState.State> {
         //     }
         // }
 
-        // { // climb
+        //    { // climb
         //     switch (robotState) {
         //         case 1:
         //             climb = new Climb(
         //                     new ClimbIOSpark(),
+        //                     new BeamBreakerTOF(1),
+        //                     new BeamBreakerTOF(2),
         //                     this);
         //             break;
         //         case 2:
         //             climb = new Climb(
         //                     new ClimbIOSim(),
+        //                     new BeamBreakerSim(1,this),
+        //                     new BeamBreakerSim(2,this),
         //                     this);
         //             break;
         //         default:
         //             climb = new Climb(
         //                     new ClimbIO() {
         //                     },
+        //                     new BeamBreakerIO() {},
+        //                     new BeamBreakerIO() {},
         //                     this);
         //             break;
         //     }
         // }
+
 
         // { // hopper
         // switch (robotState) {

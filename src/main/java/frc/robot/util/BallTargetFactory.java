@@ -16,7 +16,7 @@ public class BallTargetFactory {
     static InterpolatingTreeMap<Double, Double> heightMap = new InterpolatingTreeMap<Double, Double>(
             InverseInterpolator.forDouble(), Interpolator.forDouble());
     static { // TODO fix (distance meters, vertical offsetMeters)
-        double scale = 0.8; // scaling factor to raise shot to hub height
+        double scale = 0.5; // scaling factor to raise shot to hub height
 
         heightMap.put(5.34, 5.34 * Math.tan(Math.toRadians(27)) * scale); // ~3.82
         heightMap.put(4.90, 4.90 * Math.tan(Math.toRadians(26)) * scale); // ~3.35

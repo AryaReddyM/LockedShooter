@@ -646,42 +646,44 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-                new ActionCommands();
+            // state.getDrive().setPose(new Pose2d(0, 10, Rotation2d.kZero));
+            return ActionCommands.autoClimb(state);
+            // try {
+            //     Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+            //     new ActionCommands();
 
-                return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+            //     return new SequentialCommandGroup(
+            //             new InstantCommand(
+            //                     () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         
-                        new ParallelCommandGroup(
-                             AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
-                             new SequentialCommandGroup(
-                                new WaitCommand(1),
-                                new InstantCommand(() -> {
-                                    state.getIntake().requestTransition(Intake.State.INTAKE);
-                                }),
+            //             new ParallelCommandGroup(
+            //                  AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
+            //                  new SequentialCommandGroup(
+            //                     new WaitCommand(1),
+            //                     new InstantCommand(() -> {
+            //                         state.getIntake().requestTransition(Intake.State.INTAKE);
+            //                     }),
 
-                                new WaitCommand(1.5),
-                                ActionCommands.aimAndShoot(state)
-                             )
-                        ),
-                        AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
-                        new WaitCommand(1),
-                        new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.IDLE);
-                        }),
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
-                        new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.SHOOTING);
-                            state.getIntake().requestTransition(Intake.State.STOW);
-                        }),
-                        new WaitCommand(5)
-                )
-                        .withName(name);
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
-            }
+            //                     new WaitCommand(1.5),
+            //                     ActionCommands.aimAndShoot(state)
+            //                  )
+            //             ),
+            //             AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
+            //             new WaitCommand(1),
+            //             new InstantCommand(() -> {
+            //                 state.getShooter().requestTransition(State.IDLE);
+            //             }),
+            //             AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
+            //             new InstantCommand(() -> {
+            //                 state.getShooter().requestTransition(State.SHOOTING);
+            //                 state.getIntake().requestTransition(Intake.State.STOW);
+            //             }),
+            //             new WaitCommand(5)
+            //     )
+            //             .withName(name);
+            // } catch (Exception e) {
+            //     return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+            // }
         }
     }
 

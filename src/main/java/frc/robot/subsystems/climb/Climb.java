@@ -9,7 +9,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
+import frc.robot.commands.ActionCommands;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
@@ -18,14 +20,22 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     private final RobotState state;
     private final ClimbIO climbIO;
     private final ClimbIOInputsAutoLogged inputs = new ClimbIOInputsAutoLogged();
+    private final BeamBreakerInputsAutoLogged leftInputs = new BeamBreakerInputsAutoLogged();
+    private final BeamBreakerInputsAutoLogged rightInputs = new BeamBreakerInputsAutoLogged();
     private final LoggedMechanism2d climbMechanism = new LoggedMechanism2d(3, 4);
+
+    private final BeamBreakerIO leftSensor;
+    private final BeamBreakerIO rightSensor;
 
     private final LoggedMechanismLigament2d climbElevatorExtension;
 
-    public Climb(ClimbIO climbIO, RobotState state) {
+    public Climb(ClimbIO climbIO, BeamBreakerIO leftSensor, BeamBreakerIO rightSensor, RobotState state) {
         super("Climb", State.UNDETERMINED, State.class);
         this.climbIO = climbIO;
         this.state = state;
+        this.leftSensor = leftSensor;
+        this.rightSensor = rightSensor;
+
 
         LoggedMechanismRoot2d climbRoot = climbMechanism.getRoot("Climber", 1.85, 0);
         LoggedMechanismLigament2d climbElevatorBase = climbRoot
@@ -43,7 +53,13 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     @Override
     public void update() {
         climbIO.updateInputs(inputs);
+        leftSensor.updateInputs(leftInputs);
+        rightSensor.updateInputs(rightInputs);
+
+
         Logger.processInputs("Climb", inputs);
+        Logger.processInputs("Left Sensor", leftInputs);
+        Logger.processInputs("Right Sensor", rightInputs);
 
         climbElevatorExtension.setLength(inputs.desiredPos);
         Logger.recordOutput("Climb/Mechanism", climbMechanism);
@@ -77,18 +93,27 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
                     climbIO.zeroEncoder();
                     climbIO.setCurrentLimit(ClimbConstants.kClimbCurrentLimit);
                 });
+    }
 
+    public double getLeftSensorDistance() {
+        return leftSensor.getDistance();
+    }
+
+    public double getRightSensorDistance() {
+        return rightSensor.getDistance();
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.STOW, State.IDLE, State.UP, State.CLIMB);
+        addOmniTransitions(State.STOW, State.IDLE, State.UP, State.CLIMB, State.DOWN);
     }
 
     private void registerStateCommands() {
         registerStateCommand(State.STOW, Commands.run(() -> stow()));
         registerStateCommand(State.IDLE, Commands.run(() -> stop()));
         registerStateCommand(State.UP, Commands.run(() -> up()));
-        registerStateCommand(State.CLIMB, Commands.run(() -> down()));
+        registerStateCommand(State.DOWN, Commands.run(() -> down()));
+
+        registerStateCommand(State.CLIMB, ActionCommands.autoClimb(state));
     }
 
     @Override
@@ -103,6 +128,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         IDLE,
         UP,
         CLIMB,
+        DOWN,
         // flags
 
     }
