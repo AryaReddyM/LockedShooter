@@ -30,7 +30,7 @@ public class AutoAlignToPoseCommand extends Command {
     private RobotState robotState;
     private double driveErrorAbs;
     private double thetaErrorAbs;
-    private double ffMinRadius = 0.0, ffMaxRadius = 0.1; // change this maybe?
+    private double ffMinRadius = 0.0, ffMaxRadius = 0.1;
     private Pose2d targetLocation;
 
     private double metersTolerance = DriveConstants.metersTolerance;
@@ -38,7 +38,7 @@ public class AutoAlignToPoseCommand extends Command {
     private double metersAccelTolerance = DriveConstants.metersAccelTolerance;
     private double radAccelTolerance = DriveConstants.radAccelTolerance;
 
-
+    private moveState move = moveState.translation;
 
     public AutoAlignToPoseCommand(
             Drive driveSubsystem,
@@ -60,7 +60,6 @@ public class AutoAlignToPoseCommand extends Command {
                         0.02);
         addRequirements(driveSubsystem);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
-
 
         DogLog.tunable("Auto Align/Drive kP", DriveConstants.kDriveToPointP, newkP -> {
                 this.driveController.setP(newkP);
@@ -91,10 +90,18 @@ public class AutoAlignToPoseCommand extends Command {
         });
     }
 
+    public AutoAlignToPoseCommand translation() {
+        this.move = moveState.translation;
+        return this;
+    }
+
+    public AutoAlignToPoseCommand rotation() {
+        this.move = moveState.rotation;
+        return this;
+    }
+
     @Override
     public void initialize() {
-        // arm center is the same as the robot center when stowed, so can use field to
-        // robot
         Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
 
         driveController.reset(
@@ -137,9 +144,11 @@ public class AutoAlignToPoseCommand extends Command {
 
         double currentDistance =
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation());
-        double ffScaler =
-                MathUtil.clamp(
-                        (currentDistance - ffMinRadius) / (ffMaxRadius - ffMinRadius), 0.0, 1.0);
+        
+        // If we are only rotating, we don't want the theta feedforward scaled to 0 just because we are at the target distance.
+        double ffScaler = move == moveState.rotation ? 1.0 : MathUtil.clamp(
+                (currentDistance - ffMinRadius) / (ffMaxRadius - ffMinRadius), 0.0, 1.0);
+        
         driveErrorAbs = currentDistance;
         Logger.recordOutput("DriveToPose/ffScaler", ffScaler);
         double driveVelocityScalar =
@@ -157,6 +166,13 @@ public class AutoAlignToPoseCommand extends Command {
                 Math.abs(
                         currentPose.getRotation().minus(targetLocation.getRotation()).getRadians());
         if (thetaErrorAbs < thetaController.getPositionTolerance()) thetaVelocity = 0.0;
+
+        if (move == moveState.translation) {
+            thetaVelocity = 0.0;
+        }
+        if (move == moveState.rotation) {
+            driveVelocityScalar = 0.0;
+        }
 
         // Command speeds
         var driveVelocity =
@@ -185,12 +201,23 @@ public class AutoAlignToPoseCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return targetLocation.equals(null)
-                || (driveController.atGoal() && thetaController.atGoal());
+        if (targetLocation == null) {
+            return true;
+        }
+
+        boolean driveDone = driveController.atGoal() || (move == moveState.rotation);
+        boolean thetaDone = thetaController.atGoal() || (move == moveState.translation);
+
+        return driveDone && thetaDone;
     }
 
     private void setTolerance() {
         driveController.setTolerance(metersTolerance, metersAccelTolerance);
         thetaController.setTolerance(radiansTolerance, radAccelTolerance);
+    }
+
+    private enum moveState {
+        translation,
+        rotation
     }
 }
