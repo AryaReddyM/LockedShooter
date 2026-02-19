@@ -1,66 +1,44 @@
 package frc.robot.util;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meter;
+
 import org.littletonrobotics.junction.Logger;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
 
 public class PassTargetFactory {
 
     // All are BLUE primary.
-    final static double kCloseWingX = Units.inchesToMeters(231.2);
     final static double kFarWingX = VisionConstants.kFieldLengthMeters - Units.inchesToMeters(231.2);
     final static double kFarWingPoopBuffer = Units.inchesToMeters(72); // popsitive = further away from driver
-    final static double kDefaultXSafetyMargin = Units.inchesToMeters(48);
-    final static double kFarXSafetyMargin = Units.inchesToMeters(60);
-    final static double kPrimaryYOffsetFromAmpWall = Units.inchesToMeters(72);
-    final static double kSecondaryYOffsetFromAmpWall = Units.inchesToMeters(20);
 
     final static double kLineDrivePoopHeight = Units.inchesToMeters(36.0);
 
-    public static Translation3d primaryForFarZone() {
-        // Aim at the wing line plus some margin in X
-        final double targetX = kCloseWingX + kFarXSafetyMargin;
-        // Aim at the amp wall plus some margin in Y
-        final double targetY = VisionConstants.kFieldWidthMeters - kPrimaryYOffsetFromAmpWall;
+    public static final Translation3d PASSING_SPOT_LEFT = new Translation3d(
+                Inches.of(90), FieldConstants.FIELD_WIDTH.div(2).plus(Inches.of(85)), Meter.of(kLineDrivePoopHeight));
 
-        return new Translation3d(targetX, targetY, GetTuned.getNumber("Shooter/Pass Max Apex Height", ShooterConstants.kPassMaxApexHeight));
-    }
+    public static final Translation3d PASSING_SPOT_RIGHT = new Translation3d(
+                Inches.of(90), FieldConstants.FIELD_WIDTH.div(2).minus(Inches.of(85)), Meter.of(kLineDrivePoopHeight));
+
 
     public static Translation3d generate(RobotState robotState) {
         var fieldToRobot = robotState.getLatestFieldToRobot().getValue();
         double robotX = fieldToRobot.getX();
-        double robotY = fieldToRobot.getY();
-        Rotation2d robotHeading = fieldToRobot.getRotation();
+
+        boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+        boolean onBlueLeftSide = fieldToRobot.getMeasureY().gt(FieldConstants.FIELD_WIDTH.div(2));
+
+        Translation3d target = isBlue == onBlueLeftSide ? PASSING_SPOT_LEFT : PASSING_SPOT_RIGHT;
+
         if (robotState.isRedAlliance()) {
-            // Make robotX BLUE relative.
-            robotX = VisionConstants.kFieldLengthMeters - robotX;
-            // Make robot heading alliance relative (0 is robot facing away from alliance
-            // wall)
-            robotHeading = robotHeading.rotateBy(Rotation2d.fromDegrees(180));
-        }
-
-        Translation3d target = new Translation3d();
-        if (robotX < (kFarWingX + kFarWingPoopBuffer)) {
-            target = VisionConstants.kBluePassArea;
-
-            if ((robotY > 5.5 || robotX < 4.0)
-                    && !Util.epsilonEquals(robotHeading.rotateBy(Rotation2d.fromDegrees(180).unaryMinus()).getDegrees(),
-                            0, 45)) {
-                // When close to the near poop point without stage in the way, shoot line
-                // drives.
-                target = new Translation3d(target.getX(), target.getY(), kLineDrivePoopHeight);
-            }
-        } else {
-            target = primaryForFarZone();
-        }
-
-        // Flip X if red alliance. Y does not flip.
-        if (robotState.isRedAlliance()) {
-            target = Util.flipRedBlue(target);
+            target = Util.flipRedBlueXY(target);
         }
 
         Logger.recordOutput("Poop Pose", target);

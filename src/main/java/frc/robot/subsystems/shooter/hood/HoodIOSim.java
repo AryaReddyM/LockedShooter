@@ -19,9 +19,10 @@ public class HoodIOSim implements HoodIO {
   private final DCMotorSim motorSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(HoodConstants.kHoodP, 0, HoodConstants.kHoodD);
+  private PIDController motorController = new PIDController(HoodConstants.kHoodSimP, 0, HoodConstants.kHoodSimD);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
+  private double desiredPos = 0.0;
 
   public HoodIOSim() {
     // Create drive and turn sim models
@@ -38,8 +39,7 @@ public class HoodIOSim implements HoodIO {
   public void updateInputs(HoodIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
-      motorAppliedVolts =
-          motorFFVolts + motorController.calculate(motorSim.getAngularVelocityRadPerSec());
+      motorAppliedVolts = motorController.calculate(motorSim.getAngularPositionRad());
     } else {
       motorController.reset();
     }
@@ -53,7 +53,7 @@ public class HoodIOSim implements HoodIO {
     inputs.velPerSec = motorSim.getAngularVelocityRadPerSec();
     inputs.appliedVolts = motorAppliedVolts;
     inputs.currentAmps = Math.abs(motorSim.getCurrentDrawAmps());
-
+    inputs.desiredPos = this.desiredPos;
   }
 
   @Override
@@ -66,6 +66,7 @@ public class HoodIOSim implements HoodIO {
   public void setHoodPosition(double pos, double ff) {
     motorClosedLoop = true;
     motorController.setSetpoint(pos);
+    this.desiredPos = pos;
   }
 
   @Override

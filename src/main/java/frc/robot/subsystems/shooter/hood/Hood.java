@@ -2,18 +2,27 @@ package frc.robot.subsystems.shooter.hood;
 
 import org.littletonrobotics.junction.Logger;
 
+import dev.doglog.DogLog;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.state.StateMachine;
 
 public class Hood extends StateMachine<Hood.State> {
     private final RobotState state;
     private final HoodIO hoodIO;
     private final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
+    private double tunedSetpoint = 0.0;
 
     public Hood(HoodIO hoodIO, RobotState state) {
         super("Hood", State.UNDETERMINED, State.class);
+
+        DogLog.tunable("Hood/Custom Setpoint", tunedSetpoint, newSetpoint -> tunedSetpoint = newSetpoint);
 
         this.state = state;
         this.hoodIO = hoodIO;
@@ -50,8 +59,6 @@ public class Hood extends StateMachine<Hood.State> {
         });
     }
 
-
-
     @Override
     public void update() {
         hoodIO.updateInputs(inputs);
@@ -60,24 +67,38 @@ public class Hood extends StateMachine<Hood.State> {
         { // HOOD POS SETTER
             if (getState() == State.HUB_TRACKING) {
                 setPos(state.getCurrentHubSetpoint().getHoodRadians(), state.getCurrentHubSetpoint().getHoodFF());
-            } else if(getState() == State.PASS_TRACKING) {
+            } else if (getState() == State.PASS_TRACKING) {
                 setPos(state.getCurrentPassSetpoint().getHoodRadians(), state.getCurrentPassSetpoint().getHoodFF());
+            } else if (getState() == State.TUNING) {
+                setPos(tunedSetpoint, 0);
             } else {
                 stop();
             }
         }
+
+        Logger.recordOutput("Hood/Pose",
+                new Pose3d(state.getLatestFieldToRobot().getValue())
+                        .plus(VisionConstants.kTurretToRobotCenter)
+                        .plus(new Transform3d(
+                                new Translation3d(),
+                                new Rotation3d(0, 0, state.getShooter().getTurret().getDesiredPos())))
+                        .plus(HoodConstants.turretToHood)
+                        .plus(new Transform3d(
+                                new Translation3d(),
+                                new Rotation3d(0, -inputs.desiredPos, 0))));
     }
 
     @Override
     public void determineSelf() {
         setState(State.UNDETERMINED);
     }
-    
+
     public enum State {
         UNDETERMINED,
 
         IDLE,
         PASS_TRACKING,
         HUB_TRACKING,
+        TUNING
     }
 }

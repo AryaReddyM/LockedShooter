@@ -1,13 +1,16 @@
 {
-  "robotWidth": 0.9,
-  "robotLength": 0.9,
+  "robotWidth": 0.838,
+  "robotLength": 0.838,
   "holonomicMode": true,
   "pathFolders": [
-    "Depot Auto Paths",
-    "Outpost Depot Auto Paths"
+    "DEPOT PATHS",
+    "HP PATHS",
+    "MID PATHS",
+    "HOME PATHS",
+    "START PATHS"
   ],
   "autoFolders": [],
-  "defaultMaxVel": 4.25,
+  "defaultMaxVel": 5.0,
   "defaultMaxAccel": 5.0,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 720.0,

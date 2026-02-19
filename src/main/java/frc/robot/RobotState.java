@@ -1,5 +1,13 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inch;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +17,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -19,12 +29,20 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -40,11 +58,16 @@ import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
+import frc.robot.subsystems.climb.BeamBreakerIO;
+import frc.robot.subsystems.climb.BeamBreakerSim;
+import frc.robot.subsystems.climb.BeamBreakerTOF;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.climb.ClimbIO;
 import frc.robot.subsystems.climb.ClimbIOSim;
 import frc.robot.subsystems.climb.ClimbIOSpark;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
@@ -63,6 +86,7 @@ import frc.robot.subsystems.kicker.KickerIO;
 import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
@@ -81,6 +105,7 @@ import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
+import frc.robot.util.FuelSim;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.MathHelpers;
@@ -89,11 +114,12 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 2; // real, sim, replay
+    public final static int robotState = 1; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
 
+    private Pose2d lookAtPose;
     private final SimulatedRobotState simulatedRobotState = Robot.isSimulation() ? new SimulatedRobotState(this) : null;
 
     private Drive drive;
@@ -109,6 +135,9 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private Supplier<ShooterSetpoint> hubSupplier;
     private Supplier<ShooterSetpoint> passSupplier;
+
+    private FuelSim fuelSim = new FuelSim();
+    private double simFuelCount = 0;
 
     private CommandXboxController controller = new CommandXboxController(0);
 
@@ -200,6 +229,10 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // drive intialization
         {
+            lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)
+                    ? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero)
+                    : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
+
             switch (robotState) {
                 case 1:
                     drive = new Drive(
@@ -219,6 +252,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             new ModuleIOSim(),
                             new ModuleIOSim(),
                             this);
+                    break;
                 default:
                     drive = new Drive(
                             new GyroIO() {
@@ -233,6 +267,37 @@ public class RobotState extends StateMachine<RobotState.State> {
                             }, this);
 
             }
+
+            fuelSim.spawnStartingFuel();
+
+            fuelSim.start();
+            fuelSim.enableAirResistance();
+
+            SmartDashboard.putData(Commands.runOnce(() -> {
+                fuelSim.clearFuel();
+                fuelSim.spawnStartingFuel();
+            })
+                    .withName("Reset Fuel")
+                    .ignoringDisable(true));
+
+            fuelSim.registerRobot(
+                    Meter.of(DriveConstants.trackWidth),
+                    Meter.of(DriveConstants.wheelBase),
+                    Meter.of(DriveConstants.kBumperHeight),
+                    drive::getPose,
+                    this::getLatestDesiredFieldRelativeChassisSpeed);
+
+            // fuelSim.registerIntake(
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
+            //                 .in(Meters),
+            //         -Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+            //         () -> intake.getState() == Intake.State.INTAKE,
+            //         () -> {
+            //             simFuelCount++;
+            //         });
+
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
@@ -246,121 +311,124 @@ public class RobotState extends StateMachine<RobotState.State> {
         //     switch (robotState) {
         //         case 1:
         //             shooter = new Shooter(
-        //                 this,
-        //                 new TurretIOSpark(),
-        //                 new HoodIOSpark(),
-        //                 new FlywheelIOSpark()
-        //             );
+        //                     this,
+        //                     new TurretIOSpark(),
+        //                     new HoodIOSpark(),
+        //                     new FlywheelIOSpark());
         //             break;
         //         case 2:
         //             shooter = new Shooter(
-        //                 this,
-        //                 new TurretIOSim(),
-        //                 new HoodIOSim(),
-        //                 new FlywheelIOSim()
-        //             );
+        //                     this,
+        //                     new TurretIOSim(),
+        //                     new HoodIOSim(),
+        //                     new FlywheelIOSim());
         //             break;
         //         default:
         //             shooter = new Shooter(
-        //                 this,
-        //                 new TurretIO() {},
-        //                 new HoodIO() {},
-        //                 new FlywheelIO() {}
-        //             );
+        //                     this,
+        //                     new TurretIO() {
+        //                     },
+        //                     new HoodIO() {
+        //                     },
+        //                     new FlywheelIO() {
+        //                     });
         //             break;
         //     }
         // }
 
-        // { // climb
+        //    { // climb
         //     switch (robotState) {
         //         case 1:
         //             climb = new Climb(
-        //                 new ClimbIOSpark(),
-        //                 this
-        //             );
+        //                     new ClimbIOSpark(),
+        //                     new BeamBreakerTOF(1),
+        //                     new BeamBreakerTOF(2),
+        //                     this);
         //             break;
         //         case 2:
         //             climb = new Climb(
-        //                 new ClimbIOSim(),
-        //                 this
-        //             );
+        //                     new ClimbIOSim(),
+        //                     new BeamBreakerSim(1,this),
+        //                     new BeamBreakerSim(2,this),
+        //                     this);
         //             break;
         //         default:
         //             climb = new Climb(
-        //                 new ClimbIO() {},
-        //                 this
-        //             );
+        //                     new ClimbIO() {
+        //                     },
+        //                     new BeamBreakerIO() {},
+        //                     new BeamBreakerIO() {},
+        //                     this);
         //             break;
         //     }
         // }
+
 
         // { // hopper
+        // switch (robotState) {
+        // case 1:
+        // hopper = new Hopper(
+        // new HopperIOSpark(),
+        // this
+        // );
+        // break;
+        // case 2:
+        // hopper = new Hopper(
+        // new HopperIOSim(),
+        // this
+        // );
+        // break;
+        // default:
+        // hopper = new Hopper(
+        // new HopperIO() {},
+        // this
+        // );
+        // break;
+        // }
+        // }
+
+        // { // intake
         //     switch (robotState) {
         //         case 1:
-        //             hopper = new Hopper(
-        //                 new HopperIOSpark(),
-        //                 this
-        //             );
+        //             intake = new Intake(
+        //                     new IntakeIOSpark(),
+        //                     this);
         //             break;
         //         case 2:
-        //             hopper = new Hopper(
-        //                 new HopperIOSim(),
-        //                 this
-        //             );
+        //             intake = new Intake(
+        //                     new IntakeIOSim(),
+        //                     this);
         //             break;
         //         default:
-        //             hopper = new Hopper(
-        //                 new HopperIO() {},
-        //                 this
-        //             );
+        //             intake = new Intake(
+        //                     new IntakeIO() {
+        //                     },
+        //                     this);
         //             break;
         //     }
         // }
 
-        { // intake
-            switch (robotState) {
-                case 1:
-                    intake = new Intake(
-                        new IntakeIOSpark(),
-                        this
-                    );
-                    break;
-                case 2:
-                    intake = new Intake(
-                        new IntakeIOSim(),
-                        this
-                    );
-                    break;
-                default:
-                    intake = new Intake(
-                        new IntakeIO() {},
-                        this
-                    );
-                    break;
-            }
-        }
-
         // { // kicker
-        //     switch (robotState) {
-        //         case 1:
-        //             kicker = new Kicker(
-        //                 new KickerIOSpark(),
-        //                 this
-        //             );
-        //             break;
-        //         case 2:
-        //             kicker = new Kicker(
-        //                 new KickerIOSim(),
-        //                 this
-        //             );
-        //             break;
-        //         default:
-        //             kicker = new Kicker(
-        //                 new KickerIO() {},
-        //                 this
-        //             );
-        //             break;
-        //     }
+        // switch (robotState) {
+        // case 1:
+        // kicker = new Kicker(
+        // new KickerIOSpark(),
+        // this
+        // );
+        // break;
+        // case 2:
+        // kicker = new Kicker(
+        // new KickerIOSim(),
+        // this
+        // );
+        // break;
+        // default:
+        // kicker = new Kicker(
+        // new KickerIO() {},
+        // this
+        // );
+        // break;
+        // }
         // }
 
         // // auto setup
@@ -383,14 +451,15 @@ public class RobotState extends StateMachine<RobotState.State> {
         // addChildSubsystem(shooter);
         // addChildSubsystem(climb);
         // addChildSubsystem(hopper);
-        addChildSubsystem(intake);
+        // addChildSubsystem(intake);
         // addChildSubsystem(kicker);
         enable();
 
-        try{
+        try {
             DynamicPathGenerator.warmupInit();
         } catch (Exception e) {
-            Elastic.sendNotification(new Notification().withTitle("Warmup Command").withLevel(NotificationLevel.ERROR).withDescription("Failed to warmup commands"));
+            Elastic.sendNotification(new Notification().withTitle("Warmup Command").withLevel(NotificationLevel.ERROR)
+                    .withDescription("Failed to warmup commands"));
         }
     }
 
@@ -412,9 +481,30 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
-        autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
+        autoChooser.addOption("Right Fuel Climb",
+                AutoCommands.getAutoByName(this, "Right Fuel Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Left Depot Climb",
+                AutoCommands.getAutoByName(this, "Left Depot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center HP Climb",
+                AutoCommands.getAutoByName(this, "Center HP Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center Right HP Climb",
+                AutoCommands.getAutoByName(this, "Center Right HP Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center Left Depot Climb",
+                AutoCommands.getAutoByName(this, "Center Left Depot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Left Depot Fuel",
+                AutoCommands.getAutoByName(this, "Left Depot Fuel (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center HP Fuel",
+                AutoCommands.getAutoByName(this, "Center HP Fuel (GAME)").get().getCommand(this));
+        autoChooser.addOption("Right HP Fuel",
+                AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
+        autoChooser.addOption("Waypoint Auto",
+                AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
         autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
-        autoChooser.addOption("Outpost Auto", AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
+        autoChooser.addOption("Outpost Auto",
+                AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Pathfinding Auto",
+                AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }
@@ -444,75 +534,75 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE),
-                // shooter.transitionCommand(Shooter.State.IDLE),
-                // climb.transitionCommand(Climb.State.STOW),
-                // hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW)
-                // kicker.transitionCommand(Kicker.State.IDLE)
-                ));
+                drive.transitionCommand(Drive.State.IDLE)
+        // shooter.transitionCommand(Shooter.State.IDLE),
+        // climb.transitionCommand(Climb.State.STOW),
+        // hopper.transitionCommand(Hopper.State.IDLE),
+        // intake.transitionCommand(Intake.State.STOW),
+        // kicker.transitionCommand(Kicker.State.IDLE)
+        ));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING),
-                // shooter.transitionCommand(Shooter.State.IDLE),
-                // climb.transitionCommand(Climb.State.STOW),
-                // hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW)
-                // kicker.transitionCommand(Kicker.State.IDLE)
-                ));
+                drive.transitionCommand(Drive.State.TRAVERSING)
+        // shooter.transitionCommand(Shooter.State.IDLE),
+        // climb.transitionCommand(Climb.State.STOW),
+        // hopper.transitionCommand(Hopper.State.IDLE),
+        // intake.transitionCommand(Intake.State.STOW),
+        // kicker.transitionCommand(Kicker.State.IDLE)
+        ));
 
         registerStateCommand(State.INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE)
-                // hopper.transitionCommand(Hopper.State.IDLE),
-                // kicker.transitionCommand(Kicker.State.IDLE),
-                // climb.transitionCommand(Climb.State.STOW),
+        // intake.transitionCommand(Intake.State.INTAKE),
+        // hopper.transitionCommand(Hopper.State.IDLE),
+        // kicker.transitionCommand(Kicker.State.IDLE),
+        // climb.transitionCommand(Climb.State.STOW),
 
-                // shooter.transitionCommand(Shooter.State.IDLE)
-                ));
+        // shooter.transitionCommand(Shooter.State.IDLE)
+        ));
 
         registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.IDLE)
-                // hopper.transitionCommand(Hopper.State.SHOOT),
-                // kicker.transitionCommand(Kicker.State.SHOOT),
-                // climb.transitionCommand(Climb.State.STOW),
+        // intake.transitionCommand(Intake.State.IDLE),
+        // hopper.transitionCommand(Hopper.State.SHOOT),
+        // kicker.transitionCommand(Kicker.State.SHOOT),
+        // climb.transitionCommand(Climb.State.STOW),
 
-                // shooter.transitionCommand(Shooter.State.SHOOTING)
-                ));
+        // shooter.transitionCommand(Shooter.State.SHOOTING)
+        ));
 
         registerStateCommand(State.PASSING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.IDLE)
-                // hopper.transitionCommand(Hopper.State.SHOOT),
-                // kicker.transitionCommand(Kicker.State.SHOOT),
-                // climb.transitionCommand(Climb.State.STOW),
+        // intake.transitionCommand(Intake.State.IDLE),
+        // hopper.transitionCommand(Hopper.State.SHOOT),
+        // kicker.transitionCommand(Kicker.State.SHOOT),
+        // climb.transitionCommand(Climb.State.STOW),
 
-                // shooter.transitionCommand(Shooter.State.PASSING)
-                ));
+        // shooter.transitionCommand(Shooter.State.PASSING)
+        ));
 
         registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE)
-                // hopper.transitionCommand(Hopper.State.SHOOT),
-                // kicker.transitionCommand(Kicker.State.SHOOT),
-                // climb.transitionCommand(Climb.State.STOW),
+        // intake.transitionCommand(Intake.State.INTAKE),
+        // hopper.transitionCommand(Hopper.State.SHOOT),
+        // kicker.transitionCommand(Kicker.State.SHOOT),
+        // climb.transitionCommand(Climb.State.STOW),
 
-                // shooter.transitionCommand(Shooter.State.SHOOTING)
-                ));
+        // shooter.transitionCommand(Shooter.State.SHOOTING)
+        ));
 
         registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
-                intake.transitionCommand(Intake.State.INTAKE)
-                // hopper.transitionCommand(Hopper.State.SHOOT),
-                // kicker.transitionCommand(Kicker.State.SHOOT),
-                // climb.transitionCommand(Climb.State.STOW),
+        // intake.transitionCommand(Intake.State.INTAKE),
+        // hopper.transitionCommand(Hopper.State.SHOOT),
+        // kicker.transitionCommand(Kicker.State.SHOOT),
+        // climb.transitionCommand(Climb.State.STOW),
 
-                // shooter.transitionCommand(Shooter.State.PASSING)
-                ));
+        // shooter.transitionCommand(Shooter.State.PASSING)
+        ));
 
         registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
-                // shooter.transitionCommand(Shooter.State.IDLE),
-                // climb.transitionCommand(Climb.State.CLIMB),
-                // hopper.transitionCommand(Hopper.State.IDLE),
-                intake.transitionCommand(Intake.State.STOW)
-                // kicker.transitionCommand(Kicker.State.IDLE)
-                ));
+        // shooter.transitionCommand(Shooter.State.IDLE),
+        // climb.transitionCommand(Climb.State.CLIMB),
+        // hopper.transitionCommand(Hopper.State.IDLE),
+        // intake.transitionCommand(Intake.State.STOW),
+        // kicker.transitionCommand(Kicker.State.IDLE)
+        ));
 
         // // change this to an auto state in the future?
         registerStateCommand(State.AUTO, new ParallelCommandGroup(
@@ -521,10 +611,10 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     private void setupControllerBindings() {
-        controller.a().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
+        controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
-                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        // controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
+        // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
                 .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         controller // TODO turn this off in a real game (SWITCH KEYBINDS)
@@ -537,18 +627,64 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 .ignoringDisable(true));
 
         Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
-            .plus(new Transform2d(Units.inchesToMeters(36), Units.inchesToMeters(0),
-                    new Rotation2d(Units.degreesToRadians(270))));
-        // controller
-        //         .y()
-        //         .onTrue(
-        //                 new AutoAlignToPoseCommand(drive, this, getAprilTagPose(13), 1.0));
-
+                .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0),
+                        new Rotation2d(Units.degreesToRadians(0))));
         controller
                 .y()
-                .onTrue(
-                    intake.transitionCommand(Intake.State.INTAKE)
-                );
+                .whileTrue(
+                        new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
+
+        // controller
+        //         .x()
+        //         .onTrue(shooter.transitionCommand(Shooter.State.SHOOTING))
+        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        // controller
+        //         .a()
+        //         .onTrue(shooter.transitionCommand(Shooter.State.PASSING))
+        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+
+        // controller
+        //         .a()
+        //         .onTrue(climb.transitionCommand(Climb.State.UP)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        // controller
+        //         .x()
+        //         .onTrue(climb.transitionCommand(Climb.State.CLIMB)).onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        // controller
+        //         .x()
+        //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+        //         .onFalse(intake.transitionCommand(Intake.State.STOW));
+
+        // controller
+        //         .leftBumper()
+        //         .onTrue(new InstantCommand(() -> {
+
+        //             Supplier<ShooterSetpoint> supplier = hubSupplier;
+
+        //             if (shooter.getState() == Shooter.State.PASSING) {
+        //                 supplier = passSupplier;
+        //             }
+
+        //             fuelSim.launchFuel(
+        //                     MetersPerSecond.of(supplier.get().getShooterRPS()
+        //                             * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+        //                     Degrees.of(90).minus(Radians.of(supplier.get().getHoodRadians())),
+        //                     Radians.of(supplier.get().getTurretRadiansFromCenter()),
+        //                     Inches.of(supplier.get().getHeight()));
+        //         }));
+        // controller // not accounting rotation (no need for this just to test)
+        // .leftBumper()
+        // .whileTrue(
+        // new AutoAlignToPoseCommand(drive, this, tagPos, 1.0, AlignType.TRANSLATION));
+
+        // controller // looks around the tag while being held
+        // .rightBumper()
+        // .whileTrue(
+        // new AutoAlignToPoseCommand(drive, this,
+        // VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d(), 1.0,
+        // AlignType.ROTATION)
+        // );
     }
 
     public Drive getDrive() {
@@ -591,6 +727,14 @@ public class RobotState extends StateMachine<RobotState.State> {
         return passSupplier.get();
     }
 
+    public Pose2d getDriveAnglePos() {
+        return lookAtPose;
+    }
+
+    public void setDriveAngle(Pose2d newPose) {
+        lookAtPose = newPose;
+    }
+
     public void setAutoStartTime(double timestamp) {
         autoStartTime = timestamp;
     }
@@ -609,6 +753,18 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public boolean getPathCancel() {
         return enablePathCancel.get();
+    }
+
+    public double getSimFuelCount() {
+        return simFuelCount;
+    }
+
+    public FuelSim getFuelSim() {
+        return fuelSim;
+    }
+
+    public void setSimFuelCount(double val) {
+        simFuelCount = val;
     }
 
     public CustomAutoBuilder getCustomAutoBuilder() {
@@ -655,10 +811,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         delta = delta.times(lookaheadTimeS);
         return fieldToRobot
                 .exp(new Twist2d(delta.vxMetersPerSecond, delta.vyMetersPerSecond, delta.omegaRadiansPerSecond));
-    }
-
-    public Pose2d getLatestFieldToRobotCenter() {
-        return fieldToRobot.getLatest().getValue().transformBy(VisionConstants.kTurretToRobotCenter);
     }
 
     // This has rotation and radians to allow for wrapping tracking.
@@ -767,9 +919,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().equals(Optional.of(Alliance.Red));
     }
 
-    private Pose2d flipPoseForRed(Pose2d bluePose) {
-        double FIELD_LENGTH = 16.54;
-        double FIELD_WIDTH = 8.21;
+    public static Pose2d flipPoseForRed(Pose2d bluePose) {
+        double FIELD_LENGTH = VisionConstants.fieldLength;
+        double FIELD_WIDTH = VisionConstants.fieldWidth;
 
         return new Pose2d(
                 new Translation2d(
@@ -800,24 +952,42 @@ public class RobotState extends StateMachine<RobotState.State> {
         Logger.recordOutput("RobotState/DesiredChassisSpeedFieldFrame", getLatestDesiredFieldRelativeChassisSpeed());
         Logger.recordOutput("RobotState/MeasuredChassisSpeedFieldFrame", getLatestMeasuredFieldRelativeChassisSpeeds());
         Logger.recordOutput("RobotState/FusedChassisSpeedFieldFrame", getLatestFusedFieldRelativeChassisSpeed());
+
+        // Logger.processInputs("Setpoint/Pass",
+        // ShooterSetpoint.getLog(getCurrentPassSetpoint()));
+        // Logger.processInputs("Setpoint/Shoot",
+        // ShooterSetpoint.getLog(getCurrentHubSetpoint()));
     }
 
     @Override
     protected void onTeleopStart() {
         setState(State.TRAVERSING);
         drive.setFieldPoses("Auto Path", new ArrayList<>());
+        drive.setFieldPoses();
     }
 
     @Override
     protected void onAutonomousStart() {
-        registerStateCommand(State.AUTO, autoChooser.get());
-        setState(State.AUTO);
+        Command selected = autoChooser.get();
+        if (selected != null) {
+            String autoName = selected.getName();
 
+            AutoCommands.getAutoByName(this, autoName).ifPresentOrElse(
+                    (autoClass) -> registerStateCommand(State.AUTO, autoClass.getCommand(this)),
+                    () -> registerStateCommand(State.AUTO, selected));
+        }
+
+        Logger.recordOutput("Auto Trajectory 3D", new Transform3d[] {});
+        setState(State.AUTO);
     }
 
     @Override
     protected void determineSelf() {
         setState(State.TRAVERSING);
+    }
+
+    public void updateSimulation() {
+        fuelSim.updateSim();
     }
 
     @Override
@@ -842,34 +1012,52 @@ public class RobotState extends StateMachine<RobotState.State> {
             {
                 Command newAutoCommand = autoChooser.get();
 
-                if (newAutoCommand != autoCommand) {
+                if (newAutoCommand != autoCommand && newAutoCommand != null) {
                     autoCommand = newAutoCommand;
                     String autoName = autoCommand.getName();
 
                     try {
-                        // Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
+                        Optional<AutoCommands.AutoClass> possibleAuto = AutoCommands.getAutoByName(this, autoName);
 
-                        // if (possibleAuto.isPresent()) {
-                        //     List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList();
+                        if (possibleAuto.isPresent()) {
+                            List<PathPlannerPath> pathGroup = possibleAuto.get().getAutoDisplayList(this);
 
-                        //     List<Pose2d> allPoses = new ArrayList<>();
+                            List<Pose2d> allPoses = new ArrayList<>();
 
-                        //     boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
-                        //     for (PathPlannerPath path : pathGroup) {
-                        //         for (Pose2d pose : path.getPathPoses()) {
-                        //             allPoses.add(isRed ? flipPoseForRed(pose) : pose);
-                        //         }
-                        //     }
+                            for (PathPlannerPath path : pathGroup) {
+                                for (Pose2d pose : path.getPathPoses()) {
+                                    allPoses.add(isRed ? flipPoseForRed(pose) : pose);
+                                }
+                            }
 
-                        //     drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
-                        // } else {
-                        //     drive.setFieldPoses();
-                        // }
+                            Transform3d[] transformArray = allPoses.stream()
+                                    .map(pose -> new Transform3d(
+                                            new Translation3d(pose.getX(), pose.getY(), 0.0),
+                                            new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
+                                    .toArray(Transform3d[]::new);
+
+                            Logger.recordOutput("Auto Trajectory 3D", transformArray);
+                            drive.setFieldPoses(allPoses.toArray(new Pose2d[0]));
+                        } else {
+                            System.out.println("OO");
+                            drive.setFieldPoses();
+                        }
 
                         {
                             PathPlannerLogging.setLogActivePathCallback((poses) -> {
+                                if (poses.size() > 0) {
+                                    drive.setFieldPoses();
+                                }
                                 drive.setFieldPoses("Auto Path", poses);
+
+                                Transform3d[] transformArray = poses.stream()
+                                    .map(pose -> new Transform3d(
+                                            new Translation3d(pose.getX(), pose.getY(), 0.0),
+                                            new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
+                                    .toArray(Transform3d[]::new);
+                                Logger.recordOutput("Pathplanner Trajectory", transformArray);
                             });
                         }
                     } catch (Exception e) {
@@ -877,7 +1065,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                         Elastic.sendNotification(
                                 new Notification()
                                         .withTitle("Auto Mapping")
-                                        .withDescription("Unable to add Auto Trajectory").withLevel(NotificationLevel.ERROR));
+                                        .withDescription("Unable to add Auto Trajectory")
+                                        .withLevel(NotificationLevel.ERROR));
                     }
                 }
             }
@@ -929,7 +1118,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));
 
-        SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
+        if (autoChooser.get() != null) {
+            SmartDashboard.putBoolean("Robot/AutoChoosed", autoChooser.get().getName().toLowerCase().contains("game"));
+        }
     }
 
     public enum State {

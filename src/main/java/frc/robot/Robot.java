@@ -12,12 +12,10 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import com.revrobotics.util.StatusLogger;
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.util.HubStatus;
 import frc.robot.util.state.SubsystemManagerFactory;
 
 public class Robot extends LoggedRobot {  
   private final RobotState robotState;
-  private final HubStatus hubStatus;
 
   public Robot() {
 
@@ -29,7 +27,6 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     robotState = new RobotState();
-    hubStatus = new HubStatus();
     SubsystemManagerFactory.getInstance().registerSubsystem(robotState);
   }
 
@@ -37,13 +34,16 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     robotState.updateLogger();
-
-    hubStatus.update();
   }
 
   @Override
   public void disabledInit() {
     SubsystemManagerFactory.getInstance().disableAllSubsystems();
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    robotState.updateSimulation();
   }
 
   @Override

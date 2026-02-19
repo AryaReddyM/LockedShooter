@@ -15,6 +15,8 @@ public interface IntakeIO {
     double extensionVelPerSec = 0;
     double extensionAppliedVolts = 0;
     double extensionCurrentAmps = 0;
+
+    double desiredExtensionPos = 0;
   }
 
 
@@ -29,4 +31,6 @@ public interface IntakeIO {
   public default void stopRollers() {}
 
   public default void stopExtension() {}
+
+
 }

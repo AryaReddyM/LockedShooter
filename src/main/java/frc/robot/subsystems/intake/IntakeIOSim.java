@@ -20,14 +20,15 @@ public class IntakeIOSim implements IntakeIO {
   private final DCMotorSim extensionSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(IntakeConstants.kRollerP, 0, IntakeConstants.kRollerD);
+  private PIDController motorController = new PIDController(IntakeConstants.kRollerSimP, 0, IntakeConstants.kRollerSimD);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
 
   private boolean extensionClosedLoop = false;
-  private PIDController extensionController = new PIDController(IntakeConstants.kExtensionP, 0, IntakeConstants.kExtensionD);
+  private PIDController extensionController = new PIDController(IntakeConstants.kExtensionSimP, 0, IntakeConstants.kExtensionSimD);
   private double extensionFFVolts = 0.0;
   private double extensionAppliedVolts = 0.0;
+  private double desiredPos = 0.0;
 
   public IntakeIOSim() {
     // Create drive and turn sim models
@@ -46,7 +47,7 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void updateInputs(IntakeIO.IntakeIOInputs inputs) {
+  public void updateInputs(IntakeIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
       motorAppliedVolts =
@@ -56,10 +57,9 @@ public class IntakeIOSim implements IntakeIO {
     }
 
     if (extensionClosedLoop) {
-      extensionAppliedVolts = 
-        extensionFFVolts + extensionController.calculate(extensionSim.getAngularVelocityRadPerSec());
+      extensionAppliedVolts = extensionController.calculate(extensionSim.getAngularPositionRad());
     } else {
-      extensionController.reset();;
+      extensionController.reset();
     }
 
     // Update simulation state
@@ -79,6 +79,8 @@ public class IntakeIOSim implements IntakeIO {
     inputs.extensionVelPerSec = extensionSim.getAngularVelocityRadPerSec();
     inputs.extensionAppliedVolts = extensionAppliedVolts;
     inputs.extensionCurrentAmps = Math.abs(extensionSim.getCurrentDrawAmps());
+
+    inputs.desiredExtensionPos = desiredPos;
   }
 
   @Override
@@ -101,6 +103,7 @@ public class IntakeIOSim implements IntakeIO {
 
   @Override
   public void setExtensionPosition(double pos) {
+    this.desiredPos = pos;
     extensionClosedLoop = true;
     extensionController.setSetpoint(pos);
   }
