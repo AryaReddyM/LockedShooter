@@ -10,9 +10,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
@@ -52,6 +54,11 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                         .plus(new Transform3d(
                                 new Translation3d(),
                                 new Rotation3d(0, -inputs.desiredExtensionPos, 0))));
+        Logger.recordOutput("Intake/ExtensionPose",
+                new Pose3d(state.getLatestFieldToRobot().getValue())
+                        .plus(IntakeConstants.intakeOrigin).plus(new Transform3d(new Translation3d(
+                            (getState() == State.INTAKE) ? Units.inchesToMeters(6) : Units.inchesToMeters(1) ,0,0
+                        ), new Rotation3d())));
     }
 
     public void stow() {

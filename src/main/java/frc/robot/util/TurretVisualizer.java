@@ -9,11 +9,16 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.RobotState;
+import frc.robot.subsystems.vision.VisionConstants;
 
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -46,12 +51,15 @@ public class TurretVisualizer {
         return new Translation3d(xVel, yVel, verticalVel);
     }
 
-    public void updateFuel(LinearVelocity vel, Angle angle) {
+    public void updateFuel(RobotState state, LinearVelocity vel, Angle angle) {
+        Translation2d translation = state.getLatestFieldToRobot().getValue().transformBy(
+            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), new Rotation2d())
+        ).getTranslation();
         Translation3d trajVel = launchVel(vel, angle);
         for (int i = 0; i < trajectory.length; i++) {
             double t = i * 0.04;
-            double x = trajVel.getX() * t + poseSupplier.get().getTranslation().getX();
-            double y = trajVel.getY() * t + poseSupplier.get().getTranslation().getY();
+            double x = trajVel.getX() * t + translation.getX();
+            double y = trajVel.getY() * t + translation.getY();
             double z = trajVel.getZ() * t
                     - 0.5 * 9.81 * t * t
                     + poseSupplier.get().getTranslation().getZ();

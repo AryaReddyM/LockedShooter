@@ -114,7 +114,7 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
+    public final static int robotState = 2; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -284,152 +284,157 @@ public class RobotState extends StateMachine<RobotState.State> {
                     Meter.of(DriveConstants.trackWidth),
                     Meter.of(DriveConstants.wheelBase),
                     Meter.of(DriveConstants.kBumperHeight),
-                    drive::getPose,
+                    () -> {
+                        Pose2d drivePose = getLatestFieldToRobot().getValue();
+                        return drivePose.transformBy(
+                            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
+                        );
+                    },
                     this::getLatestDesiredFieldRelativeChassisSpeed);
 
-            // fuelSim.registerIntake(
-            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
-            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
-            //                 .in(Meters),
-            //         -Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
-            //         Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
-            //         () -> intake.getState() == Intake.State.INTAKE,
-            //         () -> {
-            //             simFuelCount++;
-            //         });
+            fuelSim.registerIntake(
+                    Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+                    Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
+                            .in(Meters),
+                    -Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+                    Meters.of(DriveConstants.trackWidth + Units.inchesToMeters(6)).div(2).in(Meters),
+                    () -> intake.getState() == Intake.State.INTAKE,
+                    () -> {
+                        simFuelCount++;
+                    });
 
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // { // shooter
-        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        { // shooter
+            hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+            passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-        //     hubSupplier.get();
-        //     passSupplier.get();
+            hubSupplier.get();
+            passSupplier.get();
 
-        //     switch (robotState) {
-        //         case 1:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSpark(),
-        //                     new HoodIOSpark(),
-        //                     new FlywheelIOSpark());
-        //             break;
-        //         case 2:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSim(),
-        //                     new HoodIOSim(),
-        //                     new FlywheelIOSim());
-        //             break;
-        //         default:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIO() {
-        //                     },
-        //                     new HoodIO() {
-        //                     },
-        //                     new FlywheelIO() {
-        //                     });
-        //             break;
-        //     }
-        // }
+            switch (robotState) {
+                case 1:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSpark(),
+                            new HoodIOSpark(),
+                            new FlywheelIOSpark());
+                    break;
+                case 2:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSim(),
+                            new HoodIOSim(),
+                            new FlywheelIOSim());
+                    break;
+                default:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIO() {
+                            },
+                            new HoodIO() {
+                            },
+                            new FlywheelIO() {
+                            });
+                    break;
+            }
+        }
 
-        //    { // climb
-        //     switch (robotState) {
-        //         case 1:
-        //             climb = new Climb(
-        //                     new ClimbIOSpark(),
-        //                     new BeamBreakerTOF(1),
-        //                     new BeamBreakerTOF(2),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             climb = new Climb(
-        //                     new ClimbIOSim(),
-        //                     new BeamBreakerSim(1,this),
-        //                     new BeamBreakerSim(2,this),
-        //                     this);
-        //             break;
-        //         default:
-        //             climb = new Climb(
-        //                     new ClimbIO() {
-        //                     },
-        //                     new BeamBreakerIO() {},
-        //                     new BeamBreakerIO() {},
-        //                     this);
-        //             break;
-        //     }
-        // }
+           { // climb
+            switch (robotState) {
+                case 1:
+                    climb = new Climb(
+                            new ClimbIOSpark(),
+                            new BeamBreakerTOF(1),
+                            new BeamBreakerTOF(2),
+                            this);
+                    break;
+                case 2:
+                    climb = new Climb(
+                            new ClimbIOSim(),
+                            new BeamBreakerSim(1,this),
+                            new BeamBreakerSim(2,this),
+                            this);
+                    break;
+                default:
+                    climb = new Climb(
+                            new ClimbIO() {
+                            },
+                            new BeamBreakerIO() {},
+                            new BeamBreakerIO() {},
+                            this);
+                    break;
+            }
+        }
 
 
-        // { // hopper
-        // switch (robotState) {
-        // case 1:
-        // hopper = new Hopper(
-        // new HopperIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // hopper = new Hopper(
-        // new HopperIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // hopper = new Hopper(
-        // new HopperIO() {},
-        // this
-        // );
-        // break;
-        // }
-        // }
+        { // hopper
+        switch (robotState) {
+        case 1:
+        hopper = new Hopper(
+        new HopperIOSpark(),
+        this
+        );
+        break;
+        case 2:
+        hopper = new Hopper(
+        new HopperIOSim(),
+        this
+        );
+        break;
+        default:
+        hopper = new Hopper(
+        new HopperIO() {},
+        this
+        );
+        break;
+        }
+        }
 
-        // { // intake
-        //     switch (robotState) {
-        //         case 1:
-        //             intake = new Intake(
-        //                     new IntakeIOSpark(),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             intake = new Intake(
-        //                     new IntakeIOSim(),
-        //                     this);
-        //             break;
-        //         default:
-        //             intake = new Intake(
-        //                     new IntakeIO() {
-        //                     },
-        //                     this);
-        //             break;
-        //     }
-        // }
+        { // intake
+            switch (robotState) {
+                case 1:
+                    intake = new Intake(
+                            new IntakeIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    intake = new Intake(
+                            new IntakeIOSim(),
+                            this);
+                    break;
+                default:
+                    intake = new Intake(
+                            new IntakeIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
-        // { // kicker
-        // switch (robotState) {
-        // case 1:
-        // kicker = new Kicker(
-        // new KickerIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // kicker = new Kicker(
-        // new KickerIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // kicker = new Kicker(
-        // new KickerIO() {},
-        // this
-        // );
-        // break;
-        // }
-        // }
+        { // kicker
+        switch (robotState) {
+        case 1:
+        kicker = new Kicker(
+        new KickerIOSpark(),
+        this
+        );
+        break;
+        case 2:
+        kicker = new Kicker(
+        new KickerIOSim(),
+        this
+        );
+        break;
+        default:
+        kicker = new Kicker(
+        new KickerIO() {},
+        this
+        );
+        break;
+        }
+        }
 
         // // auto setup
         {
@@ -448,11 +453,11 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
-        // addChildSubsystem(shooter);
-        // addChildSubsystem(climb);
-        // addChildSubsystem(hopper);
-        // addChildSubsystem(intake);
-        // addChildSubsystem(kicker);
+        addChildSubsystem(shooter);
+        addChildSubsystem(climb);
+        addChildSubsystem(hopper);
+        addChildSubsystem(intake);
+        addChildSubsystem(kicker);
         enable();
 
         try {
@@ -769,6 +774,10 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public CustomAutoBuilder getCustomAutoBuilder() {
         return customAutoBuilder;
+    }
+
+    public SimulatedRobotState getSimRobot() {
+        return simulatedRobotState;
     }
 
     public void addOdometryMeasurement(double timestamp, Pose2d pose) {
