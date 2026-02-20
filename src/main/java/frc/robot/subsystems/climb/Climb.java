@@ -46,7 +46,11 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
 
         LoggedMechanismRoot2d climbRoot = climbMechanism.getRoot("Climber", 1.85, 0);
         LoggedMechanismLigament2d climbElevatorBase = climbRoot
-                .append(new LoggedMechanismLigament2d("elevator", ClimbConstants.kClimberBaseHeight, 90)); // TODO conversion because its not in meters!
+                .append(new LoggedMechanismLigament2d("elevator", ClimbConstants.kClimberBaseHeight, 90)); // TODO
+                                                                                                           // conversion
+                                                                                                           // because
+                                                                                                           // its not in
+                                                                                                           // meters!
         climbElevatorExtension = climbElevatorBase
                 .append(new LoggedMechanismLigament2d("extension", 0, 0, 10, new Color8Bit(255, 0, 0)));
 
@@ -70,17 +74,13 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         climbElevatorExtension.setLength(inputs.desiredPos);
         Logger.recordOutput("Climb/Mechanism", climbMechanism);
 
-
-        Pose3d elevatorBasePose = new Pose3d()
-                .plus(ClimbConstants.climbOrigin);
-        Logger.recordOutput("Climb/Elevator Pose", elevatorBasePose);
-
-        Logger.recordOutput("Climb/Extension Pose",
-                elevatorBasePose.plus(
-                        new Transform3d(
-                                new Translation3d(0, 0, inputs.desiredPos * ClimbConstants.kClimbPositionConversionFactor),
-                                new Rotation3d()
-                        )));
+        Logger.recordOutput("Climb/Pose",
+                new Pose3d(state.getLatestFieldToRobot().getValue())
+                        .plus(ClimbConstants.climbOrigin).plus(
+                                new Transform3d(
+                                        new Translation3d(0, 0,
+                                                inputs.desiredPos * ClimbConstants.kClimbPositionConversionFactor),
+                                        new Rotation3d())));
     }
 
     public void stow() {
@@ -93,28 +93,32 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     }
 
     public void down() {
-        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Down Setpoint", ClimbConstants.kClimbDownPos), ClosedLoopSlot.kSlot1);
+        climbIO.setClimbPosition(GetTuned.getNumber("Climb/Down Setpoint", ClimbConstants.kClimbDownPos),
+                ClosedLoopSlot.kSlot1);
     }
 
     public void stop() {
         climbIO.stopClimb();
     }
 
-     public Command zero() {
+    public Command zero() {
         return run(() -> {
             climbIO.setMotorOutput(GetTuned.getNumber("Climb/Lower Motor Output", ClimbConstants.kLowerMotorOutput));
         })
-        .beforeStarting(() -> {
-            climbIO.setCurrentLimit(GetTuned.getNumber("Climb/Lower Current Limit", ClimbConstants.kLowerCurrentLimit));
-        })
-        .until(() -> inputs.currentAmps > GetTuned.getNumber("Climb/Zero Current Threshold", ClimbConstants.kZeroCurrentThreshold))
-        .finallyDo(interrupted -> {
-            climbIO.stopClimb();
-            climbIO.zeroEncoder();
-            climbIO.setCurrentLimit(ClimbConstants.kClimbCurrentLimit);
-            requestTransition(State.STOW);
-            Elastic.sendNotification(new Notification().withTitle("Climb Zero").withDescription("Climb has been zeroed!"));
-        });
+                .beforeStarting(() -> {
+                    climbIO.setCurrentLimit(
+                            GetTuned.getNumber("Climb/Lower Current Limit", ClimbConstants.kLowerCurrentLimit));
+                })
+                .until(() -> inputs.currentAmps > GetTuned.getNumber("Climb/Zero Current Threshold",
+                        ClimbConstants.kZeroCurrentThreshold))
+                .finallyDo(interrupted -> {
+                    climbIO.stopClimb();
+                    climbIO.zeroEncoder();
+                    climbIO.setCurrentLimit(ClimbConstants.kClimbCurrentLimit);
+                    requestTransition(State.STOW);
+                    Elastic.sendNotification(
+                            new Notification().withTitle("Climb Zero").withDescription("Climb has been zeroed!"));
+                });
     }
 
     public double getLeftSensorDistance() {

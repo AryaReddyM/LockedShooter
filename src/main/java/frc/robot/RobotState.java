@@ -287,7 +287,12 @@ public class RobotState extends StateMachine<RobotState.State> {
                     Meter.of(DriveConstants.trackWidth),
                     Meter.of(DriveConstants.wheelBase),
                     Meter.of(DriveConstants.kBumperHeight),
-                    drive::getPose,
+                    () -> {
+                        Pose2d drivePose = getLatestFieldToRobot().getValue();
+                        return drivePose.transformBy(
+                            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
+                        );
+                    },
                     this::getLatestDesiredFieldRelativeChassisSpeed);
 
             fuelSim.registerIntake(
@@ -801,7 +806,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         return customAutoBuilder;
     }
 
-    public SimulatedRobotState getSimState() {
+    public SimulatedRobotState getSimRobot() {
         return simulatedRobotState;
     }
 

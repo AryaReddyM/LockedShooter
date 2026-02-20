@@ -18,6 +18,8 @@ import static edu.wpi.first.units.Units.Seconds;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -29,23 +31,26 @@ import edu.wpi.first.units.measure.Time;
 import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.turret.TurretConstants;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.RobotState;
 
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class TurretCalculator {
-    public static Distance getDistanceToTarget(Pose2d robot, Translation3d target) {
-        return Meters.of(robot.getTranslation().getDistance(target.toTranslation2d()));
+    public static Distance getDistanceToTarget(RobotState state, Pose2d robot, Translation3d target) {
+        return Meters.of(robot.transformBy(
+            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), new Rotation2d())
+        ).getTranslation().getDistance(target.toTranslation2d()));
     }
 
     // see https://www.desmos.com/geometry/l4edywkmha
-    public static Angle calculateAngleFromVelocity(Pose2d robot, LinearVelocity velocity, Translation3d target) {
+    public static Angle calculateAngleFromVelocity(RobotState state, Pose2d robot, LinearVelocity velocity, Translation3d target) {
         double g = GetTuned.getNumber(
                 "Turret/Gravity InchesPerSec2",
                 MetersPerSecondPerSecond.of(9.81).in(InchesPerSecondPerSecond));
 
         double vel = velocity.in(InchesPerSecond);
-        double x_dist = getDistanceToTarget(robot, target).in(Inches);
+        double x_dist = getDistanceToTarget(state, robot, target).in(Inches);
         double y_dist = target.getMeasureZ()
                 .minus(VisionConstants.kTurretToRobotCenter.getMeasureZ())
                 .in(Inches);
@@ -75,7 +80,7 @@ public class TurretCalculator {
     }
 
     // calculates the angle of a turret relative to the robot to hit a target
-    public static Angle calculateAzimuthAngle(Pose2d robot, Translation3d target, Angle currentAngle) {
+    public static Angle calculateAzimuthAngle(RobotState state, Pose2d robot, Translation3d target, Angle currentAngle) {
         Translation2d turretTranslation = new Pose3d(robot)
                 .transformBy(VisionConstants.kTurretToRobotCenter)
                 .toPose2d()
@@ -110,10 +115,10 @@ public class TurretCalculator {
     }
 
     // see https://www.desmos.com/calculator/ezjqolho6g
-    public static ShotData calculateShotFromFunnelClearance(
+    public static ShotData calculateShotFromFunnelClearance(RobotState state,
             Pose2d robot, Translation3d actualTarget, Translation3d predictedTarget) {
 
-        double x_dist = getDistanceToTarget(robot, predictedTarget).in(Inches);
+        double x_dist = getDistanceToTarget(state, robot, predictedTarget).in(Inches);
         double y_dist = predictedTarget
                 .getMeasureZ()
                 .minus(VisionConstants.kTurretToRobotCenter.getMeasureZ())
@@ -132,7 +137,7 @@ public class TurretCalculator {
                         .in(Inches));
 
         double r = funnelRadius * x_dist
-                / getDistanceToTarget(robot, actualTarget).in(Inches);
+                / getDistanceToTarget(state, robot, actualTarget).in(Inches);
         double h = funnelHeight;
 
         double A1 = x_dist * x_dist;
@@ -162,10 +167,10 @@ public class TurretCalculator {
 
     // use an iterative lookahead approach to determine shot parameters for a moving robot
     public static ShotData iterativeMovingShotFromFunnelClearance(
-            Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
+            RobotState state, Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
 
-        ShotData shot = calculateShotFromFunnelClearance(robot, target, target);
-        Distance distance = getDistanceToTarget(robot, target);
+        ShotData shot = calculateShotFromFunnelClearance(state, robot, target, target);
+        Distance distance = getDistanceToTarget(state, robot, target);
         Time timeOfFlight = calculateTimeOfFlight(shot.getExitVelocity(), shot.getHoodAngle(), distance);
         Translation3d predictedTarget = target;
 
@@ -173,18 +178,18 @@ public class TurretCalculator {
 
         for (int i = 0; i < iters; i++) {
             predictedTarget = predictTargetPos(target, fieldSpeeds, timeOfFlight);
-            shot = calculateShotFromFunnelClearance(robot, target, predictedTarget);
+            shot = calculateShotFromFunnelClearance(state, robot, target, predictedTarget);
             timeOfFlight = calculateTimeOfFlight(
-                    shot.getExitVelocity(), shot.getHoodAngle(), getDistanceToTarget(robot, predictedTarget));
+                    shot.getExitVelocity(), shot.getHoodAngle(), getDistanceToTarget(state, robot, predictedTarget));
         }
 
         return shot;
     }
 
     public static ShotData iterativeMovingShotFromMap(
-            Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
+            RobotState state, Pose2d robot, ChassisSpeeds fieldSpeeds, Translation3d target, int iterations) {
 
-        double distance = getDistanceToTarget(robot, target).in(Meters);
+        double distance = getDistanceToTarget(state, robot, target).in(Meters);
         ShotData shot = TurretConstants.SHOT_MAP.get(distance);
         shot = new ShotData(shot.exitVelocity, shot.hoodAngle, target);
 
@@ -195,7 +200,7 @@ public class TurretCalculator {
 
         for (int i = 0; i < iters; i++) {
             predictedTarget = predictTargetPos(target, fieldSpeeds, timeOfFlight);
-            distance = getDistanceToTarget(robot, predictedTarget).in(Meters);
+            distance = getDistanceToTarget(state, robot, predictedTarget).in(Meters);
             shot = TurretConstants.SHOT_MAP.get(distance);
             shot = new ShotData(shot.exitVelocity, shot.hoodAngle, predictedTarget);
             timeOfFlight = Seconds.of(TurretConstants.TOF_MAP.get(distance));

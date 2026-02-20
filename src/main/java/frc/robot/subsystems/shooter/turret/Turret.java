@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
@@ -72,12 +73,12 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
 
                 if (state.getShooter().getState() == Shooter.State.PASSING
                         || state.getShooter().getState() == Shooter.State.PASS_TRACKING) {
-                    turretVisualizer.updateFuel(
+                    turretVisualizer.updateFuel(state,
                             MetersPerSecond.of(state.getCurrentPassSetpoint().getShooterRPS()
                                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
                             Degrees.of(90).minus(Radians.of(state.getCurrentPassSetpoint().getHoodRadians())));
                 } else {
-                    turretVisualizer.updateFuel(
+                    turretVisualizer.updateFuel(state,
                             MetersPerSecond.of(state.getCurrentHubSetpoint().getShooterRPS()
                                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
                             Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())));
@@ -94,7 +95,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
                             Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
                             Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
-                            Inches.of(currentSetpoint.getHeight()));
+                            Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
                 }
             }
             inputs.robotTurretPos = new Pose3d(

@@ -7,138 +7,134 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.RobotState;
 import frc.robot.util.SimulatedRobotState;
 import org.photonvision.PhotonCamera;
-import org.photonvision.simulation.PhotonCameraSim;
-import org.photonvision.simulation.SimCameraProperties;
-import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.simulation.*;
 import org.photonvision.targeting.PhotonPipelineResult;
-import java.util.ArrayList;
-import java.util.List;
 
 public class VisionIOSimPhoton extends VisionIOHardwareLimelight {
-        private final PhotonCamera turretCamera = new PhotonCamera("turretCamera");
-        private final PhotonCamera elevatorCamera = new PhotonCamera("elevatorCamera");
 
-        private PhotonCameraSim turretCameraSim;
-        private PhotonCameraSim elevatorCameraSim;
-        private final VisionSystemSim visionSim;
+    private static VisionSystemSim visionSim;
 
-        private final RobotState state;
-        private final SimulatedRobotState simRobotState;
+    private final PhotonCamera turretCamera =
+            new PhotonCamera(VisionConstants.kLimelightTableName);
+    private final PhotonCamera chassisCamera =
+            new PhotonCamera(VisionConstants.kLimelightBTableName);
 
-        public VisionIOSimPhoton(RobotState state, SimulatedRobotState simRobotState) {
-                super(state);
-                this.state = state;
-                this.simRobotState = simRobotState;
+    private final PhotonCameraSim turretSim;
+    private final PhotonCameraSim chassisSim;
 
-                visionSim = new VisionSystemSim("main");
-                visionSim.addAprilTags(VisionConstants.kAprilTagLayout);
+    private final SimulatedRobotState simState;
+    private final RobotState robotState;
 
-                var prop = new SimCameraProperties();
-                prop.setCalibration(1280, 800, Rotation2d.fromDegrees(97.7));
-                prop.setFPS(20);
-                prop.setAvgLatencyMs(20);
+    public VisionIOSimPhoton(RobotState state, SimulatedRobotState simState) {
+        super(state);
+        this.robotState = state;
+        this.simState = simState;
 
-                turretCameraSim = new PhotonCameraSim(turretCamera, prop);
-                elevatorCameraSim = new PhotonCameraSim(elevatorCamera, prop);
-
-                visionSim.addCamera(turretCameraSim, new Transform3d());
-
-                // Static offset for Chassis/Elevator camera
-                Transform3d robotToElevatorCamera = new Transform3d(
-                                new Translation3d(VisionConstants.kTurretToCameraBX, VisionConstants.kTurretToCameraBY,
-                                                VisionConstants.kCameraBHeightOffGroundMeters),
-                                new Rotation3d(0.0, -Units.degreesToRadians(VisionConstants.kCameraBPitchDegrees),
-                                                0.0));
-                visionSim.addCamera(elevatorCameraSim, robotToElevatorCamera);
+        // Create vision system once
+        if (visionSim == null) {
+            visionSim = new VisionSystemSim("main");
+            visionSim.addAprilTags(VisionConstants.kAprilTagLayout);
         }
 
-        @Override
-        public void readInputs(CameraInputsAutoLogged turret, CameraInputsAutoLogged chassis) {
-                // 1. Update Sim World Position
-                Pose2d realPose = simRobotState.getLatestFieldToRobot();
-                if (realPose != null) {
-                        visionSim.update(realPose);
-                }
+        // Camera properties (match Limelight-ish behavior)
+        SimCameraProperties props = new SimCameraProperties();
+        props.setCalibration(1280, 800, Rotation2d.fromDegrees(97));
+        props.setFPS(30);
+        props.setAvgLatencyMs(20);
 
-                // 2. Update Turret Dynamic Transform in Sim
-                var turretRotationEntry = state.getLatestRobotToTurret();
+        turretSim = new PhotonCameraSim(turretCamera, props);
+        chassisSim = new PhotonCameraSim(chassisCamera, props);
 
-                // If this returns an Optional, use .isPresent().
-                // If it returns a raw object (like Timestamped<Rotation2d>), use a null check.
-                if (turretRotationEntry != null) {
-                        // Extract the rotation - adjust .getValue() if your wrapper uses a different
-                        // getter
-                        Rotation2d turretRot = turretRotationEntry.getValue();
+        // Static chassis camera
+        Transform3d robotToChassisCam = new Transform3d(
+                new Translation3d(
+                        VisionConstants.kCameraBForwardMeters,
+                        VisionConstants.kCameraBRightMeters,
+                        VisionConstants.kCameraBHeightOffGroundMeters),
+                new Rotation3d(
+                        0,
+                        -Units.degreesToRadians(VisionConstants.kCameraBPitchDegrees),
+                        Units.degreesToRadians(VisionConstants.kCameraBYawDegrees))
+        );
 
-                        Transform3d robotToTurret = new Transform3d(
-                                        new Translation3d(),
-                                        new Rotation3d(0, 0, turretRot.getRadians()));
+        visionSim.addCamera(chassisSim, robotToChassisCam);
 
-                        Transform3d turretToLens = new Transform3d(
-                                        new Translation3d(
-                                                        VisionConstants.kTurretToCameraX,
-                                                        VisionConstants.kTurretToCameraY,
-                                                        VisionConstants.kCameraHeightOffGroundMeters),
-                                        new Rotation3d(0, 0, 0));
+        // Turret camera starts at origin (updated dynamically)
+        visionSim.addCamera(turretSim, new Transform3d());
+    }
 
-                        // Combine transforms: Robot -> Turret Center -> Camera Lens
-                        visionSim.adjustCamera(turretCameraSim, robotToTurret.plus(turretToLens));
-                }
+    @Override
+    public void readInputs(CameraInputsAutoLogged turretInputs,
+                           CameraInputsAutoLogged chassisInputs) {
 
-                // 3. Fake the NetworkTable data for the parent class to read
-                NetworkTable turretTable = NetworkTableInstance.getDefault()
-                                .getTable(VisionConstants.kLimelightTableName);
-                NetworkTable elevatorTable = NetworkTableInstance.getDefault()
-                                .getTable(VisionConstants.kLimelightBTableName);
-
-                // Use modern PhotonVision API to avoid warnings
-                for (var res : turretCamera.getAllUnreadResults()) {
-                        writeToTable(res, turretTable);
-                }
-                for (var res : elevatorCamera.getAllUnreadResults()) {
-                        writeToTable(res, elevatorTable);
-                }
-
-                // 4. Call parent to process the "fake" table data into the actual 'inputs'
-                // object
-                super.readInputs(turret, chassis);
+        // --- 1. Update robot pose ---
+        Pose2d pose = simState.getLatestFieldToRobot();
+        if (pose != null) {
+            visionSim.update(pose);
         }
 
-        private void writeToTable(PhotonPipelineResult result, NetworkTable table) {
-                table.getEntry("tv").setDouble(result.hasTargets() ? 1.0 : 0.0);
-                if (!result.hasTargets())
-                        return;
+        // --- 2. Update turret transform dynamically ---
+        var turretRotEntry = robotState.getLatestRobotToTurret();
+        if (turretRotEntry != null) {
+            Rotation2d turretRot = turretRotEntry.getValue();
 
-                var multiTag = result.getMultiTagResult();
-                if (multiTag.isPresent() && multiTag.get().estimatedPose != null) {
-                        Transform3d pose = multiTag.get().estimatedPose.best;
+            Transform3d robotToTurretCam = new Transform3d(
+                    new Translation3d(
+                            VisionConstants.kTurretToCameraX,
+                            VisionConstants.kTurretToCameraY,
+                            VisionConstants.kCameraHeightOffGroundMeters),
+                    new Rotation3d(0, 0, turretRot.getRadians())
+            );
 
-                        // Limelight botpose array format: [x, y, z, roll, pitch, yaw, latency,
-                        // tagCount, tagSpan, avgDist, avgArea]
-                        List<Double> data = new ArrayList<>(List.of(
-                                        pose.getX(), pose.getY(), pose.getZ(),
-                                        0.0, 0.0, pose.getRotation().getZ(),
-                                        0.0,
-                                        (double) multiTag.get().fiducialIDsUsed.size(),
-                                        0.0, 0.0,
-                                        result.getBestTarget().getArea()));
-
-                        // Append Raw Fiducials (6 entries per tag)
-                        for (var target : result.getTargets()) {
-                                data.add((double) target.getFiducialId());
-                                data.add(target.getYaw()); // tx
-                                data.add(target.getPitch()); // ty
-                                data.add(target.getArea()); // ta
-                                data.add(0.0); // ts
-                                data.add(0.0); // tr
-                        }
-
-                        double[] dataArray = data.stream().mapToDouble(Double::doubleValue).toArray();
-                        table.getEntry("botpose_wpiblue").setDoubleArray(dataArray);
-
-                        // Fake the MT2 standard deviations (Limelight sends these)
-                        table.getEntry("stddevs").setDoubleArray(
-                                        new double[] { 0.1, 0.1, 0.0, 0.0, 0.0, 0.5, 0.1, 0.1, 0.0, 0.0, 0.0, 0.5 });
-                }
+            visionSim.adjustCamera(turretSim, robotToTurretCam);
         }
+
+        // --- 3. Push Photon results into Limelight NetworkTables ---
+        writeLatestResultToLimelight(
+                turretCamera,
+                NetworkTableInstance.getDefault()
+                        .getTable(VisionConstants.kLimelightTableName));
+
+        writeLatestResultToLimelight(
+                chassisCamera,
+                NetworkTableInstance.getDefault()
+                        .getTable(VisionConstants.kLimelightBTableName));
+
+        // --- 4. Let your existing Limelight pipeline handle everything ---
+        super.readInputs(turretInputs, chassisInputs);
+    }
+
+    private void writeLatestResultToLimelight(PhotonCamera camera, NetworkTable table) {
+        PhotonPipelineResult result = camera.getLatestResult();
+
+        table.getEntry("tv").setDouble(result.hasTargets() ? 1 : 0);
+        if (!result.hasTargets()) return;
+
+        if (result.getMultiTagResult().isPresent()) {
+            var multi = result.getMultiTagResult().get();
+
+            if (multi.estimatedPose != null) {
+                Transform3d pose = multi.estimatedPose.best;
+
+                // Limelight botpose_wpiblue format
+                double[] botpose = new double[] {
+                        pose.getX(),
+                        pose.getY(),
+                        pose.getZ(),
+                        Units.radiansToDegrees(pose.getRotation().getX()),
+                        Units.radiansToDegrees(pose.getRotation().getY()),
+                        Units.radiansToDegrees(pose.getRotation().getZ()),
+                        0, // latency
+                        multi.fiducialIDsUsed.size(),
+                        0,0,0
+                };
+
+                table.getEntry("botpose_wpiblue").setDoubleArray(botpose);
+
+                // Fake MT2 stddevs
+                table.getEntry("stddevs").setDoubleArray(
+                        new double[] {0.1,0.1,0,0,0,0.5, 0.1,0.1,0,0,0,0.5});
+            }
+        }
+    }
 }
