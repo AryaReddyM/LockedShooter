@@ -69,7 +69,7 @@ public class ActionCommands {
                     ? currentPose.getX() <= blueHubX
                     : currentPose.getX() >= redHubX;
 
-            if (shouldShoot) {
+            if (shouldShoot && RobotState.hubActivated.get()) {
                 return state.getShooter().transitionCommand(Shooter.State.SHOOTING);
             } else {
                 return state.getShooter().transitionCommand(Shooter.State.PASSING);
@@ -89,7 +89,7 @@ public class ActionCommands {
                     ? currentPose.getX() <= blueHubX
                     : currentPose.getX() >= redHubX;
 
-            if (shouldShoot) {
+            if (shouldShoot && RobotState.hubActivated.get()) {
                 return state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING);
             } else {
                 return state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING);

@@ -47,7 +47,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         Logger.recordOutput("Intake/Mechanism", intakeMechanism);
 
         Logger.recordOutput("Intake/Pose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
+                new Pose3d()
                         .plus(IntakeConstants.intakeOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),

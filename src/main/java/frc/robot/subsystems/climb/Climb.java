@@ -71,7 +71,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
         Logger.recordOutput("Climb/Mechanism", climbMechanism);
 
 
-        Pose3d elevatorBasePose = new Pose3d(state.getLatestFieldToRobot().getValue())
+        Pose3d elevatorBasePose = new Pose3d()
                 .plus(ClimbConstants.climbOrigin);
         Logger.recordOutput("Climb/Elevator Pose", elevatorBasePose);
 

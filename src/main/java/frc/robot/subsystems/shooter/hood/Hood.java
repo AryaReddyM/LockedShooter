@@ -77,12 +77,12 @@ public class Hood extends StateMachine<Hood.State> {
         }
 
         Logger.recordOutput("Hood/Pose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
-                        .plus(VisionConstants.kTurretToRobotCenter)
+                new Pose3d()
+                        .plus(new Transform3d())
                         .plus(new Transform3d(
                                 new Translation3d(),
                                 new Rotation3d(0, 0, state.getShooter().getTurret().getDesiredPos())))
-                        .plus(HoodConstants.turretToHood)
+                        .plus(new Transform3d())
                         .plus(new Transform3d(
                                 new Translation3d(),
                                 new Rotation3d(0, -inputs.desiredPos, 0))));

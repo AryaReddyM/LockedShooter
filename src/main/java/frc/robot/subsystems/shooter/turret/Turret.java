@@ -125,7 +125,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                 inputs.turretVelRadPerSec);
 
         Logger.recordOutput("Turret/Pose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
+                new Pose3d()
                         .plus(VisionConstants.kTurretToRobotCenter)
                         .plus(new Transform3d(
                                 new Translation3d(),

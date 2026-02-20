@@ -1,0 +1,51 @@
+{
+    "name": "RebuiltRobot",
+    "isFTC": false,
+    "disableSimplification": false,
+    "rotations": [
+        {
+            "axis": "x",
+            "degrees": 90
+        },
+        {
+            "axis": "z",
+            "degrees": 90
+        }
+    ],
+
+    "cameras": [],
+    "components": [
+        {
+            "zeroedRotations": [
+                {"axis": "x", "degrees": 90},
+                {"axis": "z", "degrees": 180}
+            ],
+            "zeroedPosition": [-0.15,0.175,-0.32]
+        },
+        {
+            "zeroedRotations": [
+                {"axis": "x", "degrees": 90},
+                {"axis":"z", "degrees": 180}
+            ],
+            "zeroedPosition": [-0.15,0.17,-0.12]
+        },
+        {
+            "zeroedRotations": [],
+            "zeroedPosition": []
+        },
+        {
+            "zeroedRotations": [
+                {"axis": "y", "degrees": 90},
+                {"axis": "z", "degrees": 90}
+            ],
+            "zeroedPosition": [0.025, -0.33, 0.13]
+        },
+        {
+            "zeroedRotations": [
+                {"axis": "x", "degrees": 90},
+                {"axis": "z", "degrees": 270}
+            ],
+            "zeroedPosition": [-0.1, 0.15, -0.15]
+        }
+    ]
+}

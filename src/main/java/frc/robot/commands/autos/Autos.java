@@ -36,8 +36,8 @@ public class Autos {
                     "Start Depot Side to Depot", 
                     "Depot Intaking", 
                     "Depot to Mid Under Trench", 
-                    "Mid Depot Side Half Sweep", 
-                    "Mid Depot Half to Home Depot Over Bump"
+                    "Mid Depot Side Sweep", 
+                    "Mid HP Side to Home HP"
                 };
         }
 
@@ -49,7 +49,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("StartDepot Side to Depot")),
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot")),
                         new InstantCommand(() -> {
                                 state.getIntake().requestTransition(Intake.State.IDLE); 
                             }),
@@ -87,14 +87,14 @@ public class Autos {
                     ),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Half Sweep")),
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Sweep")),
                         new InstantCommand(() -> {
                             state.getIntake().requestTransition(Intake.State.INTAKE); 
                         })
                     ),
                     
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Mid Depot Half to Home Depot Over Bump")),
+                        AutoBuilder.followPath(pathMap.get("Mid HP Side to Home HP")),
                         new InstantCommand(() -> {
                             state.getIntake().requestTransition(Intake.State.STOW); 
                         })
@@ -107,7 +107,7 @@ public class Autos {
                         new InstantCommand(() -> {
                             state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                         }),
-                        new WaitCommand(1)//need to figure out
+                        new WaitCommand(5.5)//need to figure out
                     ),
                     
                     new InstantCommand(() -> {

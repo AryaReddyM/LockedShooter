@@ -49,6 +49,6 @@ public class IntakeConstants {
     public static final double kRollerIntakeSpeed = 0;
 
     public static final Transform3d intakeOrigin = new Transform3d(new Translation3d(
-        Units.inchesToMeters(13.360),Units.inchesToMeters(0), Units.inchesToMeters(9.563)
-    ), new Rotation3d(0, Units.degreesToRadians(-90), 0));
+        Units.inchesToMeters(10.360),Units.inchesToMeters(0), Units.inchesToMeters(0)
+    ), new Rotation3d(0, Units.degreesToRadians(0), 0));
 }
