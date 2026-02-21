@@ -55,9 +55,9 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                                 new Translation3d(),
                                 new Rotation3d(0, -inputs.desiredExtensionPos, 0))));
         Logger.recordOutput("Intake/ExtensionPose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
-                        .plus(IntakeConstants.intakeOrigin).plus(new Transform3d(new Translation3d(
-                            (getState() == State.INTAKE) ? Units.inchesToMeters(6) : Units.inchesToMeters(1) ,0,0
+                new Pose3d()
+                        .plus(new Transform3d()).plus(new Transform3d(new Translation3d(
+                            (getState() != State.IDLE) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,0
                         ), new Rotation3d())));
     }
 

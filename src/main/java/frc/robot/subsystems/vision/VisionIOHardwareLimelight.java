@@ -2,7 +2,7 @@ package frc.robot.subsystems.vision;
 
 import org.littletonrobotics.junction.Logger;
 
-
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -28,8 +28,8 @@ public class VisionIOHardwareLimelight implements VisionIO {
     /** Configures Limelight camera poses in robot coordinate system. */
     private void setLLSettings() {
         double[] cameraAPose = {
-                0,
-                0,
+                0, // the only reason x and y are not used here is because with limelight, we are able to directly get the pose2d of the robot relative to the tag
+                0, // once we have that, this code automatically applies the needed offset to turn the camera pose to turret pose (offset in constant), which then is turned to robot pose thru getTurretToCamera(true)
                 VisionConstants.kCameraHeightOffGroundMeters,
                 0.0,
                 VisionConstants.kCameraPitchDegrees,
@@ -39,7 +39,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
         // tableA.getEntry("camerapose_robotspace_set").setDoubleArray(cameraAPose);
 
         double[] cameraBPose = {
-                VisionConstants.kCameraBForwardMeters,
+                VisionConstants.kCameraBForwardMeters, // for this, we need to just do it constantly. no biggie
                 VisionConstants.kCameraBRightMeters,
                 VisionConstants.kCameraBHeightOffGroundMeters,
                 0.0,
@@ -65,7 +65,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
         var gyroAngularVelocity = Units.radiansToDegrees(robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
         
         var fieldToTurretRotation = robotState.getLatestFieldToRobot().getValue().getRotation()
-                .rotateBy(robotState.getLatestRobotToTurret().getValue());
+                .plus(robotState.getLatestRobotToTurret().getValue());
         var fieldToTurretVelocity = Units.radiansToDegrees(robotState.getLatestTurretAngularVelocity()
                 + robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
 

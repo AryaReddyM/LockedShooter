@@ -322,9 +322,9 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
               pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
               measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
               fusedFieldRelativeChassisSpeeds);
-        } else if (RobotState.robotState == 2) {
-            robotState.getSimRobot().addFieldToRobot(getPose());
         }
+      } else if (RobotState.robotState == 2) {
+        robotState.getSimRobot().addFieldToRobot(getPose());
       }
     }
 

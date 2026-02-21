@@ -9,7 +9,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.RobotState;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
 
@@ -30,7 +29,6 @@ public class PassTargetFactory {
 
     public static Translation3d generate(RobotState robotState) {
         var fieldToRobot = robotState.getLatestFieldToRobot().getValue();
-        double robotX = fieldToRobot.getX();
 
         boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
         boolean onBlueLeftSide = fieldToRobot.getMeasureY().gt(FieldConstants.FIELD_WIDTH.div(2));

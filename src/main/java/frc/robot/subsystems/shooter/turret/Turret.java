@@ -121,7 +121,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             }
         }
 
-        state.addTurretUpdates(RobotTime.getTimestampSeconds(), inputs.turretRotation2d,
+        state.addTurretUpdates(RobotTime.getTimestampSeconds(), Rotation2d.fromRadians(inputs.desiredPos),
                 inputs.turretPos,
                 inputs.turretVelRadPerSec);
 
