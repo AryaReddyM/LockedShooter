@@ -46,7 +46,8 @@ public class AutoCommands {
     // DONT FORGET THIS
     private static final List<AutoClass> availableAutos = List.of(
             new testAuto(),
-            new waypointTestAuto()
+            new waypointTestAuto(),
+            new leftToFuelToClimbAuto()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {
