@@ -45,11 +45,11 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
         spinRadians = spinRadians + (0.02 * HopperConstants.kHopperShootSpeed / HopperConstants.kRollerRadiusMeters);
 
         Logger.recordOutput("Hopper/Pose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
+                new Pose3d()
                         .plus(HopperConstants.hopperOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(spinRadians, 0, 0)
+                                new Rotation3d(0, 0, spinRadians)
                         )));
     }
 

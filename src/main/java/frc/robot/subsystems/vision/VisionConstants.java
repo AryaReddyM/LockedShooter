@@ -31,9 +31,9 @@ public class VisionConstants {
         public static final double kCameraHeightOffGroundMeters = Units.inchesToMeters(4.181);
 
         // // Distance from turret center to camera le#ns in X axis (straight into lens)
-        public static final double kTurretToCameraX = Units.inchesToMeters(7.834);
+        public static final double kTurretToCameraX = Units.inchesToMeters(0);
         // // Distance from turret center to camera lens in Y
-        public static final double kTurretToCameraY = 0;
+        public static final double kTurretToCameraY = Units.inchesToMeters(0);
 
         // // CHASSIS LIMELIGHT
         public static final double kCameraBPitchDegrees = 20.0;
@@ -47,8 +47,8 @@ public class VisionConstants {
         public static final double kTurretToCameraBY = 0;
 
         // THIS IS SOMETHING WE NEED TO DO
-        public static final double kTurretToRobotCenterX = Units.inchesToMeters(3.390);
-        public static final double kTurretToRobotCenterY = Units.inchesToMeters(4.750);
+        public static final double kTurretToRobotCenterX = Units.inchesToMeters(-3.390);
+        public static final double kTurretToRobotCenterY = Units.inchesToMeters(-4.750);
         public static final double kTurretToRobotCenterZ = Units.inchesToMeters(13.935);
 
         // TODO

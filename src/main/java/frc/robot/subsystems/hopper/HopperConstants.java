@@ -36,6 +36,6 @@ public class HopperConstants {
     public static final double kHopperOuttakeSpeed = -0.4;
     
     public static final Transform3d hopperOrigin = new Transform3d(new Translation3d(
-        Units.inchesToMeters(0.36), Units.inchesToMeters(2.5), Units.inchesToMeters(9.5)
-    ), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(-90), Units.degreesToRadians(0)));
+        Units.inchesToMeters(2.5), Units.inchesToMeters(0.4), Units.inchesToMeters(0)
+    ), new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(0), Units.degreesToRadians(0)));
 }

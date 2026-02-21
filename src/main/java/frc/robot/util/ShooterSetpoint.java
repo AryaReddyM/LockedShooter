@@ -100,9 +100,9 @@ public class ShooterSetpoint {
         // Calculate shot
         TurretCalculator.ShotData shot;
         if (useMovingPrediction) {
-            shot = TurretCalculator.iterativeMovingShotFromFunnelClearance(robotPose, robotSpeeds, target, 3);
+            shot = TurretCalculator.iterativeMovingShotFromFunnelClearance(robotState, robotPose, robotSpeeds, target, 3);
         } else {
-            shot = TurretCalculator.calculateShotFromFunnelClearance(robotPose, target, target);
+            shot = TurretCalculator.calculateShotFromFunnelClearance(robotState, robotPose, target, target);
         }
 
         double launchSpeed = shot.getExitVelocity().in(MetersPerSecond);
@@ -111,7 +111,7 @@ public class ShooterSetpoint {
 
         // Compute turret angle
         Rotation2d turretAngle = Rotation2d.fromRadians(
-                TurretCalculator.calculateAzimuthAngle(robotPose, predictedTarget,
+                TurretCalculator.calculateAzimuthAngle(robotState, robotPose, predictedTarget,
                         Radians.of(0.0)).in(Radians));
 
         return makeSetpoint(robotState, turretAngle, predictedTarget, hoodAngle, launchSpeed);

@@ -22,6 +22,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.ctre.phoenix6.swerve.jni.SwerveJNI.DriveState;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -44,7 +45,9 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -109,6 +112,7 @@ import frc.robot.util.FuelSim;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.MathHelpers;
+import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
@@ -209,6 +213,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
                 public void accept(VisionFieldPoseEstimate estimate) {
+                    if (robotState != 1) {return;}
                     drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
                             estimate.getVisionMeasurementStdDevs());
                 }
@@ -284,7 +289,12 @@ public class RobotState extends StateMachine<RobotState.State> {
                     Meter.of(DriveConstants.trackWidth),
                     Meter.of(DriveConstants.wheelBase),
                     Meter.of(DriveConstants.kBumperHeight),
-                    drive::getPose,
+                    () -> {
+                        Pose2d drivePose = getLatestFieldToRobot().getValue();
+                        return drivePose.transformBy(
+                            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
+                        );
+                    },
                     this::getLatestDesiredFieldRelativeChassisSpeed);
 
             // fuelSim.registerIntake(
@@ -455,6 +465,8 @@ public class RobotState extends StateMachine<RobotState.State> {
         // addChildSubsystem(kicker);
         enable();
 
+        Logger.recordOutput("Bumper/Pose", new Pose3d());
+
         try {
             DynamicPathGenerator.warmupInit();
         } catch (Exception e) {
@@ -507,6 +519,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
+
+        autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)", AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -611,13 +625,16 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     private void setupControllerBindings() {
-        controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
-                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         // controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
         // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
-                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        controller // TODO turn this off in a real game (SWITCH KEYBINDS)
+        // controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        
+        // only works at home, cannot reset pose in a match
+        if (DriverStation.getMatchType().equals(MatchType.None)) {
+            controller
                 .b()
                 .onTrue(
                         Commands.runOnce(
@@ -625,34 +642,56 @@ public class RobotState extends StateMachine<RobotState.State> {
                                         new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                                 drive)
                                 .ignoringDisable(true));
+        }
 
-        Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
-                .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0),
-                        new Rotation2d(Units.degreesToRadians(0))));
-        controller
-                .y()
-                .whileTrue(
-                        new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
+        // Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
+        //         .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0),
+        //                 new Rotation2d(Units.degreesToRadians(0))));
+        // controller
+        //         .y()
+        //         .whileTrue(
+        //                 new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
+
+        // driver 1 controller
+        // {
+        //     controller
+        //         .leftBumper()
+        //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+        //         .onFalse(intake.transitionCommand(Intake.State.STOW));
+
+        //     controller
+        //         .rightBumper()
+        //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+        //         .onFalse(ActionCommands.trackBasedOnPos(this));
+
+        //     controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+
+        //     controller
+        //         .y()
+        //         .whileTrue(ActionCommands.autoClimb(this))
+        //         .onFalse(climb.transitionCommand(Climb.State.STOW));
+
+        //     controller.x().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        // }
 
         // controller
         //         .x()
-        //         .onTrue(shooter.transitionCommand(Shooter.State.SHOOTING))
+        //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
         //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+
         // controller
         //         .a()
         //         .onTrue(shooter.transitionCommand(Shooter.State.PASSING))
         //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
 
         // controller
+        //         .y()
+        //         .onTrue(ActionCommands.autoClimb(this));
+
+        // controller
         //         .a()
-        //         .onTrue(climb.transitionCommand(Climb.State.UP)).onFalse(climb.transitionCommand(Climb.State.IDLE));
-
-        // controller
-        //         .x()
-        //         .onTrue(climb.transitionCommand(Climb.State.CLIMB)).onFalse(climb.transitionCommand(Climb.State.IDLE));
-
-        // controller
-        //         .x()
         //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
         //         .onFalse(intake.transitionCommand(Intake.State.STOW));
 
@@ -771,6 +810,10 @@ public class RobotState extends StateMachine<RobotState.State> {
         return customAutoBuilder;
     }
 
+    public SimulatedRobotState getSimRobot() {
+        return simulatedRobotState;
+    }
+
     public void addOdometryMeasurement(double timestamp, Pose2d pose) {
         fieldToRobot.addSample(timestamp, pose);
     }
@@ -819,7 +862,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             double turretRadians,
             double angularYawRadsPerS) {
         // turret frame 180 degrees off from robot frame
-        robotToTurret.addSample(timestamp, turretRotation.rotateBy(MathHelpers.kRotation2dPi));
+        robotToTurret.addSample(timestamp, turretRotation);
         this.turretAngularVelocity.addSample(timestamp, angularYawRadsPerS);
         this.turretPositionRadians.addSample(timestamp, turretRadians);
     }

@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
@@ -77,7 +78,7 @@ public class Hood extends StateMachine<Hood.State> {
         }
 
         Logger.recordOutput("Hood/Pose",
-                new Pose3d(state.getLatestFieldToRobot().getValue())
+                new Pose3d()
                         .plus(VisionConstants.kTurretToRobotCenter)
                         .plus(new Transform3d(
                                 new Translation3d(),
@@ -85,7 +86,7 @@ public class Hood extends StateMachine<Hood.State> {
                         .plus(HoodConstants.turretToHood)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, -inputs.desiredPos, 0))));
+                                new Rotation3d(0, Units.degreesToRadians(-120) + inputs.desiredPos, 0))));
     }
 
     @Override
