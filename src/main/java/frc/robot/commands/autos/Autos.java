@@ -51,7 +51,7 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot")),
                         new InstantCommand(() -> {
-                                state.getIntake().requestTransition(Intake.State.IDLE); 
+                                state.getIntake().requestTransition(Intake.State.STOW); 
                             }),
                         new InstantCommand(() -> {
                                 state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
@@ -68,7 +68,7 @@ public class Autos {
 
                     new ParallelCommandGroup(
                         new InstantCommand(() -> {
-                            state.getIntake().requestTransition(Intake.State.IDLE); 
+                            state.getIntake().requestTransition(Intake.State.STOW); 
                         }),  
                         //need to test and figure out timings 
                         new SequentialCommandGroup(
@@ -102,7 +102,7 @@ public class Autos {
 
                     new ParallelCommandGroup(
                         new InstantCommand(() -> {
-                            state.getIntake().requestTransition(Intake.State.IDLE); 
+                            state.getIntake().requestTransition(Intake.State.STOW); 
                         }),
                         new InstantCommand(() -> {
                             state.getShooter().requestTransition(Shooter.State.SHOOTING); 

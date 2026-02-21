@@ -87,7 +87,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
             return Optional.empty();
 
         // If Limelight offsets are 0, 'fieldToRobot()' is effectively 'fieldToCamera'
-        Pose2d fieldToRobot = estimate.fieldToRobot().plus(robotToCamera.get().inverse());
+        Pose2d fieldToRobot = estimate.fieldToRobot().plus(robotToCamera.get());
 
         // 5. Standard Deviation Calculation
         Matrix<N3, N1> stdDevs = calculateStdDevs(cam, estimate, useMT2);
@@ -106,14 +106,14 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
      * at a specific point in time using the RobotState history buffers.
      */
     /// TODO fix this based on issues, make sure the megatag of this matches with the chassis
-    private Optional<Transform2d> getRobotToCamera(double timestamp, boolean isTurret) {
+    public Optional<Transform2d> getRobotToCamera(double timestamp, boolean isTurret) {
         if (isTurret) {
             // Retrieve the historical rotation of the turret from the RobotState buffer
             Optional<Rotation2d> turretRotation = state.getRobotToTurret(timestamp);
 
             if (turretRotation.isPresent()) {
                 // Combine: Robot -> Turret (Historical) -> Camera (Static offset on turret)
-                Transform2d robotToTurret = MathHelpers.transform2dFromRotation(turretRotation.get());
+                Transform2d robotToTurret = MathHelpers.transform2dFromRotation(turretRotation.get().times(-1));
                 return Optional.of(robotToTurret.plus(state.getTurretToCamera(true)));
             }
             return Optional.empty();

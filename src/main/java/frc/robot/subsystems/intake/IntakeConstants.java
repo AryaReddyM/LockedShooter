@@ -43,12 +43,12 @@ public class IntakeConstants {
 
     // setpoints
     public static final double kExtensionStowSetpoint = -0.1;
-    public static final double kExtensionIntakeSetpoint = -1;
+    public static final double kExtensionIntakeSetpoint = -1.4;
     public static final double kExtensionOuttakeSetpoint = -1;
     public static final double kRollerOuttakeSpeed = 0;
     public static final double kRollerIntakeSpeed = 0;
 
     public static final Transform3d intakeOrigin = new Transform3d(new Translation3d(
-        Units.inchesToMeters(10.360),Units.inchesToMeters(0), Units.inchesToMeters(0)
+        Units.inchesToMeters(5),Units.inchesToMeters(0), Units.inchesToMeters(6.7)
     ), new Rotation3d(0, Units.degreesToRadians(0), 0));
 }
