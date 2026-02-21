@@ -7,25 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right to Center (LT)"
+            "pathName": "Right to Shoot (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Right Fuel (LT)"
+            "pathName": "Shoot to Right Fuel (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Right Fuel to Center (LT)"
+            "pathName": "Right Fuel to Shoot (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center to HP (LT)"
+            "pathName": "Shoot to HP (LT)"
           }
         },
         {
@@ -37,7 +37,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "HP to Center (LT)"
+            "pathName": "RShoot to Climb (LT)"
           }
         }
       ]

@@ -71,14 +71,8 @@ public class AutoCommands {
     private static final List<AutoClass> availableAutos = List.of(
             new testAuto(),
             new waypointTestAuto(),
-            new Autos.centerHPClimb(),
-            new Autos.centerHPFuel(),
-            new Autos.centerLeftDepotClimb(),
-            new Autos.centerRightHPClimb(),
-            new Autos.leftDepotClimb(),
-            new Autos.leftDepotFuel(),
-            new Autos.rightFuelClimb(),
-            new Autos.rightHPFuel()
+            new Autos.centerFuelHPClimb(),
+            new Autos.RightFuelHPClimb()
     );
 
     public static Optional<AutoClass> getAutoByName(RobotState state, String name) {

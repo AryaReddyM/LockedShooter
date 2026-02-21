@@ -412,15 +412,8 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center to Fuel to Center", AutoCommands.getAutoByName(this, "Center to Fuel to Center (GAME)").get().getCommand(this));
-        autoChooser.addOption("Right Fuel Climb", AutoCommands.getAutoByName(this, "Right Fuel Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Left Depot Climb", AutoCommands.getAutoByName(this, "Left Depot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center HP Climb", AutoCommands.getAutoByName(this, "Center HP Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center Right HP Climb", AutoCommands.getAutoByName(this, "Center Right HP Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center Left Depot Climb", AutoCommands.getAutoByName(this, "Center Left Depot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Left Depot Fuel", AutoCommands.getAutoByName(this, "Left Depot Fuel (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center HP Fuel", AutoCommands.getAutoByName(this, "Center HP Fuel (GAME)").get().getCommand(this));
-        autoChooser.addOption("Right HP Fuel", AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center Fuel HP Climb", AutoCommands.getAutoByName(this, "Center Fuel HP Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Right Fuel HP Climb", AutoCommands.getAutoByName(this, "Right Fuel HP Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("Waypoint Auto", AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
     }

@@ -7,25 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Left Fuel (LT)"
+            "pathName": "Left to Shoot (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Left Fuel to Center (LT)"
+            "pathName": "Shoot to Depot (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Depot (LT)"
+            "pathName": "Depot to Center (LT)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Depot to Climb (LT)"
+            "pathName": "Center to Left Climb (LT)"
           }
         }
       ]

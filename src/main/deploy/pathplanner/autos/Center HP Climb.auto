@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to HP (LT)"
+            "pathName": "Shoot to HP (LT)"
           }
         },
         {
@@ -25,13 +25,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center to Right Fuel (LT)"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Right Fuel to Center (LT)"
+            "pathName": "Center to Right Climb (LT)"
           }
         }
       ]
