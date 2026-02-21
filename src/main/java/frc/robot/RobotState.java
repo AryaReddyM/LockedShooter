@@ -346,32 +346,32 @@ public class RobotState extends StateMachine<RobotState.State> {
         //     }
         // }
 
-        //    { // climb
-        //     switch (robotState) {
-        //         case 1:
-        //             climb = new Climb(
-        //                     new ClimbIOSpark(),
-        //                     new BeamBreakerTOF(1),
-        //                     new BeamBreakerTOF(2),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             climb = new Climb(
-        //                     new ClimbIOSim(),
-        //                     new BeamBreakerSim(1,this),
-        //                     new BeamBreakerSim(2,this),
-        //                     this);
-        //             break;
-        //         default:
-        //             climb = new Climb(
-        //                     new ClimbIO() {
-        //                     },
-        //                     new BeamBreakerIO() {},
-        //                     new BeamBreakerIO() {},
-        //                     this);
-        //             break;
-        //     }
-        // }
+           { // climb
+            switch (robotState) {
+                case 1:
+                    climb = new Climb(
+                            new ClimbIOSpark(),
+                            new BeamBreakerTOF(1),
+                            new BeamBreakerTOF(2),
+                            this);
+                    break;
+                case 2:
+                    climb = new Climb(
+                            new ClimbIOSim(),
+                            new BeamBreakerSim(1,this),
+                            new BeamBreakerSim(2,this),
+                            this);
+                    break;
+                default:
+                    climb = new Climb(
+                            new ClimbIO() {
+                            },
+                            new BeamBreakerIO() {},
+                            new BeamBreakerIO() {},
+                            this);
+                    break;
+            }
+        }
 
 
         // { // hopper
@@ -459,7 +459,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         addChildSubsystem(vision);
         addChildSubsystem(drive);
         // addChildSubsystem(shooter);
-        // addChildSubsystem(climb);
+        addChildSubsystem(climb);
         // addChildSubsystem(hopper);
         // addChildSubsystem(intake);
         // addChildSubsystem(kicker);
@@ -676,19 +676,24 @@ public class RobotState extends StateMachine<RobotState.State> {
         //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
         // }
 
-        // controller
-        //         .x()
-        //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        controller
+                .x()
+                .onTrue(climb.transitionCommand(Climb.State.UP))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
 
-        // controller
-        //         .a()
-        //         .onTrue(shooter.transitionCommand(Shooter.State.PASSING))
-        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        controller
+                .a()
+                .onTrue(climb.transitionCommand(Climb.State.DOWN))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
 
-        // controller
-        //         .y()
-        //         .onTrue(ActionCommands.autoClimb(this));
+        controller
+                .y()
+                .onTrue(climb.transitionCommand(Climb.State.STOW))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+            
+        controller
+            .leftBumper()
+            .onTrue(climb.zero());
 
         // controller
         //         .a()
