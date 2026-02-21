@@ -29,8 +29,8 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
@@ -84,8 +84,8 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
@@ -185,12 +185,12 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                         new WaitCommand(AutosConstants.shootingPause)
                     ),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to Right Fuel")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
@@ -244,8 +244,8 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
                         new WaitCommand(AutosConstants.shootingPause)
                     ),
@@ -302,8 +302,8 @@ public class Autos {
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Left to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
@@ -367,8 +367,8 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Center to HP")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToHP),
@@ -424,8 +424,8 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
 
                 return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("Right to Center")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
