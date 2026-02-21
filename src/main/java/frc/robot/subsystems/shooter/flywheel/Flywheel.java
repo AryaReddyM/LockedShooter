@@ -38,7 +38,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
                 shoot(state.getCurrentPassSetpoint().getShooterRPS());
             } else if (getState() == State.TUNING) {
                 shoot(tunedSetpoint);
-            } else if(getState() == State.TRACKING){
+            } else if(getState() == State.TRACKING) {
                 slow();
             } else {
                 stop();
@@ -67,7 +67,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
         addOmniTransitions(State.IDLE, State.SHOOT, State.PASS, State.UNDETERMINED, State.TRACKING);
     }
 
-    private void registerStateCommands() {
+    private void registerStateCommands() {  
     }
 
      @Override
