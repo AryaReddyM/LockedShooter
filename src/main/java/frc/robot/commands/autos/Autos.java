@@ -12,17 +12,23 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
+import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.AutoCommands.AutoClass;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.shooter.Shooter;
 
 public class Autos {
 
     public static class centerFuelHPClimb extends AutoClass { //Done
         public centerFuelHPClimb() {
             this.name = "Center Fuel HP Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Right Fuel (LT)", "Right Fuel to Shoot (LT)", "Shoot to HP (LT)", "HP Pickup (LT)", "RShoot to Climb (LT)"};
+            this.sequentialPathStrings = new String[] { "Center to Right Fuel (LT)", 
+                                                        "Right Fuel to Shoot (LT)", 
+                                                        "Shoot to HP (LT)", 
+                                                        "HP Pickup (LT)", 
+                                                        "RShoot to Climb (LT)"};
         }
-
         @Override
         public Command getCommand(RobotState state) {
             try {
@@ -30,57 +36,72 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING);
+                            }),
+                    new InstantCommand(() -> {
+                                state.getIntake().requestTransition(Intake.State.STOW); 
                             }),
                     new WaitCommand(AutosConstants.shootingPause),
                     new ParallelCommandGroup(
-                        //state.getIdle().requestTransition(State.IDLING); // uncomment when idle is ready
+                        new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            }),
                         AutoBuilder.followPath(pathMap.get("Center to Right Fuel (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                            state.getIntake().requestTransition(Intake.State.INTAKE); 
                             })
                         )
                     ),
                     new ParallelCommandGroup(
-                        //state.getIdle().requestTransition(State.IDLING); // uncomment when idle is ready
+                        new InstantCommand(() -> {
+                                state.getIntake().requestTransition(Intake.State.STOW); 
+                            }),
                         AutoBuilder.followPath(pathMap.get("Right Fuel to Shoot (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToShoot),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING);
                             }),
                             new WaitCommand(AutosConstants.shootingPause)
                         )
                     ),
                     new ParallelCommandGroup(
                         new SequentialCommandGroup(
-                            //state.getIdle().requestTransition(State.IDLING); // uncomment when idle is ready
+                            new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            }),
                             AutoBuilder.followPath(pathMap.get("Shoot to HP (LT)"))
                         )
                     ),
                     new ParallelCommandGroup(
-                        //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                        new InstantCommand(() -> {
+                            state.getIntake().requestTransition(Intake.State.INTAKE); 
+                            }),
                         AutoBuilder.followPath(pathMap.get("HP Pickup (LT)")),
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpPickup),
                             new InstantCommand(() -> {
-                                //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getIntake().requestTransition(Intake.State.STOW); 
+                            }),
+                            new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING);
                             }),
                             new WaitCommand(AutosConstants.shootingPause)
                         )
                     ),
                     new ParallelCommandGroup(
-                        //state.getIdle().requestTransition(State.IDLING); // uncomment when idle is ready
+                        new InstantCommand(() -> {
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            }),
                         AutoBuilder.followPath(pathMap.get("RShoot to Climb (LT)")),
                         new SequentialCommandGroup(
-                            new WaitCommand(AutosConstants.rShootToClimb),
-                            new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
-                            })
+                            new WaitCommand(AutosConstants.rShootToClimb)
                         )
-                    )).withName(name);
+                    ),
+                    ActionCommands.autoClimb(state)
+                    ).withName(name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
             }
@@ -90,9 +111,13 @@ public class Autos {
     public static class RightFuelHPClimb extends AutoClass { //Done
         public RightFuelHPClimb() {
             this.name = "Right Fuel HP Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Right to Shoot (LT)", "Shoot to Right Fuel (LT)", "Right Fuel to Shoot (LT)", "Shoot to HP (LT)", "HP Pickup (LT)", "RShoot to Climb (LT)"};
+            this.sequentialPathStrings = new String[] { "Right to Shoot (LT)", 
+                                                        "Shoot to Right Fuel (LT)", 
+                                                        "Right Fuel to Shoot (LT)", 
+                                                        "Shoot to HP (LT)", 
+                                                        "HP Pickup (LT)", 
+                                                        "RShoot to Climb (LT)"};
         }
-
         @Override
         public Command getCommand(RobotState state) {
             try {
