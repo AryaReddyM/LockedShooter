@@ -1,14 +1,19 @@
 package frc.robot.subsystems.vision;
 
+import java.util.Arrays;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -61,30 +66,34 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
     private Optional<VisionFieldPoseEstimate> processCamera(
             VisionIO.CameraInputs cam, String name, boolean isTurret) {
 
-        if (!cam.seesTarget)
+        if (!cam.seesTarget) {
             return Optional.empty();
-
+        }
         // 1. Pick the best estimate (Prefer Megatag 2)
         boolean useMT2 = cam.megatag2PoseEstimate != null && cam.megatag2Count > 0;
         var estimate = useMT2 ? cam.megatag2PoseEstimate : cam.megatagPoseEstimate;
-        if (estimate == null)
+        if (estimate == null) {
             return Optional.empty();
+        }
 
         double timestamp = estimate.timestampSeconds();
         String logPath = "Vision/" + name + "/";
 
         // 2. Timing Check
-        if (timestamp == (isTurret ? lastTurretTimestamp : lastChassisTimestamp))
+        if (timestamp == (isTurret ? lastTurretTimestamp : lastChassisTimestamp)) {
             return Optional.empty();
+        }
 
         // 3. Motion Validation (Method fully implemented below)
-        if (!isMotionValid(timestamp, isTurret, logPath))
+        if (!isMotionValid(timestamp, isTurret, logPath)) {
             return Optional.empty();
+        }
 
         // 4. Transform Logic (Method fully implemented below)
         Optional<Transform2d> robotToCamera = getRobotToCamera(timestamp, isTurret);
-        if (robotToCamera.isEmpty())
+        if (robotToCamera.isEmpty()) {
             return Optional.empty();
+        }
 
         // If Limelight offsets are 0, 'fieldToRobot()' is effectively 'fieldToCamera'
         Pose2d fieldToRobot = estimate.fieldToRobot().plus(robotToCamera.get());
@@ -96,6 +105,8 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
             lastTurretTimestamp = timestamp;
         else
             lastChassisTimestamp = timestamp;
+
+        Logger.recordOutput((isTurret ? "Turret" : "Chassis") + " Camera Targets", getCameraAndTagPoses(isTurret));
 
         return Optional.of(new VisionFieldPoseEstimate(
                 fieldToRobot, timestamp, stdDevs, estimate.fiducialIds().length));
@@ -154,7 +165,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         return VecBuilder.fill(
                 cam.standardDeviations[offset],
                 cam.standardDeviations[offset + 1],
-                isMT2? 9999: cam.standardDeviations[offset + 5]);
+                isMT2 ? 9999 : cam.standardDeviations[offset + 5]);
     }
 
     private Optional<VisionFieldPoseEstimate> fuseEstimates(
@@ -219,6 +230,61 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         double time = b.getTimestampSeconds();
 
         return Optional.of(new VisionFieldPoseEstimate(fusedPose, time, fusedStdDev, numTags));
+    }
+
+    public Pose3d[] getCameraAndTagPoses(boolean useTurret) {
+        VisionIO.CameraInputs cam = useTurret ? turretCamera : chassisCamera;
+
+        if (!cam.seesTarget) {
+            return new Pose3d[0];
+        }
+
+        // Prefer MegaTag2
+        MegatagPoseEstimate est = cam.megatag2Count > 0 ? cam.megatag2PoseEstimate : cam.megatagPoseEstimate;
+
+        if (est == null || est.fiducialIds() == null || est.fiducialIds().length == 0) {
+            return new Pose3d[0];
+        }
+
+        // --- Field → Robot ---
+        Pose3d fieldToRobot = new Pose3d(est.fieldToRobot());
+
+        // --- Robot → Camera at capture time ---
+        Optional<Transform2d> robotToCamera2d = getRobotToCamera(est.timestampSeconds(), useTurret);
+
+        if (robotToCamera2d.isEmpty()) {
+            return new Pose3d[0];
+        }
+
+        // Transform2d t2d = robotToCamera2d.get();
+
+        // Transform3d robotToCamera = new Transform3d(
+        //         new Translation3d(t2d.getX(), t2d.getY(), 0.0),
+        //         new Rotation3d(0, 0, t2d.getRotation().getRadians()));
+
+        // --- Field → Camera ---
+        Pose3d fieldToCamera = fieldToRobot;//.transformBy(robotToCamera);
+
+        // --- Build camera → tag poses ---
+        return java.util.Arrays.stream(est.fiducialIds())
+                .mapToObj(id -> {
+                var tagPoseOpt = VisionConstants.kAprilTagLayout.getTagPose(id);
+                if (tagPoseOpt.isEmpty()) return null;
+
+                Pose3d fieldToTag = tagPoseOpt.get();
+
+                // Camera → Tag
+                Pose3d camToTag = fieldToTag.relativeTo(fieldToCamera);
+
+                // Only keep tags within 5 meters
+                if (camToTag.getTranslation().getX() > 12) {
+                    return null;
+                }
+
+                return fieldToTag;
+            })
+            .filter(java.util.Objects::nonNull)
+            .toArray(Pose3d[]::new);
     }
 
     @Override

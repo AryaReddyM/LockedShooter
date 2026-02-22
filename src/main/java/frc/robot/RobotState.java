@@ -213,6 +213,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
                 public void accept(VisionFieldPoseEstimate estimate) {
+                    if (robotState != 1) {return;}
                     drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
                             estimate.getVisionMeasurementStdDevs());
                 }
@@ -458,7 +459,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         addChildSubsystem(vision);
         addChildSubsystem(drive);
         // addChildSubsystem(shooter);
-        // addChildSubsystem(climb);
+        addChildSubsystem(climb);
         // addChildSubsystem(hopper);
         // addChildSubsystem(intake);
         // addChildSubsystem(kicker);
@@ -678,16 +679,38 @@ public class RobotState extends StateMachine<RobotState.State> {
         // controller
         //         .x()
         //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        //         .onFalse(ActionCommands.trackBasedOnPos(this));
 
-        // controller
-        //         .a()
-        //         .onTrue(shooter.transitionCommand(Shooter.State.PASSING))
-        //         .onFalse(shooter.transitionCommand(Shooter.State.IDLE));
+        //     controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
-        // controller
+        //     controller
         //         .y()
-        //         .onTrue(ActionCommands.autoClimb(this));
+        //         .whileTrue(ActionCommands.autoClimb(this))
+        //         .onFalse(climb.transitionCommand(Climb.State.STOW));
+
+        //     controller.x().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
+        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        // }
+
+        controller
+                .x()
+                .onTrue(climb.transitionCommand(Climb.State.UP))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        controller
+                .a()
+                .onTrue(climb.transitionCommand(Climb.State.DOWN))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        controller
+                .y()
+                .onTrue(climb.transitionCommand(Climb.State.STOW))
+                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+            
+        controller
+            .leftBumper()
+            .onTrue(climb.zero());
 
         // controller
         //         .a()
