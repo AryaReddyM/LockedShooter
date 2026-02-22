@@ -110,9 +110,8 @@ public class IntakeIOSpark implements IntakeIO {
        
         SparkMaxConfig extensionFollowerConfig = new SparkMaxConfig();
         extensionFollowerConfig
-                .follow(IntakeConstants.kExtensionCanID)
-                .inverted(true);
-
+                .follow(IntakeConstants.kExtensionCanID, true);
+                
         extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         extensionFollower.clearFaults();
 

@@ -50,7 +50,7 @@ public class FlywheelIOSpark implements FlywheelIO{
     SparkFlexConfig flywheelConfig = new SparkFlexConfig();
     flywheelConfig
         .inverted(FlywheelConstants.kFlywheelinverted)
-        .idleMode(IdleMode.kBrake)
+        .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(FlywheelConstants.kFlywheelCurrentLimit)
         .voltageCompensation(12.0);
     flywheelConfig
@@ -129,6 +129,14 @@ public class FlywheelIOSpark implements FlywheelIO{
     @Override
     public void stopFlywheel() {
         flywheel.stopMotor();
+    }
+
+    @Override
+    public boolean isAtSpeed(double speed, double tolerance) {
+        if (Math.abs(flywheelController.getSetpoint() - speed) < tolerance) {
+            return true;
+        }
+        return false;
     }
   }
 

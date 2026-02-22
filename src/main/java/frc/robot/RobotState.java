@@ -146,6 +146,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     private boolean climbZeroed = false;
 
     private CommandXboxController controller = new CommandXboxController(0);
+    private CommandXboxController operatorController = new CommandXboxController(1);
 
     private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -215,7 +216,9 @@ public class RobotState extends StateMachine<RobotState.State> {
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
                 public void accept(VisionFieldPoseEstimate estimate) {
-                    if (robotState != 1) {return;}
+                    if (robotState != 1) {
+                        return;
+                    }
                     drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
                             estimate.getVisionMeasurementStdDevs());
                 }
@@ -294,8 +297,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                     () -> {
                         Pose2d drivePose = getLatestFieldToRobot().getValue();
                         return drivePose.transformBy(
-                            new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
-                        );
+                                new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(),
+                                        Rotation2d.kZero));
                     },
                     this::getLatestDesiredFieldRelativeChassisSpeed);
 
@@ -313,42 +316,42 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // { // shooter
-        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        { // shooter
+            hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+            passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-        //     hubSupplier.get();
-        //     passSupplier.get();
+            hubSupplier.get();
+            passSupplier.get();
 
-        //     switch (robotState) {
-        //         case 1:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSpark(),
-        //                     new HoodIOSpark(),
-        //                     new FlywheelIOSpark());
-        //             break;
-        //         case 2:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSim(),
-        //                     new HoodIOSim(),
-        //                     new FlywheelIOSim());
-        //             break;
-        //         default:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIO() {
-        //                     },
-        //                     new HoodIO() {
-        //                     },
-        //                     new FlywheelIO() {
-        //                     });
-        //             break;
-        //     }
-        // }
+            switch (robotState) {
+                case 1:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSpark(),
+                            new HoodIOSpark(),
+                            new FlywheelIOSpark());
+                    break;
+                case 2:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSim(),
+                            new HoodIOSim(),
+                            new FlywheelIOSim());
+                    break;
+                default:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIO() {
+                            },
+                            new HoodIO() {
+                            },
+                            new FlywheelIO() {
+                            });
+                    break;
+            }
+        }
 
-           { // climb
+        { // climb
             switch (robotState) {
                 case 1:
                     climb = new Climb(
@@ -360,43 +363,42 @@ public class RobotState extends StateMachine<RobotState.State> {
                 case 2:
                     climb = new Climb(
                             new ClimbIOSim(),
-                            new BeamBreakerSim(1,this),
-                            new BeamBreakerSim(2,this),
+                            new BeamBreakerSim(1, this),
+                            new BeamBreakerSim(2, this),
                             this);
                     break;
                 default:
                     climb = new Climb(
                             new ClimbIO() {
                             },
-                            new BeamBreakerIO() {},
-                            new BeamBreakerIO() {},
+                            new BeamBreakerIO() {
+                            },
+                            new BeamBreakerIO() {
+                            },
                             this);
                     break;
             }
         }
 
-
         // { // hopper
-        // switch (robotState) {
-        // case 1:
-        // hopper = new Hopper(
-        // new HopperIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // hopper = new Hopper(
-        // new HopperIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // hopper = new Hopper(
-        // new HopperIO() {},
-        // this
-        // );
-        // break;
-        // }
+        //     switch (robotState) {
+        //         case 1:
+        //             hopper = new Hopper(
+        //                     new HopperIOSpark(),
+        //                     this);
+        //             break;
+        //         case 2:
+        //             hopper = new Hopper(
+        //                     new HopperIOSim(),
+        //                     this);
+        //             break;
+        //         default:
+        //             hopper = new Hopper(
+        //                     new HopperIO() {
+        //                     },
+        //                     this);
+        //             break;
+        //     }
         // }
 
         // { // intake
@@ -421,26 +423,24 @@ public class RobotState extends StateMachine<RobotState.State> {
         // }
 
         // { // kicker
-        // switch (robotState) {
-        // case 1:
-        // kicker = new Kicker(
-        // new KickerIOSpark(),
-        // this
-        // );
-        // break;
-        // case 2:
-        // kicker = new Kicker(
-        // new KickerIOSim(),
-        // this
-        // );
-        // break;
-        // default:
-        // kicker = new Kicker(
-        // new KickerIO() {},
-        // this
-        // );
-        // break;
-        // }
+        //     switch (robotState) {
+        //         case 1:
+        //             kicker = new Kicker(
+        //                     new KickerIOSpark(),
+        //                     this);
+        //             break;
+        //         case 2:
+        //             kicker = new Kicker(
+        //                     new KickerIOSim(),
+        //                     this);
+        //             break;
+        //         default:
+        //             kicker = new Kicker(
+        //                     new KickerIO() {
+        //                     },
+        //                     this);
+        //             break;
+        //     }
         // }
 
         // // auto setup
@@ -522,9 +522,12 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
 
-        autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)", AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
-        autoChooser.addOption("Depot Side Quick Shoot Climb", AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("HP Side Quick Shoot Climb", AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Quick Shoot Climb",
+                AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("HP Side Quick Shoot Climb",
+                AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -629,149 +632,212 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     private void setupControllerBindings() {
-        // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        // controller.x().onTrue(drive.transitionCommand(Drive.State.CROSSED))
-        // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        // controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        
+
         // only works at home, cannot reset pose in a match
         if (DriverStation.getMatchType().equals(MatchType.None)) {
             controller
-                .b()
-                .onTrue(
-                        Commands.runOnce(
-                                () -> drive.setPose(
-                                        new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-                                drive)
-                                .ignoringDisable(true));
+                    .b()
+                    .onTrue(
+                            Commands.runOnce(
+                                    () -> drive.setPose(
+                                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+                                    drive)
+                                    .ignoringDisable(true));
         }
-
-        // Pose2d tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
-        //         .plus(new Transform2d(Units.inchesToMeters(30), Units.inchesToMeters(0),
-        //                 new Rotation2d(Units.degreesToRadians(0))));
-        // controller
-        //         .y()
-        //         .whileTrue(
-        //                 new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
-
-        controller
-            .y()
-            .onTrue(climb.transitionCommand(Climb.State.UP))
-            .onFalse(climb.transitionCommand(Climb.State.IDLE));
-
-        controller
-            .a()
-            .onTrue(climb.transitionCommand(Climb.State.STOW))
-            .onFalse(climb.transitionCommand(Climb.State.IDLE));
-
-        controller
-            .x()
-            .onTrue(climb.transitionCommand(Climb.State.DOWN))
-            .onFalse(climb.transitionCommand(Climb.State.IDLE));
-
-
         // driver 1 controller
         {
-            controller
-                .leftTrigger(0.5)
-                .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-                .onFalse(intake.transitionCommand(Intake.State.IDLE));
+            // controller
+            //         .leftTrigger(0.5)
+            //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+            //         .onFalse(intake.transitionCommand(Intake.State.IDLE));
 
-            controller
-                .leftBumper()
-                .onTrue(intake.transitionCommand(Intake.State.STOW));
+            // controller
+            //         .leftBumper()
+            //         .onTrue(intake.transitionCommand(Intake.State.STOW));
 
-            controller
-                .rightTrigger(0.5)
-                .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-                .onFalse(ActionCommands.trackBasedOnPos(this));
+            // controller
+            //         .rightTrigger(0.5)
+            //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+            //         .onFalse(ActionCommands.trackBasedOnPos(this));
 
-            controller
-                .rightBumper()
-                .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-                .onFalse(ActionCommands.trackBasedOnPos(this));
+            // controller
+            //         .rightBumper()
+            //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+            //         .onFalse(ActionCommands.trackBasedOnPos(this));
 
-            controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
-                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+            // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
+            //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
-            controller
-                .y()
-                .whileTrue(ActionCommands.autoClimb(this))
-                .onFalse(climb.transitionCommand(Climb.State.STOW));
+            // controller
+            //         .y()
+            //         .whileTrue(ActionCommands.autoClimb(this))
+            //         .onFalse(climb.transitionCommand(Climb.State.STOW));
+
+            // controller
+            //         .a()
+            //         .onTrue(new InstantCommand(() -> {
+            //             shooter.requestTransition(Shooter.State.OUTTAKE);
+            //             intake.requestTransition(Intake.State.OUTAKE);
+            //         }))
+            //         .onFalse(new InstantCommand(() -> {
+            //             ActionCommands.trackBasedOnPos(this);
+            //             intake.requestTransition(Intake.State.OUTAKE);
+            //         }));
         }
 
-        // controller
-        //         .x()
-        //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-        //         .onFalse(ActionCommands.trackBasedOnPos(this));
+        // driver two
 
-        //     controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+        {
+            // operatorController
+            //         .leftStick()
+            //         .onTrue(new InstantCommand(() -> {
+            //             climb.setOverride(null);
+            //             hopper.setOverride(null);
+            //             kicker.setOverride(null);
+            //             intake.setOverride(null);
+            //             shooter.getFlywheel().setOverride(null);
+            //             shooter.getHood().setOverride(null);
+            //             shooter.getTurret().setOverride(null);
+            //         }));
 
-        //     controller
-        //         .y()
-        //         .whileTrue(ActionCommands.autoClimb(this))
-        //         .onFalse(climb.transitionCommand(Climb.State.STOW));
+            // operatorController
+            //         .rightStick()
+            //         .onTrue(new InstantCommand(() -> {
+            //             if (operatorController.y().getAsBoolean()) {
+            //                 climb.setOverride(null);
+            //             } else if (operatorController.x().getAsBoolean()) {
+            //                 hopper.setOverride(null);
+            //                 kicker.setOverride(null);
+            //             } else if (operatorController.b().getAsBoolean()) {
+            //                 intake.setOverride(null);
+            //             } else if (operatorController.a().getAsBoolean()) {
+            //                 shooter.getFlywheel().setOverride(null);
+            //                 shooter.getHood().setOverride(null);
+            //                 shooter.getTurret().setOverride(null);
+            //             }
+            //         }));
 
-        //     controller.x().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        // }
+            operatorController
+                    .leftTrigger(0.5)
+                    .onTrue(new InstantCommand(() -> {
+                        if (operatorController.y().getAsBoolean()) {
+                            climb.zero();
+                            climb.setOverride((a) -> {
+                                // basically does nothing for the climb!
+                            });
+                        } else if (operatorController.x().getAsBoolean()) {
+                            hopper.setOverride((a) -> {
+                                hopper.idle();
+                            });
 
-        controller
-                .x()
-                .onTrue(climb.transitionCommand(Climb.State.UP))
-                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+                            kicker.setOverride((a) -> {
+                                kicker.idle();
+                            });
+                        } else if (operatorController.b().getAsBoolean()) {
+                            intake.setOverride((a) -> {
+                                intake.intakeRoll();
+                            });
+                        } else if (operatorController.a().getAsBoolean()) {
+                            shooter.getFlywheel().setOverride(() -> {
+                                return getCurrentHubSetpoint().getShooterRPS();
+                            });
 
-        controller
-                .a()
-                .onTrue(climb.transitionCommand(Climb.State.DOWN))
-                .onFalse(climb.transitionCommand(Climb.State.IDLE));
+                            shooter.getHood().setOverride((a) -> {
+                                shooter.getHood().setPos(getCurrentHubSetpoint().getHoodRadians(),
+                                        getCurrentHubSetpoint().getHoodFF());
+                            });
 
-        controller
-                .y()
-                .onTrue(climb.transitionCommand(Climb.State.STOW))
-                .onFalse(climb.transitionCommand(Climb.State.IDLE));
-            
-        controller
-            .leftBumper()
-            .onTrue(climb.zero());
+                            shooter.getTurret().setOverride((a) -> {
+                                shooter.getTurret().setPos(getCurrentHubSetpoint().getTurretRadiansFromCenter(),
+                                        getCurrentHubSetpoint().getTurretFF());
+                            });
+                        }
+                    }));
 
-        // controller
-        //         .a()
-        //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-        //         .onFalse(intake.transitionCommand(Intake.State.STOW));
+            operatorController
+                    .rightTrigger(0.5)
+                    .onTrue(new InstantCommand(() -> {
+                        if (operatorController.y().getAsBoolean()) {
+                            climb.setOverride((a) -> {
+                                climb.down();
+                            });
+                        } else if (operatorController.x().getAsBoolean()) {
+                            hopper.setOverride((a) -> {
+                                hopper.idle();
+                            });
 
-        // controller
-        //         .leftBumper()
-        //         .onTrue(new InstantCommand(() -> {
+                            kicker.setOverride((a) -> {
+                                kicker.idle();
+                            });
+                        } else if (operatorController.b().getAsBoolean()) {
+                            intake.setOverride((a) -> {
+                                intake.outakeRoll();
+                            });
+                        } else if (operatorController.a().getAsBoolean()) {
+                            shooter.getFlywheel().setOverride(() -> {
+                                return getCurrentPassSetpoint().getShooterRPS();
+                            });
 
-        //             Supplier<ShooterSetpoint> supplier = hubSupplier;
+                            shooter.getHood().setOverride((a) -> {
+                                shooter.getHood().setPos(getCurrentPassSetpoint().getHoodRadians(),
+                                        getCurrentPassSetpoint().getHoodFF());
+                            });
 
-        //             if (shooter.getState() == Shooter.State.PASSING) {
-        //                 supplier = passSupplier;
-        //             }
+                            shooter.getTurret().setOverride((a) -> {
+                                shooter.getTurret().setPos(getCurrentPassSetpoint().getTurretRadiansFromCenter(),
+                                        getCurrentPassSetpoint().getTurretFF());
+                            });
+                        }
+                    }));
 
-        //             fuelSim.launchFuel(
-        //                     MetersPerSecond.of(supplier.get().getShooterRPS()
-        //                             * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
-        //                     Degrees.of(90).minus(Radians.of(supplier.get().getHoodRadians())),
-        //                     Radians.of(supplier.get().getTurretRadiansFromCenter()),
-        //                     Inches.of(supplier.get().getHeight()));
-        //         }));
-        // controller // not accounting rotation (no need for this just to test)
-        // .leftBumper()
-        // .whileTrue(
-        // new AutoAlignToPoseCommand(drive, this, tagPos, 1.0, AlignType.TRANSLATION));
+            operatorController
+                    .leftBumper()
+                    .onTrue(new InstantCommand(() -> {
+                        if (operatorController.y().getAsBoolean()) {
+                            climb.setOverride((a) -> {
+                                climb.up();
+                            });
+                        } else if (operatorController.x().getAsBoolean()) {
+                            hopper.setOverride((a) -> {
+                                hopper.shoot();
+                            });
 
-        // controller // looks around the tag while being held
-        // .rightBumper()
-        // .whileTrue(
-        // new AutoAlignToPoseCommand(drive, this,
-        // VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d(), 1.0,
-        // AlignType.ROTATION)
-        // );
+                            kicker.setOverride((a) -> {
+                                kicker.shoot();
+                            });
+                        } else if (operatorController.b().getAsBoolean()) {
+                            intake.setOverride((a) -> {
+                                intake.stow();
+                            });
+                        } else if (operatorController.a().getAsBoolean()) {
+                            // nothing
+                        }
+                    }));
+
+            operatorController
+                    .rightBumper()
+                    .onTrue(new InstantCommand(() -> {
+                        if (operatorController.y().getAsBoolean()) {
+                            climb.setOverride((a) -> {
+                                climb.stow();
+                            });
+                        } else if (operatorController.x().getAsBoolean()) {
+                            hopper.setOverride((a) -> {
+                                hopper.outake();
+                            });
+
+                            kicker.setOverride((a) -> {
+                                kicker.outtake();
+                            });
+                        } else if (operatorController.b().getAsBoolean()) {
+                            intake.setOverride((a) -> {
+                                intake.intake();
+                            });
+                        } else if (operatorController.a().getAsBoolean()) {
+                            // nothing
+                        }
+                    }));
+        }
     }
 
     public Drive getDrive() {
@@ -1153,10 +1219,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 drive.setFieldPoses("Auto Path", poses);
 
                                 Transform3d[] transformArray = poses.stream()
-                                    .map(pose -> new Transform3d(
-                                            new Translation3d(pose.getX(), pose.getY(), 0.0),
-                                            new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
-                                    .toArray(Transform3d[]::new);
+                                        .map(pose -> new Transform3d(
+                                                new Translation3d(pose.getX(), pose.getY(), 0.0),
+                                                new Rotation3d(0.0, 0.0, pose.getRotation().getRadians())))
+                                        .toArray(Transform3d[]::new);
                                 Logger.recordOutput("Pathplanner Trajectory", transformArray);
                             });
                         }

@@ -72,4 +72,9 @@ public class FlywheelIOSim implements FlywheelIO {
   public void stopFlywheel() {
     setFlywheelSpeed(0);
   }
+
+  @Override
+  public boolean isAtSpeed(double a, double b) {
+    return true;
+  }
 }

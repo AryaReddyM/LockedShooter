@@ -34,6 +34,7 @@ public class FlywheelConstants {
     public static final boolean kFlywheelinverted = false;
     public static final int kFlywheelCurrentLimit = 10;
 
+    public static final double kFlywheelSpeedTolerance = 0.4;
 
     // setpoints
     public static final double kSlowSpeed = 0;

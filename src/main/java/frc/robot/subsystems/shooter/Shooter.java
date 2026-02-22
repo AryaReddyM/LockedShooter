@@ -8,6 +8,8 @@ import frc.robot.subsystems.shooter.hood.Hood;
 import frc.robot.subsystems.shooter.hood.HoodIO;
 import frc.robot.subsystems.shooter.turret.Turret;
 import frc.robot.subsystems.shooter.turret.TurretIO;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.kicker.Kicker;
 import frc.robot.util.state.StateMachine;
 
 public class Shooter extends StateMachine<Shooter.State> {
@@ -15,7 +17,7 @@ public class Shooter extends StateMachine<Shooter.State> {
     private Turret turret;
     private Hood hood;
     private Flywheel flywheel;
-
+    private RobotState state;
 
     public Shooter(RobotState state, TurretIO turretIO, HoodIO hoodIO, FlywheelIO flywheelIO) {
         super("Shooter", State.UNDETERMINED, State.class);
@@ -23,6 +25,7 @@ public class Shooter extends StateMachine<Shooter.State> {
         turret = new Turret(turretIO, state);
         hood = new Hood(hoodIO, state);
         flywheel = new Flywheel(flywheelIO, state);
+        this.state = state;
 
         registerStateTransitions();
         registerStateCommands();
@@ -34,7 +37,7 @@ public class Shooter extends StateMachine<Shooter.State> {
     }
 
     public void registerStateTransitions() {
-        addOmniTransitions(State.UNDETERMINED, State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.SHOOTING, State.PASSING);
+        addOmniTransitions(State.UNDETERMINED, State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.SHOOTING, State.PASSING, State.OUTTAKE);
     }
 
     public void registerStateCommands() {
@@ -42,18 +45,24 @@ public class Shooter extends StateMachine<Shooter.State> {
             turret.requestTransition(Turret.State.IDLE);
             flywheel.requestTransition(Flywheel.State.IDLE);
             hood.requestTransition(Hood.State.IDLE);
+            state.getHopper().requestTransition(Hopper.State.IDLE);
+            state.getKicker().requestTransition(Kicker.State.IDLE);
         }));
 
         registerStateCommand(State.HUB_TRACKING, new InstantCommand(() -> {
             turret.requestTransition(Turret.State.HUB_TRACKING);
             flywheel.requestTransition(Flywheel.State.TRACKING);
             hood.requestTransition(Hood.State.HUB_TRACKING);
+            state.getHopper().requestTransition(Hopper.State.IDLE);
+            state.getKicker().requestTransition(Kicker.State.IDLE);
         }));
 
         registerStateCommand(State.PASS_TRACKING, new InstantCommand(() -> {
             turret.requestTransition(Turret.State.PASS_TRACKING);
             flywheel.requestTransition(Flywheel.State.TRACKING);
             hood.requestTransition(Hood.State.PASS_TRACKING);
+            state.getHopper().requestTransition(Hopper.State.IDLE);
+            state.getKicker().requestTransition(Kicker.State.IDLE);
         }));
 
         registerStateCommand(State.SHOOTING, new InstantCommand(() -> {
@@ -66,6 +75,16 @@ public class Shooter extends StateMachine<Shooter.State> {
             turret.requestTransition(Turret.State.PASS_TRACKING);
             flywheel.requestTransition(Flywheel.State.PASS);
             hood.requestTransition(Hood.State.PASS_TRACKING);
+            state.getHopper().requestTransition(Hopper.State.SHOOT);
+            state.getKicker().requestTransition(Kicker.State.SHOOT);
+        }));
+
+        registerStateCommand(State.OUTTAKE, new InstantCommand(() -> {
+            turret.requestTransition(Turret.State.IDLE);
+            flywheel.requestTransition(Flywheel.State.IDLE);
+            hood.requestTransition(Hood.State.IDLE);
+            state.getHopper().requestTransition(Hopper.State.OUTAKE);
+            state.getKicker().requestTransition(Kicker.State.OUTAKE);
         }));
 
         registerStateCommand(State.TUNING, new InstantCommand(() -> {
@@ -95,6 +114,7 @@ public class Shooter extends StateMachine<Shooter.State> {
         PASS_TRACKING,
         SHOOTING,
         PASSING,
+        OUTTAKE,
         TUNING,
 
         // flags

@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -28,6 +30,8 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
 
     private double spinRadians = 0.0;
 
+    private Consumer<Object> override;
+
     public Hopper(HopperIO hopperIO, RobotState state) {
         super("Hopper", State.UNDETERMINED, State.class);
         this.hopperIO = hopperIO;
@@ -51,7 +55,21 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
                                 new Translation3d(),
                                 new Rotation3d(0, 0, spinRadians)
                         )));
-    }
+
+        if (override != null) {
+            override.accept(null);
+        } else if (getState() == State.SHOOT) {
+            if (state.getShooter().getFlywheel().isReady()) {
+                shoot();
+            } else {
+                stop();
+            }
+        } else if (getState() == State.OUTAKE) {
+            outake();
+        } else {
+            stop();
+        }
+     }
 
     public void shoot() {
         hopperIO.setHopperSpeed(GetTuned.getNumber("Hopper/Shoot Speed", HopperConstants.kHopperShootSpeed));
@@ -70,14 +88,15 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
     }
 
     private void registerStateCommands() {
-        registerStateCommand(State.IDLE, Commands.run(() -> stop()));
-        registerStateCommand(State.OUTAKE, Commands.run(() -> outake()));
-        registerStateCommand(State.SHOOT, Commands.run(() -> shoot()));
     }
 
     @Override
     protected void determineSelf() {
         setState(State.IDLE);
+    }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
     }
 
     public enum State {

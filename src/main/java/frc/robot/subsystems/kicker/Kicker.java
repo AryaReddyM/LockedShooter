@@ -1,5 +1,7 @@
 package frc.robot.subsystems.kicker;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -12,6 +14,8 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     private final RobotState state;
     private final KickerIO kickerIO;
     private final KickerIOInputsAutoLogged inputs = new KickerIOInputsAutoLogged();
+
+    private Consumer<Object> override;
 
     public Kicker(KickerIO kickerIO, RobotState state) {
         super("Kicker", State.UNDETERMINED, State.class);
@@ -26,6 +30,20 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     public void update() {
         kickerIO.updateInputs(inputs);
         Logger.processInputs("Kicker", inputs);
+
+        if (override != null) {
+            override.accept(null);
+        }else if (getState() == State.SHOOT) {
+            if (state.getShooter().getFlywheel().isReady()) {
+                shoot();
+            } else {
+                stop();
+            }
+        } else if (getState() == State.OUTAKE) {
+            outtake();
+        } else {
+            stop();
+        }
     }
 
     public void shoot() {
@@ -33,29 +51,36 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
 
     }
 
+    public void outtake() {
+        kickerIO.setKickerSpeed(GetTuned.getNumber("Kicker/Outtake Speed", KickerConstants.kKickerOutakeSpeed));
+    }
+
     public void stop() {
         kickerIO.stopKicker();
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.SHOOT);
+        addOmniTransitions(State.IDLE, State.SHOOT, State.OUTAKE);
     }
 
     private void registerStateCommands() {
-        registerStateCommand(State.IDLE, Commands.run(() -> stop()));
-        registerStateCommand(State.SHOOT, Commands.run(() -> shoot()));
     }
 
      @Override
     protected void determineSelf() {
         setState(State.IDLE);
     }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
+    }
     
     public enum State {
         UNDETERMINED,
 
         IDLE,
-        SHOOT
+        SHOOT,
+        OUTAKE
 
         // flags
 
