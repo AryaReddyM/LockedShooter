@@ -17,6 +17,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import dev.doglog.DogLog;
 
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.util.SparkUtil;
@@ -29,7 +30,7 @@ public class ClimbIOSpark implements ClimbIO {
     private final RelativeEncoder climbEncoder;
     private double desiredPos = 0.0;
     private final SparkClosedLoopController climbController;
-    private final SparkMaxConfig climbConfig;
+    private final SparkFlexConfig climbConfig;
 
     public ClimbIOSpark() {
 
@@ -37,7 +38,7 @@ public class ClimbIOSpark implements ClimbIO {
         climbEncoder = climb.getEncoder();
         climbController = climb.getClosedLoopController();
 
-        climbConfig = new SparkMaxConfig();
+        climbConfig = new SparkFlexConfig();
         
         climbConfig
                 .inverted(ClimbConstants.kClimbinverted)
