@@ -143,6 +143,8 @@ public class RobotState extends StateMachine<RobotState.State> {
     private FuelSim fuelSim = new FuelSim();
     private double simFuelCount = 0;
 
+    private boolean climbZeroed = false;
+
     private CommandXboxController controller = new CommandXboxController(0);
 
     private final LoggedDashboardChooser<Command> autoChooser;
@@ -346,32 +348,32 @@ public class RobotState extends StateMachine<RobotState.State> {
         //     }
         // }
 
-        //    { // climb
-        //     switch (robotState) {
-        //         case 1:
-        //             climb = new Climb(
-        //                     new ClimbIOSpark(),
-        //                     new BeamBreakerTOF(1),
-        //                     new BeamBreakerTOF(2),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             climb = new Climb(
-        //                     new ClimbIOSim(),
-        //                     new BeamBreakerSim(1,this),
-        //                     new BeamBreakerSim(2,this),
-        //                     this);
-        //             break;
-        //         default:
-        //             climb = new Climb(
-        //                     new ClimbIO() {
-        //                     },
-        //                     new BeamBreakerIO() {},
-        //                     new BeamBreakerIO() {},
-        //                     this);
-        //             break;
-        //     }
-        // }
+           { // climb
+            switch (robotState) {
+                case 1:
+                    climb = new Climb(
+                            new ClimbIOSpark(),
+                            new BeamBreakerTOF(1),
+                            new BeamBreakerTOF(2),
+                            this);
+                    break;
+                case 2:
+                    climb = new Climb(
+                            new ClimbIOSim(),
+                            new BeamBreakerSim(1,this),
+                            new BeamBreakerSim(2,this),
+                            this);
+                    break;
+                default:
+                    climb = new Climb(
+                            new ClimbIO() {
+                            },
+                            new BeamBreakerIO() {},
+                            new BeamBreakerIO() {},
+                            this);
+                    break;
+            }
+        }
 
 
         // { // hopper
@@ -521,6 +523,8 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
 
         autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)", AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Quick Shoot Climb", AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("HP Side Quick Shoot Climb", AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
     }
 
     private void setupNotis() {
@@ -652,29 +656,51 @@ public class RobotState extends StateMachine<RobotState.State> {
         //         .whileTrue(
         //                 new AutoAlignToPoseCommand(drive, this, tagPos, 1.0));
 
+        controller
+            .y()
+            .onTrue(climb.transitionCommand(Climb.State.UP))
+            .onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        controller
+            .a()
+            .onTrue(climb.transitionCommand(Climb.State.STOW))
+            .onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+        controller
+            .x()
+            .onTrue(climb.transitionCommand(Climb.State.DOWN))
+            .onFalse(climb.transitionCommand(Climb.State.IDLE));
+
+
         // driver 1 controller
-        // {
-        //     controller
-        //         .leftBumper()
-        //         .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-        //         .onFalse(intake.transitionCommand(Intake.State.STOW));
+        {
+            controller
+                .leftTrigger(0.5)
+                .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+                .onFalse(intake.transitionCommand(Intake.State.IDLE));
 
-        //     controller
-        //         .rightBumper()
-        //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-        //         .onFalse(ActionCommands.trackBasedOnPos(this));
+            controller
+                .leftBumper()
+                .onTrue(intake.transitionCommand(Intake.State.STOW));
 
-        //     controller.b().onTrue(drive.transitionCommand(Drive.State.SLOW))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+            controller
+                .rightTrigger(0.5)
+                .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+                .onFalse(ActionCommands.trackBasedOnPos(this));
 
-        //     controller
-        //         .y()
-        //         .whileTrue(ActionCommands.autoClimb(this))
-        //         .onFalse(climb.transitionCommand(Climb.State.STOW));
+            controller
+                .rightBumper()
+                .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+                .onFalse(ActionCommands.trackBasedOnPos(this));
 
-        //     controller.x().onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE))
-        //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
-        // }
+            controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
+                .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+
+            controller
+                .y()
+                .whileTrue(ActionCommands.autoClimb(this))
+                .onFalse(climb.transitionCommand(Climb.State.STOW));
+        }
 
         // controller
         //         .x()
@@ -1029,6 +1055,11 @@ public class RobotState extends StateMachine<RobotState.State> {
         setState(State.TRAVERSING);
         drive.setFieldPoses("Auto Path", new ArrayList<>());
         drive.setFieldPoses();
+
+        if (!climbZeroed) {
+            climbZeroed = true;
+            climb.zero().schedule();
+        }
     }
 
     @Override
@@ -1042,6 +1073,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                     () -> registerStateCommand(State.AUTO, selected));
         }
 
+        if (!climbZeroed) {
+            climbZeroed = true;
+            climb.zero().schedule();
+        }
         Logger.recordOutput("Auto Trajectory 3D", new Transform3d[] {});
         setState(State.AUTO);
     }
