@@ -1,13 +1,18 @@
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Inches;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public class VisionConstants {
 
@@ -26,9 +31,9 @@ public class VisionConstants {
         public static final double kCameraHeightOffGroundMeters = Units.inchesToMeters(4.181);
 
         // // Distance from turret center to camera le#ns in X axis (straight into lens)
-        public static final double kTurretToCameraX = Units.inchesToMeters(7.834);
+        public static final double kTurretToCameraX = Units.inchesToMeters(0);
         // // Distance from turret center to camera lens in Y
-        public static final double kTurretToCameraY = 0;
+        public static final double kTurretToCameraY = Units.inchesToMeters(0);
 
         // // CHASSIS LIMELIGHT
         public static final double kCameraBPitchDegrees = 20.0;
@@ -42,11 +47,15 @@ public class VisionConstants {
         public static final double kTurretToCameraBY = 0;
 
         // THIS IS SOMETHING WE NEED TO DO
-        public static final double kTurretToRobotCenterX = Units.inchesToMeters(2.3115);
-        public static final double kTurretToRobotCenterY = 0;
-        public static final Transform2d kTurretToRobotCenter = new Transform2d(
-                        new Translation2d(VisionConstants.kTurretToRobotCenterX, VisionConstants.kTurretToRobotCenterY),
-                        new Rotation2d());
+        public static final double kTurretToRobotCenterX = Units.inchesToMeters(-3.390);
+        public static final double kTurretToRobotCenterY = Units.inchesToMeters(-4.750);
+        public static final double kTurretToRobotCenterZ = Units.inchesToMeters(13.935);
+
+        // TODO
+        public static final Transform3d kTurretToRobotCenter = new Transform3d(
+                new Translation3d(VisionConstants.kTurretToRobotCenterX, VisionConstants.kTurretToRobotCenterY, VisionConstants.kTurretToRobotCenterZ),
+                Rotation3d.kZero
+        );
 
         public static final Transform2d kTurretCameraToRobotCenter = new Transform2d();
         public static final Transform2d kBCameraToRobotCenter = new Transform2d();
@@ -60,10 +69,9 @@ public class VisionConstants {
         public static final double kFieldLengthMeters = kAprilTagLayout.getFieldLength(); // distance between driver
                                                                                           // station
 
-        public static final Translation3d kBluePassArea = new Translation3d();
 
-        public static final Translation3d kBlueHubPose = new Translation3d();
-        public static final Translation3d kRedHubPose = new Translation3d();
+        public static final Translation3d kBlueHubPose = FieldConstants.HUB_BLUE;
+        public static final Translation3d kRedHubPose = FieldConstants.HUB_RED;
 
         public static final int aprilTagCount = kAprilTagLayout.getTags().size();
         public static final double aprilTagWidth = Units.inchesToMeters(6.5);
@@ -344,4 +352,81 @@ public class VisionConstants {
                 public static final Translation2d centerPoint = new Translation2d(0,
                                 kAprilTagLayout.getTagPose(29).get().getY());
         }
+
+        public static class FieldConstants {
+        public static final Distance FIELD_LENGTH = Inches.of(650.12);
+        public static final Distance FIELD_WIDTH = Inches.of(316.64);
+
+        public static final Distance ALLIANCE_ZONE = Inches.of(156.06);
+
+        public static final Translation3d HUB_BLUE =
+                new Translation3d(Inches.of(181.56), FIELD_WIDTH.div(2), Inches.of(56.4));
+        public static final Translation3d HUB_RED =
+                new Translation3d(FIELD_LENGTH.minus(Inches.of(181.56)), FIELD_WIDTH.div(2), Inches.of(56.4));
+        public static final Distance FUNNEL_RADIUS = Inches.of(24);
+        public static final Distance FUNNEL_HEIGHT = Inches.of(72 - 56.4);
+
+        public static final Distance TRENCH_BUMP_X = Inches.of(181.56);
+        public static final Distance TRENCH_WIDTH = Inches.of(49.86);
+        private static final Distance BUMP_INSET = TRENCH_WIDTH.plus(Inches.of(12));
+        private static final Distance BUMP_LENGTH = Inches.of(73);
+
+        private static final Distance TRENCH_ZONE_EXTENSION = Inches.of(60);
+        private static final Distance BUMP_ZONE_EXTENSION = Inches.of(60);
+        private static final Distance TRENCH_BUMP_ZONE_TRANSITION =
+                TRENCH_WIDTH.plus(BUMP_INSET).div(2);
+
+        public static final Translation2d[][] TRENCH_ZONES = {
+            new Translation2d[] {
+                new Translation2d(TRENCH_BUMP_X.minus(TRENCH_ZONE_EXTENSION), Inches.zero()),
+                new Translation2d(TRENCH_BUMP_X.plus(TRENCH_ZONE_EXTENSION), TRENCH_BUMP_ZONE_TRANSITION)
+            },
+            new Translation2d[] {
+                new Translation2d(
+                        TRENCH_BUMP_X.minus(TRENCH_ZONE_EXTENSION), FIELD_WIDTH.minus(TRENCH_BUMP_ZONE_TRANSITION)),
+                new Translation2d(TRENCH_BUMP_X.plus(TRENCH_ZONE_EXTENSION), FIELD_WIDTH)
+            },
+            new Translation2d[] {
+                new Translation2d(FIELD_LENGTH.minus(TRENCH_BUMP_X.plus(TRENCH_ZONE_EXTENSION)), Inches.zero()),
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.minus(TRENCH_ZONE_EXTENSION)), TRENCH_BUMP_ZONE_TRANSITION)
+            },
+            new Translation2d[] {
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.plus(TRENCH_ZONE_EXTENSION)),
+                        FIELD_WIDTH.minus(TRENCH_BUMP_ZONE_TRANSITION)),
+                new Translation2d(FIELD_LENGTH.minus(TRENCH_BUMP_X.minus(TRENCH_ZONE_EXTENSION)), FIELD_WIDTH)
+            }
+        };
+
+        public static final Translation2d[][] BUMP_ZONES = {
+            new Translation2d[] {
+                new Translation2d(TRENCH_BUMP_X.minus(BUMP_ZONE_EXTENSION), TRENCH_BUMP_ZONE_TRANSITION),
+                new Translation2d(TRENCH_BUMP_X.plus(BUMP_ZONE_EXTENSION), BUMP_INSET.plus(BUMP_LENGTH))
+            },
+            new Translation2d[] {
+                new Translation2d(
+                        TRENCH_BUMP_X.minus(BUMP_ZONE_EXTENSION), FIELD_WIDTH.minus(BUMP_INSET.plus(BUMP_LENGTH))),
+                new Translation2d(
+                        TRENCH_BUMP_X.plus(BUMP_ZONE_EXTENSION), FIELD_WIDTH.minus(TRENCH_BUMP_ZONE_TRANSITION))
+            },
+            new Translation2d[] {
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.plus(BUMP_ZONE_EXTENSION)),
+                        FIELD_WIDTH.minus(BUMP_INSET.plus(BUMP_LENGTH))),
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.minus(BUMP_ZONE_EXTENSION)),
+                        FIELD_WIDTH.minus(TRENCH_BUMP_ZONE_TRANSITION))
+            },
+            new Translation2d[] {
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.plus(BUMP_ZONE_EXTENSION)), TRENCH_BUMP_ZONE_TRANSITION),
+                new Translation2d(
+                        FIELD_LENGTH.minus(TRENCH_BUMP_X.minus(BUMP_ZONE_EXTENSION)), BUMP_INSET.plus(BUMP_LENGTH))
+            }
+        };
+
+        public static final Distance TRENCH_CENTER = TRENCH_WIDTH.div(2);
+    }
+
 }

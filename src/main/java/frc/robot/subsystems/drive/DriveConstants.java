@@ -19,6 +19,8 @@ public class DriveConstants {
   public static final double wheelBase = Units.inchesToMeters(28); // TODO CHANGE
   public static final double driveBaseRadius = Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
 
+  public static final double kBumperHeight = Units.inchesToMeters(7);
+
   public static final Translation2d[] moduleTranslations = new Translation2d[] {
       new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
       new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
@@ -31,10 +33,10 @@ public class DriveConstants {
 //   public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875)); // can 2
 //   public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375)); // can 3
 
-  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375));
-  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375));
-  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875+0.5));
-  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375+0.5));
+  public static final Rotation2d frontLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(0.27880859375+0.5));
+  public static final Rotation2d backLeftZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.042724609375+0.5));
+  public static final Rotation2d frontRightZeroRotation = new Rotation2d(Units.rotationsToRadians(0.092529296875));
+  public static final Rotation2d backRightZeroRotation = new Rotation2d(Units.rotationsToRadians(-0.068359375));
 
 
   public static final int pigeonCanId = 50;
@@ -65,17 +67,17 @@ public class DriveConstants {
 
 
   // Drive PID configuration
-  public static final double driveKp = 0.01;
+  public static final double driveKp = 0.001;
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
 
-  public static final double driveSimP = 0.05;
+  public static final double driveSimP = 0.1;
   public static final double driveSimD = 0.0;
-  public static final double driveSimKs = 0.0;
-  public static final double driveSimKv = 0.0789;
+  public static final double driveSimKs = 0.9;
+  public static final double driveSimKv = 3;
 
-  public static final double driveKs = 0.09186;
-  public static final double driveKv = 0.19819;
+  public static final double driveKs = 0.06538;
+  public static final double driveKv = 0.19993;
 
   public static final double driveIntegrationCap = .001;
   public static double turnIntegrationCap = .5;
@@ -97,7 +99,7 @@ public class DriveConstants {
   public static final double turnKd = 0.0;
   public static final double turnKv = 0.0;
 
-  public static final double turnSimP = 8.0;
+  public static final double turnSimP = 3.0;
   public static final double turnSimD = 0.0;
 
   public static final double turnPIDMinInput = 0; // Radians
@@ -121,10 +123,10 @@ public class DriveConstants {
       moduleTranslations);
 
   public static final PathConstraints pathConstraint = new PathConstraints(
-        maxSpeedMetersPerSec,
-        maxSpeedMetersPerSec,
-        Units.degreesToRadians(540), 
-        Units.degreesToRadians(720)
+        4.8,
+        5.0,
+        Units.degreesToRadians(360), 
+        Units.degreesToRadians(360)
     );
 
   // auto align
@@ -133,7 +135,7 @@ public class DriveConstants {
   public static double kDriveToPointI = 0.0; // dont use
   public static double kDriveToPointD = 0; // dont use
 
-  public static double kMaxLinearAcceleration = 3.5;
+  public static double kMaxLinearAcceleration = 4.5;
 
   public static double kDriveToPointHeadingP = 3;
   public static double kDriveToPointHeadingI = 0.0;
@@ -154,11 +156,11 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 5.0;
+  public static double kABDriveP = 3.2;
   public static double kABDriveI = 0.0;
   public static double kABDriveD = 0.0;
 
-  public static double kABTurnP = 5.0;
+  public static double kABTurnP = 2.0;
   public static double kABTurnI = 0.0;
   public static double kABTurnD = 0.0;
 }

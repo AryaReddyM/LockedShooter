@@ -46,14 +46,14 @@ public class Shooter extends StateMachine<Shooter.State> {
 
         registerStateCommand(State.HUB_TRACKING, new InstantCommand(() -> {
             turret.requestTransition(Turret.State.HUB_TRACKING);
-            flywheel.requestTransition(Flywheel.State.IDLE);
-            hood.requestTransition(Hood.State.IDLE);
+            flywheel.requestTransition(Flywheel.State.TRACKING);
+            hood.requestTransition(Hood.State.HUB_TRACKING);
         }));
 
         registerStateCommand(State.PASS_TRACKING, new InstantCommand(() -> {
             turret.requestTransition(Turret.State.PASS_TRACKING);
-            flywheel.requestTransition(Flywheel.State.IDLE);
-            hood.requestTransition(Hood.State.IDLE);
+            flywheel.requestTransition(Flywheel.State.TRACKING);
+            hood.requestTransition(Hood.State.PASS_TRACKING);
         }));
 
         registerStateCommand(State.SHOOTING, new InstantCommand(() -> {
@@ -66,6 +66,12 @@ public class Shooter extends StateMachine<Shooter.State> {
             turret.requestTransition(Turret.State.PASS_TRACKING);
             flywheel.requestTransition(Flywheel.State.PASS);
             hood.requestTransition(Hood.State.PASS_TRACKING);
+        }));
+
+        registerStateCommand(State.TUNING, new InstantCommand(() -> {
+            turret.requestTransition(Turret.State.TUNING);
+            flywheel.requestTransition(Flywheel.State.TUNING);
+            hood.requestTransition(Hood.State.TUNING);
         }));
     }
 
@@ -88,7 +94,8 @@ public class Shooter extends StateMachine<Shooter.State> {
         HUB_TRACKING,
         PASS_TRACKING,
         SHOOTING,
-        PASSING
+        PASSING,
+        TUNING,
 
         // flags
 

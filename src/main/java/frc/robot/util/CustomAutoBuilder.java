@@ -80,7 +80,7 @@ public class CustomAutoBuilder extends AutoCommands.AutoClass {
     }
 
     @Override
-    public List<PathPlannerPath> getAutoDisplayList() {
+    public List<PathPlannerPath> getAutoDisplayList(RobotState state) {
         List<PathPlannerPath> displayPaths = new ArrayList<>();
         for (int j = 0; j < 10; j++) {
             for (int i = 0; i < 10; i++) {

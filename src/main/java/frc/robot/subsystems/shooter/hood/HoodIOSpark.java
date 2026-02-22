@@ -31,6 +31,7 @@ public class HoodIOSpark implements HoodIO{
 
     // Closed loop controllers
     private final SparkClosedLoopController hoodController;
+    private double desiredPos = 0.0;
 
     public HoodIOSpark(){
 
@@ -94,6 +95,8 @@ public class HoodIOSpark implements HoodIO{
                 new DoubleSupplier[] { hood::getAppliedOutput, hood::getBusVoltage },
                 (values) -> inputs.appliedVolts = values[0] * values[1]);
         ifOk(hood, hood::getOutputCurrent, (value) -> inputs.currentAmps = value);
+
+        inputs.desiredPos = this.desiredPos;
     }
 
     @Override
@@ -103,6 +106,7 @@ public class HoodIOSpark implements HoodIO{
 
     @Override
     public void setHoodPosition(double position, double ff) {
+        this.desiredPos = position;
         hoodController.setSetpoint(position, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
     }
 

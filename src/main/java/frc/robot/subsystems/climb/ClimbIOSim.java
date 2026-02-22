@@ -8,8 +8,11 @@
 package frc.robot.subsystems.climb;
 
 
+import com.revrobotics.spark.ClosedLoopSlot;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -19,9 +22,10 @@ public class ClimbIOSim implements ClimbIO {
   private final DCMotorSim motorSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(ClimbConstants.climbKp, 0, ClimbConstants.climbKd);
+  private PIDController motorController = new PIDController(ClimbConstants.kClimbSimP, 0, ClimbConstants.kClimbSimD);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
+  private double desiredPos = 0.0;
 
   public ClimbIOSim() {
     // Create drive and turn sim models
@@ -38,8 +42,7 @@ public class ClimbIOSim implements ClimbIO {
   public void updateInputs(ClimbIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
-      motorAppliedVolts =
-          motorFFVolts + motorController.calculate(motorSim.getAngularVelocityRadPerSec());
+      motorAppliedVolts = motorController.calculate(motorSim.getAngularPositionRad());
     } else {
       motorController.reset();
     }
@@ -49,10 +52,12 @@ public class ClimbIOSim implements ClimbIO {
     motorSim.update(0.02);
 
     // Update drive inputs
-    inputs.climbPositionRad = motorSim.getAngularPositionRad();
-    inputs.climbVelocityRadPerSec = motorSim.getAngularVelocityRadPerSec();
-    inputs.climbAppliedVolts = motorAppliedVolts;
-    inputs.climbCurrentAmps = Math.abs(motorSim.getCurrentDrawAmps());
+    inputs.posRad = motorSim.getAngularPositionRad();
+    inputs.velPerSec = motorSim.getAngularVelocityRadPerSec();
+    inputs.appliedVolts = motorAppliedVolts;
+    inputs.currentAmps = Math.abs(motorSim.getCurrentDrawAmps());
+
+    inputs.desiredPos = this.desiredPos;
 
   }
 
@@ -66,7 +71,15 @@ public class ClimbIOSim implements ClimbIO {
   public void setClimbPosition(double pos) {
     motorClosedLoop = true;
     motorController.setSetpoint(pos);
+    this.desiredPos = pos;
   }
+
+  @Override
+  public void setClimbPosition(double pos, ClosedLoopSlot slot) {
+    setClimbPosition(pos);
+  }
+
+  // no vel and turret to rot im tired
 
   @Override
   public void stopClimb() {

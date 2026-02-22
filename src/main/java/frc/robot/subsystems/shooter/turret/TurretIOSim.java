@@ -20,9 +20,10 @@ public class TurretIOSim implements TurretIO {
   private final DCMotorSim motorSim;
 
   private boolean motorClosedLoop = false;
-  private PIDController motorController = new PIDController(TurretConstants.kTurretP, 0, TurretConstants.kTurretD);
+  private PIDController motorController = new PIDController(TurretConstants.kTurretSimP, 0, TurretConstants.kTurretSimD);
   private double motorFFVolts = 0.0;
   private double motorAppliedVolts = 0.0;
+  private double desiredPos = 0.0;
 
   public TurretIOSim() {
     // Create drive and turn sim models
@@ -39,8 +40,7 @@ public class TurretIOSim implements TurretIO {
   public void updateInputs(TurretIOInputs inputs) {
     // Run closed-loop control
     if (motorClosedLoop) {
-      motorAppliedVolts =
-          motorFFVolts + motorController.calculate(motorSim.getAngularVelocityRadPerSec());
+      motorAppliedVolts = motorController.calculate(motorSim.getAngularPositionRad());
     } else {
       motorController.reset();
     }
@@ -56,6 +56,7 @@ public class TurretIOSim implements TurretIO {
     inputs.currentAmps = Math.abs(motorSim.getCurrentDrawAmps());
 
     inputs.turretRotation2d = new Rotation2d(inputs.turretPos);
+    inputs.desiredPos = this.desiredPos;
 
   }
 
@@ -69,6 +70,7 @@ public class TurretIOSim implements TurretIO {
   public void setTurretPosition(double pos, double ff) {
     motorClosedLoop = true;
     motorController.setSetpoint(pos);
+    this.desiredPos = pos;
   }
 
   @Override

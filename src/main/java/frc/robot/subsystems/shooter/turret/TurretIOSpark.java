@@ -36,6 +36,7 @@ public class TurretIOSpark implements TurretIO {
     private final SparkClosedLoopController turretController;
 
     private double latencyCompensatedMS = TurretConstants.latencyComepnsationMS;
+    private double desiredPos = 0.0;
 
     public TurretIOSpark() {
         turret = new SparkMax(0, MotorType.kBrushless);
@@ -111,6 +112,8 @@ public class TurretIOSpark implements TurretIO {
                 new DoubleSupplier[] { turret::getAppliedOutput, turret::getBusVoltage },
                 (values) -> inputs.appliedVolts = values[0] * values[1]);
         ifOk(turret, turret::getOutputCurrent, (value) -> inputs.currentAmps = value);
+
+        inputs.desiredPos = this.desiredPos;
     }
 
     @Override
@@ -120,6 +123,7 @@ public class TurretIOSpark implements TurretIO {
 
     @Override
     public void setTurretPosition(double position, double ff) {
+        this.desiredPos = position;
         turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0 ,ff, ArbFFUnits.kVoltage);
     }
 

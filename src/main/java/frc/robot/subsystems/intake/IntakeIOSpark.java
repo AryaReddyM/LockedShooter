@@ -27,6 +27,8 @@ public class IntakeIOSpark implements IntakeIO {
     // Hardware objects
     private final SparkFlex rollers;
     private final SparkMax extension;
+    private final SparkMax extensionFollower;
+
 
     private final RelativeEncoder rollerEncoder;
     private final RelativeEncoder extensionEncoder;
@@ -35,10 +37,13 @@ public class IntakeIOSpark implements IntakeIO {
     private final SparkClosedLoopController rollerController;
     private final SparkClosedLoopController extensionController;
 
+    private double desiredPos = 0.0;
+
     public IntakeIOSpark() {
 
         rollers = new SparkFlex(IntakeConstants.kRollersCanID, MotorType.kBrushless);
         extension = new SparkMax(IntakeConstants.kExtensionCanID, MotorType.kBrushless);
+        extensionFollower = new SparkMax(IntakeConstants.kExtensionFollowerCanID, MotorType.kBrushless);
 
         rollerEncoder = rollers.getEncoder();
         extensionEncoder = extension.getEncoder();
@@ -102,6 +107,19 @@ public class IntakeIOSpark implements IntakeIO {
 
         extension.configure(extensionConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         extension.clearFaults();
+       
+        SparkMaxConfig extensionFollowerConfig = new SparkMaxConfig();
+        extensionFollowerConfig
+                .follow(IntakeConstants.kExtensionCanID)
+                .inverted(true);
+
+        extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        extensionFollower.clearFaults();
+
+        
+
+                
+
 
         SparkUtil.tunePID(
                 "Intake Roller",
@@ -142,6 +160,7 @@ public class IntakeIOSpark implements IntakeIO {
                 new DoubleSupplier[] { rollers::getAppliedOutput, rollers::getBusVoltage },
                 (values) -> inputs.rollerAppliedVolts = values[0] * values[1]);
         ifOk(rollers, rollers::getOutputCurrent, (value) -> inputs.rollerCurrentAmps = value);
+        inputs.desiredExtensionPos = this.desiredPos;
     }
 
     @Override
@@ -161,6 +180,7 @@ public class IntakeIOSpark implements IntakeIO {
 
     @Override
     public void setExtensionPosition(double position) {
+        this.desiredPos = position;
         extensionController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
     }
 

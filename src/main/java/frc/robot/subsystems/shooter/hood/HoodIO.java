@@ -10,6 +10,7 @@ public interface HoodIO {
     double appliedVolts = 0;
     double currentAmps = 0;
 
+    double desiredPos = 0;
   }
 
 

@@ -13,8 +13,10 @@ import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.util.SparkUtil;
@@ -25,24 +27,27 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 public class FlywheelIOSpark implements FlywheelIO{
  
     // Hardware objects
-    private final SparkMax flywheel;
+    private final SparkFlex flywheel;
+    private final SparkFlex flywheelFollower;
 
     @SuppressWarnings("unused")
     private final RelativeEncoder flywheelEncoder;
+
 
     // Closed loop controllers
     private final SparkClosedLoopController flywheelController;
 
     public FlywheelIOSpark(){
 
-    flywheel = new SparkMax(FlywheelConstants.kFlywheelCanID, MotorType.kBrushless);
+    flywheel = new SparkFlex(FlywheelConstants.kFlywheelCanID, MotorType.kBrushless);
+    flywheelFollower = new SparkFlex(FlywheelConstants.kFlywheelFollowerCanID, MotorType.kBrushless);
 
     flywheelEncoder = flywheel.getEncoder();
 
     flywheelController = flywheel.getClosedLoopController();
 
     // Configure extention motor
-    SparkMaxConfig flywheelConfig = new SparkMaxConfig();
+    SparkFlexConfig flywheelConfig = new SparkFlexConfig();
     flywheelConfig
         .inverted(FlywheelConstants.kFlywheelinverted)
         .idleMode(IdleMode.kBrake)
@@ -72,6 +77,16 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     flywheel.configure(flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flywheel.clearFaults();
+
+    SparkFlexConfig flywheelFollowerConfig = new SparkFlexConfig();
+    flywheelFollowerConfig
+        .follow(FlywheelConstants.kFlywheelCanID);
+
+    flywheelFollower.configure(flywheelFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    flywheel.clearFaults();
+
+
+
 
     SparkUtil.tunePID(
         "Flywheel",

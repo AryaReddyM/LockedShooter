@@ -1,11 +1,20 @@
 package frc.robot.commands.autos;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -13,21 +22,21 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
 import frc.robot.commands.ActionCommands;
+import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.AutoCommands.AutoClass;
-import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.Shooter.State;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.vision.VisionConstants;
 
 public class Autos {
 
-    public static class centerFuelHPClimb extends AutoClass { //Done
-        public centerFuelHPClimb() {
-            this.name = "Center Fuel HP Climb (GAME)";
-            this.sequentialPathStrings = new String[] { "Center to Right Fuel (LT)", 
-                                                        "Right Fuel to Shoot (LT)", 
-                                                        "Shoot to HP (LT)", 
-                                                        "HP Pickup (LT)", 
-                                                        "RShoot to Climb (LT)"};
+    public static class leftDepotClimb extends AutoClass {
+        public leftDepotClimb() {
+            this.name = "Left Depot Climb (GAME)";
+            this.sequentialPathStrings = new String[] { "Left to Center", "Center to Depot", "Depot to Center", "Center to Climb"};
         }
         @Override
         public Command getCommand(RobotState state) {
@@ -103,7 +112,7 @@ public class Autos {
                     ActionCommands.autoClimb(state)
                     ).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }
@@ -137,7 +146,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.centerToRFuel),
                             new InstantCommand(() -> {
-                                //state.getIntake().requestTransition(State.INTAKING); // uncomment when intake is ready
+                                state.getIntake().requestTransition(Intake.State.INTAKE); // uncomment when intake is ready
                             })
                         )
                     ),
@@ -175,12 +184,12 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rShootToClimb),
                             new InstantCommand(() -> {
-                                //state.getClimb().requestTransition(State.CLIMBING); // uncomment when climb is ready
+                                // state.getClimb().requestTransition(Climb.State.CLIMB); // uncomment when climb is ready
                             })
                         )
                     )).withName(name);
             } catch (Exception e) {
-                return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
             }
         }
     }

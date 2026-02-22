@@ -96,6 +96,10 @@ public class Util {
         return new Translation3d(VisionConstants.kFieldLengthMeters - original.getX(), original.getY(), original.getZ());
     }
 
+    public static Translation3d flipRedBlueXY(Translation3d original) {
+        return new Translation3d(VisionConstants.kFieldLengthMeters - original.getX(),VisionConstants.kFieldWidthMeters - original.getY(), original.getZ());
+    }
+
     public static <T> Supplier<T> memoizeByIteration(IntSupplier iteration, Supplier<T> delegate) {
         AtomicReference<T> value = new AtomicReference<>();
         AtomicInteger last_iteration = new AtomicInteger(-1);

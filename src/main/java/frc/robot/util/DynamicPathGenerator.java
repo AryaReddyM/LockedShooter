@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
@@ -34,7 +35,7 @@ public class DynamicPathGenerator {
         return pathConstraints;
     }
 
-    public static Command pathFindAuto(Pose2d desiredPose, Optional<PathConstraints> constraint) {
+    public static Command pathfindAuto(Pose2d desiredPose, Optional<PathConstraints> constraint) {
         // boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
 
         // if (isRed) {
@@ -44,12 +45,24 @@ public class DynamicPathGenerator {
         // }
     }
 
+    public static Command pathfindAuto(Pose2d desiredPose) {
+        return pathfindAuto(desiredPose, Optional.empty());
+    }
+
     public static Command pathfindAuto(PathPlannerPath pathToFollow, Optional<PathConstraints> constraint) {
         return AutoBuilder.pathfindThenFollowPath(pathToFollow, getConstraints(constraint));
     }
 
+    public static Command pathfindAuto(PathPlannerPath pathToFollow) {
+        return pathfindAuto(pathToFollow, Optional.empty());
+    }
+
     public static PathPlannerPath getPathFromWaypoints(List<Waypoint> waypoints, Optional<PathConstraints> constraint, GoalEndState goalEndState) {
         return new PathPlannerPath(waypoints, getConstraints(constraint), null, goalEndState);
+    }
+
+    public static PathPlannerPath getPathFromWaypoints(List<Waypoint> waypoints, Optional<PathConstraints> constraint, IdealStartingState startingState, GoalEndState goalEndState) {
+        return new PathPlannerPath(waypoints, getConstraints(constraint), startingState, goalEndState);
     }
 
     public static void warmupInit() {

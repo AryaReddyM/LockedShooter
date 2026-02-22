@@ -2,7 +2,6 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotState;
 
 /**
@@ -15,7 +14,7 @@ public class SimulatedRobotState {
 
   public SimulatedRobotState(RobotState state) {
     this.state = state;
-    SmartDashboard.putString("Accepted Midline Notes", "ABCDE");
+    // SmartDashboard.putString("Accepted Midline Notes", "ABCDE");
   }
 
   synchronized public void addFieldToRobot(Pose2d pose) {
