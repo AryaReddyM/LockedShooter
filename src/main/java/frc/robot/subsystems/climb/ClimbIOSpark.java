@@ -11,6 +11,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -24,7 +25,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 public class ClimbIOSpark implements ClimbIO {
 
-    private final SparkMax climb;
+    private final SparkFlex climb;
     private final RelativeEncoder climbEncoder;
     private double desiredPos = 0.0;
     private final SparkClosedLoopController climbController;
@@ -32,7 +33,7 @@ public class ClimbIOSpark implements ClimbIO {
 
     public ClimbIOSpark() {
 
-        climb = new SparkMax(ClimbConstants.kClimbCanID, MotorType.kBrushless);
+        climb = new SparkFlex(ClimbConstants.kClimbCanID, MotorType.kBrushless);
         climbEncoder = climb.getEncoder();
         climbController = climb.getClosedLoopController();
 

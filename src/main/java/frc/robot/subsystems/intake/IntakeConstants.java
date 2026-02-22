@@ -12,6 +12,7 @@ public class IntakeConstants {
     
     public static final int kRollersCanID = 0;
     public static final int kExtensionCanID = 0;
+    public static final int kExtensionFollowerCanID = 0;
 
     // Roller PID
     public static final double kRollerP = 0;

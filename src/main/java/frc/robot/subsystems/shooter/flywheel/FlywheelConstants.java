@@ -10,6 +10,8 @@ public class FlywheelConstants {
     public static final double kPassMaxApexHeight = Units.inchesToMeters(160);
 
     public static final int kFlywheelCanID = 0;
+    public static final int kFlywheelFollowerCanID = 0;
+
 
 
     // Flywheel PID
