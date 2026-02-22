@@ -1,6 +1,7 @@
 package frc.robot.commands.autos;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -8,8 +9,12 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -123,7 +128,160 @@ public class Autos {
         }
     }
 
+    public static class depotSideQuickShootClimb extends AutoClass {
+        public depotSideQuickShootClimb() {
+            this.name = "Depot Side Quick Shoot Climb (GAME)";
+            this.sequentialPathStrings = new String[] {
+                    "Start Depot Side to Mid Intake",
+                    "Mid Intake to Start Depot Side",
+                    "Home Depot Far to Ladder Depot"
+            };
+        }
 
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
+                                state)),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.6),
+                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Mid Intake to Start Depot Side")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.2),
+                                        state.getIntake().transitionCommand(Intake.State.IDLE))),
+
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                        new WaitCommand(2),
+
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.6),
+                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+
+                        // allows us to go more inward to collect fuel
+                        new DeferredCommand(() -> {
+                            // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            Translation2d extraTranslation = new Translation2d(1, 0); // from blue side, going more to right
+                            // if (!isBlue) {
+                            //     extraTranslation = extraTranslation.times(-1);
+                            // }
+
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, currentPose.plus(new Transform2d(extraTranslation, new Rotation2d())), 1);
+                        }, Set.of(state.getDrive())),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Mid Intake to Start Depot Side")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.2),
+                                        state.getIntake().transitionCommand(Intake.State.IDLE))),
+
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                        new WaitCommand(3),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                        AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot")),
+                        ActionCommands.autoClimb(state));
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " +
+                        e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    public static class hpSideQuickShootClimb extends AutoClass {
+        public hpSideQuickShootClimb() {
+            this.name = "HP Side Quick Shoot Climb (GAME)";
+            this.sequentialPathStrings = new String[] {
+                    "Start HP Side to Mid Intake",
+                    "Mid Intake to Start HP Side",
+                    "Home HP Far to Ladder HP"
+            };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
+                                state)),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.6),
+                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Mid Intake to Start HP Side")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.2),
+                                        state.getIntake().transitionCommand(Intake.State.IDLE))),
+
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                        new WaitCommand(2),
+
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.6),
+                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+
+                        // allows us to go more inward to collect fuel
+                        new DeferredCommand(() -> {
+                            // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            Translation2d extraTranslation = new Translation2d(1, 0); // from blue side, going more to right
+                            // if (!isBlue) {
+                            //     extraTranslation = extraTranslation.times(-1);
+                            // }
+
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, currentPose.plus(new Transform2d(extraTranslation, new Rotation2d())), 1);
+                        }, Set.of(state.getDrive())),
+
+                        new ParallelCommandGroup(
+                                AutoBuilder.followPath(pathMap.get("Mid Intake to Start HP Side")),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(0.2),
+                                        state.getIntake().transitionCommand(Intake.State.IDLE))),
+
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                        new WaitCommand(3),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+
+                        AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP")),
+                        ActionCommands.autoClimb(state));
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " +
+                        e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
 
     //Other Autos
     public static class leftDepotClimb extends AutoClass {

@@ -27,7 +27,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     private final LoggedMechanismLigament2d intakeLigament;
 
     public Intake(IntakeIO intakeIO, RobotState state) {
-        super("Intake", State.UNDETERMINED, State.class);
+        super("Intake", State.STOW, State.class);
         this.intakeIO = intakeIO;
         this.state = state;
 
@@ -57,7 +57,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         Logger.recordOutput("Intake/ExtensionPose",
                 new Pose3d()
                         .plus(new Transform3d()).plus(new Transform3d(new Translation3d(
-                            (getState() != State.IDLE) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,0
+                            (getState() != State.STOW) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,Units.inchesToMeters(-2.7)
                         ), new Rotation3d())));
     }
 
@@ -104,7 +104,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
 
     @Override
     protected void determineSelf() {
-        setState(State.STOP);
+        setState(State.STOW);
     }
 
     public enum State {

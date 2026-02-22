@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
 import frc.robot.util.DynamicPathGenerator;
@@ -127,6 +128,8 @@ public class ActionCommands {
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
 
             return new SequentialCommandGroup(
+                    state.getIntake().transitionCommand(Intake.State.STOW),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),
@@ -140,7 +143,7 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb()));
+        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()));
     }
 
       public static Command autoClimb(RobotState state) {
@@ -176,6 +179,8 @@ public class ActionCommands {
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
 
             return new SequentialCommandGroup(
+                    state.getIntake().transitionCommand(Intake.State.STOW),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),
@@ -190,7 +195,7 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb()));
+        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()));
     }
 
 }
