@@ -371,11 +371,9 @@ public class Autos {
         public hpSideToHPEndAtMid() {
             this.name = "HP Side To HP End at Mid (GAME)";
             this.sequentialPathStrings = new String[] { 
-                    "Start Depot Side to Depot", 
-                    "Depot Intaking", 
-                    "Depot to Mid Under Trench", 
-                    "Mid Depot Side Sweep", 
-                    "Mid HP Side to Home HP"
+                    "Start HP Side to HP", 
+                    "HP to Mid",  
+                    "Mid HP Side Half Sweep"
                 };
         }
 
@@ -387,28 +385,25 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot"))                        
+                        AutoBuilder.followPath(pathMap.get("Start HP Side to HP")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
+                    ),
+
+                    new WaitCommand(5),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("HP to Mid"))
                     ),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Depot Intaking")) 
-                    ),
-
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Depot to Mid Under Trench"))
-                    ),
-
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Sweep"))
+                        AutoBuilder.followPath(pathMap.get("Mid HP Side Half Sweep")),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
                     ),
                     
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Mid HP Side to Home HP"))
-                    ),
+                    state.getIntake().transitionCommand(Intake.State.IDLE)
 
-                    new ParallelCommandGroup(
-                        
-                    )
                 ).withName(name);
 
             } catch (Exception e) {
