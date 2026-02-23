@@ -34,6 +34,361 @@ import frc.robot.subsystems.vision.VisionConstants;
 public class Autos {
 
     //Aarush's Autos
+
+    //Simple Autos
+    //Center Start
+    public static class centerOnlyStarting8 extends AutoClass {
+        public centerOnlyStarting8() {
+            this.name = "Center Only Starting 8 (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Center To Home Center"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Center To Home Center")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(10),
+
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    public static class centerToClimbDepotSide extends AutoClass {
+        public centerToClimbDepotSide() {
+            this.name = "Center Only Starting 8 (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Center to Home Center", 
+                    "Home Center to Ladder Depot"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Center To Home Center")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(4),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Home Center To Ladder Depot")),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                    ),
+
+                    ActionCommands.autoClimb(state)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+ 
+    //Depot Start
+    public static class depotOnlyStarting8 extends AutoClass {
+        public depotOnlyStarting8() {
+            this.name = "Depot Only Starting 8 (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side To Home Depot"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side To Home Depot")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),  
+
+                    new WaitCommand(10),
+
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    public static class depotSideToDepot extends AutoClass {
+        public depotSideToDepot() {
+            this.name = "Depot Side To Depot (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side to Home Depot",
+                    "Home Depot to Depot", 
+                    "Depot Intaking"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Home Depot")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                        
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(4),
+
+                    AutoBuilder.followPath(pathMap.get("Home Depot to Depot")),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot Intaking")),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE)
+                    ),
+                    new ParallelCommandGroup(
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    ),
+
+                    new WaitCommand(6),
+
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    // Might change to go to home then depot with no shooting on the move
+    public static class depotSideToDepotEndAtMid extends AutoClass {
+        public depotSideToDepotEndAtMid() {
+            this.name = "Depot Side To Depot End at Mid (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side to Depot", 
+                    "Depot Intaking", 
+                    "Depot to Mid Under Trench",
+                    "Mid Depot Side Half Sweep"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot Intaking")),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE)
+                    ),
+
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+
+                    new WaitCommand(2),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot to Mid Under Trench"))
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Half Sweep")),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
+                    ),
+                    
+                    state.getIntake().transitionCommand(Intake.State.IDLE)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    //HP Start
+    public static class hpOnlyStarting8 extends AutoClass {
+        public hpOnlyStarting8() {
+            this.name = "HP Only Starting 8 (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start HP Side To Home HP"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start HP Side To Home HP")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(10),
+
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+    
+    public static class hpSideToHP extends AutoClass {
+        public hpSideToHP() {
+            this.name = "HP Side To HP (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start HP Side to Home HP",
+                    "Home HP to HP"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start HP Side to Home HP")),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(4),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Home HP to HP")),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                    ),
+
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+
+                    new WaitCommand(8),
+
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    // Might change to go to home then HP with no shooting on the move
+    public static class hpSideToHPEndAtMid extends AutoClass {
+        public hpSideToHPEndAtMid() {
+            this.name = "HP Side To HP End at Mid (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side to Depot", 
+                    "Depot Intaking", 
+                    "Depot to Mid Under Trench", 
+                    "Mid Depot Side Sweep", 
+                    "Mid HP Side to Home HP"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            try {
+                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot"))                        
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot Intaking")) 
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Depot to Mid Under Trench"))
+                    ),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Sweep"))
+                    ),
+                    
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Mid HP Side to Home HP"))
+                    ),
+
+                    new ParallelCommandGroup(
+                        
+                    )
+                ).withName(name);
+
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+//___________________________________________________________________________\\
+
     public static class depotSideDepotMidHalfSweep extends AutoClass {
         public depotSideDepotMidHalfSweep() {
             this.name = "Depot Side Depot Mid Half Sweep (GAME)";
@@ -283,6 +638,9 @@ public class Autos {
         }
     }
 
+
+
+
     //Other Autos
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
@@ -339,7 +697,6 @@ public class Autos {
         }
     }
     
-
     public static class rightFuelClimb extends AutoClass {
         public rightFuelClimb() {
             this.name = "Right Fuel Climb (GAME)";

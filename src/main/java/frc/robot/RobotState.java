@@ -118,7 +118,7 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
+    public final static int robotState = 2; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -478,23 +478,49 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     private void setupDriveDiagnosisAutos() {
-        autoChooser.addOption(
-                "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-        autoChooser.addOption(
-                "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-        autoChooser.addOption(
-                "Drive SysId (Quasistatic Forward)",
-                drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-        autoChooser.addOption(
-                "Drive SysId (Quasistatic Reverse)",
-                drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-        autoChooser.addOption(
-                "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        autoChooser.addOption(
-                "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+        //Simple autos
+        autoChooser.addOption("Center Only Starting 8 (GAME)",
+                AutoCommands.getAutoByName(this, "Center Only Starting 8 (GAME)").get().getCommand(this));
+        
+        autoChooser.addOption("Center Only Starting 8 (GAME)",
+                AutoCommands.getAutoByName(this, "Center Only Starting 8 (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Depot Only Starting 8 (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Only Starting 8 (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Depot Side To Depot (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side To Depot (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Depot Side To Depot End at Mid (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side To Depot End at Mid (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("HP Only Starting 8 (GAME)",
+                AutoCommands.getAutoByName(this, "HP Only Starting 8 (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("HP Side To HP (GAME)",
+                AutoCommands.getAutoByName(this, "HP Side To HP (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("HP Side To HP End at Mid (GAME)",
+                AutoCommands.getAutoByName(this, "HP Side To HP End at Mid (GAME)").get().getCommand(this));
+
+        //Complex
+        autoChooser.addOption("Pathfinding Auto",
+                AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
+
+        autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Quick Shoot Climb",
+                AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("HP Side Quick Shoot Climb",
+                AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
+
+        //Other autos   
         autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
         autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
+
         autoChooser.addOption("Right Fuel Climb",
                 AutoCommands.getAutoByName(this, "Right Fuel Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("Left Depot Climb",
@@ -517,17 +543,21 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Outpost Auto",
                 AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
 
-        autoChooser.addOption("Pathfinding Auto",
-                AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
-
-        autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
-
-        autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)",
-                AutoCommands.getAutoByName(this, "Depot Side Depot Mid Half Sweep (GAME)").get().getCommand(this));
-        autoChooser.addOption("Depot Side Quick Shoot Climb",
-                AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("HP Side Quick Shoot Climb",
-                AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        //Drive tuning Autos
+        autoChooser.addOption(
+                "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+        autoChooser.addOption(
+                "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+        autoChooser.addOption(
+                "Drive SysId (Quasistatic Forward)",
+                drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        autoChooser.addOption(
+                "Drive SysId (Quasistatic Reverse)",
+                drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        autoChooser.addOption(
+                "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        autoChooser.addOption(
+                "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));    
     }
 
     private void setupNotis() {

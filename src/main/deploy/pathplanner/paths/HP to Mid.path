@@ -3,12 +3,12 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.4467313368055561,
+        "x": 0.42403009259259306,
         "y": 0.6784307725694441
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0672425635302836,
+        "x": 2.04454131931732,
         "y": 0.6738419887735907
       },
       "isLocked": false,
@@ -57,7 +57,7 @@
   "folder": "HP PATHS",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }
