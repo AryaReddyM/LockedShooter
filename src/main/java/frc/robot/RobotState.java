@@ -702,11 +702,6 @@ public class RobotState extends StateMachine<RobotState.State> {
             //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
             //         .onFalse(ActionCommands.trackBasedOnPos(this));
 
-            // controller
-            //         .rightBumper()
-            //         .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-            //         .onFalse(ActionCommands.trackBasedOnPos(this));
-
             // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
             //         .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
@@ -730,34 +725,34 @@ public class RobotState extends StateMachine<RobotState.State> {
         // driver two
 
         {
-            // operatorController
-            //         .leftStick()
-            //         .onTrue(new InstantCommand(() -> {
-            //             climb.setOverride(null);
-            //             hopper.setOverride(null);
-            //             kicker.setOverride(null);
-            //             intake.setOverride(null);
-            //             shooter.getFlywheel().setOverride(null);
-            //             shooter.getHood().setOverride(null);
-            //             shooter.getTurret().setOverride(null);
-            //         }));
+            operatorController
+                    .leftStick()
+                    .onTrue(new InstantCommand(() -> {
+                        climb.setOverride(null);
+                        hopper.setOverride(null);
+                        kicker.setOverride(null);
+                        intake.setOverride(null);
+                        shooter.getFlywheel().setOverride(null);
+                        shooter.getHood().setOverride(null);
+                        shooter.getTurret().setOverride(null);
+                    }));
 
-            // operatorController
-            //         .rightStick()
-            //         .onTrue(new InstantCommand(() -> {
-            //             if (operatorController.y().getAsBoolean()) {
-            //                 climb.setOverride(null);
-            //             } else if (operatorController.x().getAsBoolean()) {
-            //                 hopper.setOverride(null);
-            //                 kicker.setOverride(null);
-            //             } else if (operatorController.b().getAsBoolean()) {
-            //                 intake.setOverride(null);
-            //             } else if (operatorController.a().getAsBoolean()) {
-            //                 shooter.getFlywheel().setOverride(null);
-            //                 shooter.getHood().setOverride(null);
-            //                 shooter.getTurret().setOverride(null);
-            //             }
-            //         }));
+            operatorController
+                    .rightStick()
+                    .onTrue(new InstantCommand(() -> {
+                        if (operatorController.y().getAsBoolean()) {
+                            climb.setOverride(null);
+                        } else if (operatorController.x().getAsBoolean()) {
+                            hopper.setOverride(null);
+                            kicker.setOverride(null);
+                        } else if (operatorController.b().getAsBoolean()) {
+                            intake.setOverride(null);
+                        } else if (operatorController.a().getAsBoolean()) {
+                            shooter.getFlywheel().setOverride(null);
+                            shooter.getHood().setOverride(null);
+                            shooter.getTurret().setOverride(null);
+                        }
+                    }));
 
             operatorController
                     .leftTrigger(0.5)
@@ -852,7 +847,19 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 intake.stow();
                             });
                         } else if (operatorController.a().getAsBoolean()) {
-                            // nothing
+                            shooter.getFlywheel().setOverride(() -> {
+                                return 0.0;
+                            });
+
+                            shooter.getHood().setOverride((a) -> {
+                                shooter.getHood().setPos(getCurrentHubSetpoint().getHoodRadians(),
+                                        getCurrentHubSetpoint().getHoodFF());
+                            });
+
+                            shooter.getTurret().setOverride((a) -> {
+                                shooter.getTurret().setPos(getCurrentHubSetpoint().getTurretRadiansFromCenter(),
+                                        getCurrentHubSetpoint().getTurretFF());
+                            });
                         }
                     }));
 
@@ -876,7 +883,19 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 intake.intake();
                             });
                         } else if (operatorController.a().getAsBoolean()) {
-                            // nothing
+                            shooter.getFlywheel().setOverride(() -> {
+                                return 0.0;
+                            });
+
+                            shooter.getHood().setOverride((a) -> {
+                                shooter.getHood().setPos(getCurrentPassSetpoint().getHoodRadians(),
+                                        getCurrentPassSetpoint().getHoodFF());
+                            });
+
+                            shooter.getTurret().setOverride((a) -> {
+                                shooter.getTurret().setPos(getCurrentPassSetpoint().getTurretRadiansFromCenter(),
+                                        getCurrentPassSetpoint().getTurretFF());
+                            });
                         }
                     }));
         }
