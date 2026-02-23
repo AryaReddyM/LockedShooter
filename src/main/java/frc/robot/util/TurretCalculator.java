@@ -87,8 +87,9 @@ public class TurretCalculator {
                 .getTranslation();
 
         Translation2d direction = target.toTranslation2d().minus(turretTranslation);
-        double angle = MathUtil.inputModulus(
-                direction.getAngle().minus(robot.getRotation()).getRotations(), -0.5, 0.5);
+        double angle = (direction.getNorm() > 1e-6) 
+            ? MathUtil.inputModulus(direction.getAngle().minus(robot.getRotation()).getRotations(), -0.5, 0.5)
+            : 0.0;
 
         double maxTurn = GetTuned.getNumber(
                 "Turret/MaxTurnRot",
