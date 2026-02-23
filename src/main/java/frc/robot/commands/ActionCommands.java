@@ -1,5 +1,10 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -8,8 +13,10 @@ import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,10 +27,12 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
 import frc.robot.util.DynamicPathGenerator;
+import frc.robot.util.GetTuned;
 import frc.robot.util.Util;
 
 public class ActionCommands {
@@ -197,6 +206,60 @@ public class ActionCommands {
 
         }, Set.of(state.getDrive(), state.getClimb()
         // state.getIntake(), state.getShooter()
+        ));
+    }
+
+    public static Command goToFixedPosAndShoot(RobotState state) {
+        return new DeferredCommand(() -> {
+            boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+            Pose2d goalPos = VisionConstants.Hub.nearFace.transformBy(new Transform2d(
+                new Translation2d(Units.inchesToMeters(30), 0), new Rotation2d()
+            ));
+
+            if (!isBlue) {
+                goalPos = RobotState.flipPoseForRed(goalPos);
+            }
+
+            double turretPos = GetTuned.getNumber("FixedPos/Turret", 3.0301607114946028);
+
+            final double finalPos = turretPos;
+            final double shooterRps = GetTuned.getNumber("FixedPos/RPS", 119.7624492018563);
+            final double hoodPos = GetTuned.getNumber("FixedPos/Hood", 0.17588117203342102);
+            final double hoodFF = GetTuned.getNumber("FixedPos/Hood FF", 0);
+            final double turretFF = GetTuned.getNumber("FixedPos/Turret FF", 0);
+
+            return new SequentialCommandGroup(
+                new AutoAlignToPoseCommand(state.getDrive(), state, goalPos, 1),
+                new InstantCommand(() -> {
+                    
+                    state.getShooter().getFlywheel().setOverride(() -> {
+                        return shooterRps;
+                    });
+
+                    state.getShooter().getHood().setOverride((a) -> {
+                        state.getShooter().getHood().setPos(hoodPos,
+                        hoodFF);
+                    });
+
+                    state.getShooter().getTurret().setOverride((a) -> {
+                        state.getShooter().getTurret().setPos(finalPos,
+                        turretFF);
+                    });
+                })
+
+                // new WaitCommand(1),
+                // new InstantCommand(() -> {
+                //     state.getFuelSim().launchFuel(
+                //             MetersPerSecond.of(shooterRps
+                //                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+                //             Degrees.of(90).minus(Radians.of(hoodPos)),
+                //             Radians.of(finalPos),
+                //             Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
+                // })
+            );
+        }, Set.of(
+            state.getDrive(),
+            state.getShooter()
         ));
     }
 

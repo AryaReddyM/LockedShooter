@@ -720,6 +720,15 @@ public class RobotState extends StateMachine<RobotState.State> {
             //             ActionCommands.trackBasedOnPos(this);
             //             intake.requestTransition(Intake.State.OUTAKE);
             //         }));
+
+            // controller
+            //         .x()
+            //         .whileTrue(ActionCommands.goToFixedPosAndShoot(this))
+            //         .onFalse(new InstantCommand(() -> {
+            //             shooter.getFlywheel().setOverride(null);
+            //             shooter.getHood().setOverride(null);
+            //             shooter.getTurret().setOverride(null);
+            //         }));
         }
 
         // driver two
