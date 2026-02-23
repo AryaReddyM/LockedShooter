@@ -195,7 +195,9 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()));
+        }, Set.of(state.getDrive(), state.getClimb()
+        // state.getIntake(), state.getShooter()
+        ));
     }
 
 }

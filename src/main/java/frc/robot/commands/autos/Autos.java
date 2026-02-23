@@ -41,7 +41,7 @@ public class Autos {
         public centerOnlyStarting8() {
             this.name = "Center Only Starting 8 (GAME)";
             this.sequentialPathStrings = new String[] { 
-                    "Start Center To Home Center"
+                    "Start Center to Home Center"
                 };
         }
 
@@ -53,7 +53,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start Center To Home Center")),
+                        AutoBuilder.followPath(pathMap.get("Start Center to Home Center")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
@@ -72,44 +72,17 @@ public class Autos {
         }
     }
 
-    public static class centerToClimbDepotSide extends AutoClass {
-        public centerToClimbDepotSide() {
-            this.name = "Center Only Starting 8 (GAME)";
+    public static class centerOnlyStarting8Climb extends AutoClass {
+        public centerOnlyStarting8Climb() {
+            this.name = "Center Only Starting 8 Climb (GAME)";
             this.sequentialPathStrings = new String[] { 
                     "Start Center to Home Center", 
-                    "Home Center to Ladder Depot"
                 };
         }
 
         @Override
         public Command getCommand(RobotState state) {
-            try {
-                Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-
-                return new SequentialCommandGroup(
-                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start Center To Home Center")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
-                    ),
-
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                    new WaitCommand(4),
-
-                    new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Home Center To Ladder Depot")),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
-                    ),
-
-                    ActionCommands.autoClimb(state)
-
-                ).withName(name);
-
-            } catch (Exception e) {
-                return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");
-            }
+            return AutoCommands.getAutoByName(state, "Center Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
         }
     }
  
@@ -149,6 +122,20 @@ public class Autos {
         }
     }
 
+    public static class depotOnlyStarting8Climb extends AutoClass {
+        public depotOnlyStarting8Climb() {
+            this.name = "Depot Only Starting 8 Climb (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side To Home Depot"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            return AutoCommands.getAutoByName(state, "Depot Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+        }
+    }
+    
     public static class depotSideToDepot extends AutoClass {
         public depotSideToDepot() {
             this.name = "Depot Side To Depot (GAME)";
@@ -199,6 +186,21 @@ public class Autos {
         }
     }
 
+    public static class depotSideToDepotClimb extends AutoClass {
+        public depotSideToDepotClimb() {
+            this.name = "Depot Side To Depot Climb (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start Depot Side to Home Depot",
+                    "Home Depot to Depot", 
+                    "Depot Intaking"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            return AutoCommands.getAutoByName(state, "Depot Side To Depot (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+        }
+    }
     // Might change to go to home then depot with no shooting on the move
     public static class depotSideToDepotEndAtMid extends AutoClass {
         public depotSideToDepotEndAtMid() {
@@ -288,6 +290,20 @@ public class Autos {
             }
         }
     }
+
+    public static class hpOnlyStarting8Climb extends AutoClass {
+        public hpOnlyStarting8Climb() {
+            this.name = "HP Only Starting 8 Climb (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start HP Side To Home HP"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+            return AutoCommands.getAutoByName(state, "HP Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+        }
+    }
     
     public static class hpSideToHP extends AutoClass {
         public hpSideToHP() {
@@ -336,6 +352,20 @@ public class Autos {
         }
     }
 
+    public static class hpSideToHPClimb extends AutoClass {
+        public hpSideToHPClimb() {
+            this.name = "HP Side To HP Climb (GAME)";
+            this.sequentialPathStrings = new String[] { 
+                    "Start HP Side to Home HP",
+                    "Home HP to HP"
+                };
+        }
+
+        @Override
+        public Command getCommand(RobotState state) {
+             return AutoCommands.getAutoByName(state, "HP Side To HP (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+        }
+    }
     // Might change to go to home then HP with no shooting on the move
     public static class hpSideToHPEndAtMid extends AutoClass {
         public hpSideToHPEndAtMid() {

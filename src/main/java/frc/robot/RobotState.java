@@ -118,7 +118,7 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 2; // real, sim, replay
+    public final static int robotState = 1; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -141,7 +141,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     private Supplier<ShooterSetpoint> passSupplier;
 
     private FuelSim fuelSim = new FuelSim();
-    private double simFuelCount = 0;
+    private double simFuelCount = 8;
 
     private boolean climbZeroed = false;
 
@@ -316,40 +316,40 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        { // shooter
-            hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-            passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        // { // shooter
+        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-            hubSupplier.get();
-            passSupplier.get();
+        //     hubSupplier.get();
+        //     passSupplier.get();
 
-            switch (robotState) {
-                case 1:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIOSpark(),
-                            new HoodIOSpark(),
-                            new FlywheelIOSpark());
-                    break;
-                case 2:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIOSim(),
-                            new HoodIOSim(),
-                            new FlywheelIOSim());
-                    break;
-                default:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIO() {
-                            },
-                            new HoodIO() {
-                            },
-                            new FlywheelIO() {
-                            });
-                    break;
-            }
-        }
+        //     switch (robotState) {
+        //         case 1:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIOSpark(),
+        //                     new HoodIOSpark(),
+        //                     new FlywheelIOSpark());
+        //             break;
+        //         case 2:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIOSim(),
+        //                     new HoodIOSim(),
+        //                     new FlywheelIOSim());
+        //             break;
+        //         default:
+        //             shooter = new Shooter(
+        //                     this,
+        //                     new TurretIO() {
+        //                     },
+        //                     new HoodIO() {
+        //                     },
+        //                     new FlywheelIO() {
+        //                     });
+        //             break;
+        //     }
+        // }
 
         { // climb
             switch (robotState) {
@@ -483,14 +483,20 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Center Only Starting 8 (GAME)",
                 AutoCommands.getAutoByName(this, "Center Only Starting 8 (GAME)").get().getCommand(this));
         
-        autoChooser.addOption("Center Only Starting 8 (GAME)",
-                AutoCommands.getAutoByName(this, "Center Only Starting 8 (GAME)").get().getCommand(this));
+        autoChooser.addOption("Center Only Starting 8 Climb (GAME)",
+                AutoCommands.getAutoByName(this, "Center Only Starting 8 Climb (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Depot Only Starting 8 (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Only Starting 8 (GAME)").get().getCommand(this));
 
+        autoChooser.addOption("Depot Only Starting 8 Climb (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Only Starting 8 Climb (GAME)").get().getCommand(this));
+
         autoChooser.addOption("Depot Side To Depot (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Side To Depot (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("Depot Side To Depot Climb (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side To Depot Climb (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Depot Side To Depot End at Mid (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Side To Depot End at Mid (GAME)").get().getCommand(this));
@@ -498,15 +504,21 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("HP Only Starting 8 (GAME)",
                 AutoCommands.getAutoByName(this, "HP Only Starting 8 (GAME)").get().getCommand(this));
 
+        autoChooser.addOption("HP Only Starting 8 Climb (GAME)",
+                AutoCommands.getAutoByName(this, "HP Only Starting 8 Climb (GAME)").get().getCommand(this));
+
         autoChooser.addOption("HP Side To HP (GAME)",
                 AutoCommands.getAutoByName(this, "HP Side To HP (GAME)").get().getCommand(this));
+
+        autoChooser.addOption("HP Side To HP Climb (GAME)",
+                AutoCommands.getAutoByName(this, "HP Side To HP Climb (GAME)").get().getCommand(this));
 
         autoChooser.addOption("HP Side To HP End at Mid (GAME)",
                 AutoCommands.getAutoByName(this, "HP Side To HP End at Mid (GAME)").get().getCommand(this));
 
         //Complex
-        autoChooser.addOption("Pathfinding Auto",
-                AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Pathfinding Auto",
+        //         AutoCommands.getAutoByName(this, "Pathfinding (GAME)").get().getCommand(this));
 
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
 
@@ -518,46 +530,46 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
 
         //Other autos   
-        autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
-        autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Valid Auto Template", new InstantCommand().withName("Game <- this is a template"));
+        // autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple (GAME)").get().getCommand(this));
 
-        autoChooser.addOption("Right Fuel Climb",
-                AutoCommands.getAutoByName(this, "Right Fuel Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Left Depot Climb",
-                AutoCommands.getAutoByName(this, "Left Depot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center HP Climb",
-                AutoCommands.getAutoByName(this, "Center HP Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center Right HP Climb",
-                AutoCommands.getAutoByName(this, "Center Right HP Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center Left Depot Climb",
-                AutoCommands.getAutoByName(this, "Center Left Depot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Left Depot Fuel",
-                AutoCommands.getAutoByName(this, "Left Depot Fuel (GAME)").get().getCommand(this));
-        autoChooser.addOption("Center HP Fuel",
-                AutoCommands.getAutoByName(this, "Center HP Fuel (GAME)").get().getCommand(this));
-        autoChooser.addOption("Right HP Fuel",
-                AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
-        autoChooser.addOption("Waypoint Auto",
-                AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
-        autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
-        autoChooser.addOption("Outpost Auto",
-                AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Right Fuel Climb",
+        //         AutoCommands.getAutoByName(this, "Right Fuel Climb (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Left Depot Climb",
+        //         AutoCommands.getAutoByName(this, "Left Depot Climb (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Center HP Climb",
+        //         AutoCommands.getAutoByName(this, "Center HP Climb (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Center Right HP Climb",
+        //         AutoCommands.getAutoByName(this, "Center Right HP Climb (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Center Left Depot Climb",
+        //         AutoCommands.getAutoByName(this, "Center Left Depot Climb (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Left Depot Fuel",
+        //         AutoCommands.getAutoByName(this, "Left Depot Fuel (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Center HP Fuel",
+        //         AutoCommands.getAutoByName(this, "Center HP Fuel (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Right HP Fuel",
+        //         AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Waypoint Auto",
+        //         AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
+        // autoChooser.addOption("Outpost Auto",
+        //         AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
 
         //Drive tuning Autos
-        autoChooser.addOption(
-                "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-        autoChooser.addOption(
-                "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-        autoChooser.addOption(
-                "Drive SysId (Quasistatic Forward)",
-                drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-        autoChooser.addOption(
-                "Drive SysId (Quasistatic Reverse)",
-                drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-        autoChooser.addOption(
-                "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        autoChooser.addOption(
-                "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));    
+        // autoChooser.addOption(
+        //         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+        // autoChooser.addOption(
+        //         "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+        // autoChooser.addOption(
+        //         "Drive SysId (Quasistatic Forward)",
+        //         drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        // autoChooser.addOption(
+        //         "Drive SysId (Quasistatic Reverse)",
+        //         drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        // autoChooser.addOption(
+        //         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        // autoChooser.addOption(
+        //         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));    
     }
 
     private void setupNotis() {
