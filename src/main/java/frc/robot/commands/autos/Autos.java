@@ -527,12 +527,9 @@ public class Autos {
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
-
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(0.6),
-                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        new WaitCommand(0.25),
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Mid Intake to Start Depot Side")),
@@ -604,12 +601,9 @@ public class Autos {
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
-
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(0.6),
-                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        new WaitCommand(0.25),
+                        AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Mid Intake to Start HP Side")),
