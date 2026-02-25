@@ -9,6 +9,8 @@ public interface FlywheelIO {
     double velPerSec = 0;
     double appliedVolts = 0;
     double currentAmps = 0;
+    
+    boolean isReady = false;
   }
 
 
@@ -22,5 +24,6 @@ public interface FlywheelIO {
 
 
   public default void stopFlywheel() {}
+  public default boolean isAtSpeed(double speed, double tolerance) {return false;};
 
 }

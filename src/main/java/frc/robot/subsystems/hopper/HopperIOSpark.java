@@ -11,8 +11,10 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.util.SparkUtil;
@@ -23,7 +25,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 public class HopperIOSpark implements HopperIO{
  
     // Hardware objects
-    private final SparkMax hopper;
+    private final SparkFlex hopper;
 
     private final RelativeEncoder hopperEncoder;
 
@@ -32,14 +34,14 @@ public class HopperIOSpark implements HopperIO{
 
     public HopperIOSpark(){
 
-    hopper = new SparkMax(HopperConstants.kHopperCanID, MotorType.kBrushless);
+    hopper = new SparkFlex(HopperConstants.kHopperCanID, MotorType.kBrushless);
 
     hopperEncoder = hopper.getEncoder();
 
     hopperController = hopper.getClosedLoopController();
 
     // Configure extention motor
-    SparkMaxConfig hopperConfig = new SparkMaxConfig();
+    SparkFlexConfig hopperConfig = new SparkFlexConfig();
     hopperConfig
         .inverted(HopperConstants.kHopperinverted)
         .idleMode(IdleMode.kBrake)

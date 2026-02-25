@@ -8,7 +8,7 @@ import edu.wpi.first.math.util.Units;
 
 public class ClimbConstants {
 
-    public static final int kClimbCanID = 17;
+    public static final int kClimbCanID = 13;
 
     // Climb PID
     public static final double kClimbP = 20;
@@ -39,12 +39,12 @@ public class ClimbConstants {
 
     // setpoints
     public static final double kClimbStowPos = 0;
-    public static final double kClimbUpPos = 3.5;
+    public static final double kClimbUpPos = 4.1;
     public static final double kClimbDownPos = 1.5;
 
-    public static final double kLowerCurrentLimit = 20;
+    public static final double kLowerCurrentLimit = 30;
     public static final double kLowerMotorOutput = -0.08;
-    public static final double kZeroCurrentThreshold = 20;
+    public static final double kZeroCurrentThreshold = 30;
 
     public static final int kBeamBreakerIdOne = 1;
     public static final int kBeamBreakerIdTwo = 2;

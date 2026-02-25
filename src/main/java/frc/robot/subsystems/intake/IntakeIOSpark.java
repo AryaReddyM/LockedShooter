@@ -27,6 +27,8 @@ public class IntakeIOSpark implements IntakeIO {
     // Hardware objects
     private final SparkFlex rollers;
     private final SparkMax extension;
+    private final SparkMax extensionFollower;
+
 
     private final RelativeEncoder rollerEncoder;
     private final RelativeEncoder extensionEncoder;
@@ -41,6 +43,7 @@ public class IntakeIOSpark implements IntakeIO {
 
         rollers = new SparkFlex(IntakeConstants.kRollersCanID, MotorType.kBrushless);
         extension = new SparkMax(IntakeConstants.kExtensionCanID, MotorType.kBrushless);
+        extensionFollower = new SparkMax(IntakeConstants.kExtensionFollowerCanID, MotorType.kBrushless);
 
         rollerEncoder = rollers.getEncoder();
         extensionEncoder = extension.getEncoder();
@@ -104,6 +107,18 @@ public class IntakeIOSpark implements IntakeIO {
 
         extension.configure(extensionConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         extension.clearFaults();
+       
+        SparkMaxConfig extensionFollowerConfig = new SparkMaxConfig();
+        extensionFollowerConfig
+                .follow(IntakeConstants.kExtensionCanID, true);
+                
+        extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        extensionFollower.clearFaults();
+
+        
+
+                
+
 
         SparkUtil.tunePID(
                 "Intake Roller",

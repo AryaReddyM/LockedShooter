@@ -58,7 +58,8 @@ public class TurretIOSpark implements TurretIO {
                 .velocityConversionFactor(TurretConstants.kTurretVelocityConversionFactor);
         turretConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                .positionWrappingInputRange(0, 2 * Math.PI)
+                .positionWrappingInputRange(TurretConstants.kMinOutputRange, TurretConstants.kMaxOutputRange)
+                .positionWrappingEnabled(false)
                 .pid(TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD).maxMotion
                 .maxAcceleration(TurretConstants.kTurretMaxAccel)
                 .cruiseVelocity(TurretConstants.kTurretCruiseVel)
@@ -71,6 +72,13 @@ public class TurretIOSpark implements TurretIO {
                 .appliedOutputPeriodMs(20)
                 .busVoltagePeriodMs(20)
                 .outputCurrentPeriodMs(20);
+
+        turretConfig
+            .softLimit
+            .forwardSoftLimit(TurretConstants.kForwardSoftLimit)
+            .forwardSoftLimitEnabled(true)
+            .reverseSoftLimit(TurretConstants.kBackwardSoftLimit)
+            .reverseSoftLimitEnabled(true);
 
         turret.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         turret.clearFaults();

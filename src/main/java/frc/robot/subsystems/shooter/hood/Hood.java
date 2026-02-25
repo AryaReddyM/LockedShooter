@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter.hood;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.Logger;
 
 import dev.doglog.DogLog;
@@ -19,6 +21,7 @@ public class Hood extends StateMachine<Hood.State> {
     private final HoodIO hoodIO;
     private final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
     private double tunedSetpoint = 0.0;
+    private Consumer<Object> override;
 
     public Hood(HoodIO hoodIO, RobotState state) {
         super("Hood", State.UNDETERMINED, State.class);
@@ -66,7 +69,9 @@ public class Hood extends StateMachine<Hood.State> {
         Logger.processInputs("Hood", inputs);
 
         { // HOOD POS SETTER
-            if (getState() == State.HUB_TRACKING) {
+            if (override != null) {
+                override.accept(null);
+            } else if (getState() == State.HUB_TRACKING) {
                 setPos(state.getCurrentHubSetpoint().getHoodRadians(), state.getCurrentHubSetpoint().getHoodFF());
             } else if (getState() == State.PASS_TRACKING) {
                 setPos(state.getCurrentPassSetpoint().getHoodRadians(), state.getCurrentPassSetpoint().getHoodFF());
@@ -92,6 +97,10 @@ public class Hood extends StateMachine<Hood.State> {
     @Override
     public void determineSelf() {
         setState(State.UNDETERMINED);
+    }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
     }
 
     public enum State {

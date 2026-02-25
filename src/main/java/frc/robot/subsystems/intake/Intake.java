@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -26,8 +28,10 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     private final LoggedMechanism2d intakeMechanism = new LoggedMechanism2d(3, 3);
     private final LoggedMechanismLigament2d intakeLigament;
 
+    private Consumer<Object> override;
+
     public Intake(IntakeIO intakeIO, RobotState state) {
-        super("Intake", State.UNDETERMINED, State.class);
+        super("Intake", State.STOW, State.class);
         this.intakeIO = intakeIO;
         this.state = state;
 
@@ -57,8 +61,22 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         Logger.recordOutput("Intake/ExtensionPose",
                 new Pose3d()
                         .plus(new Transform3d()).plus(new Transform3d(new Translation3d(
-                            (getState() != State.IDLE) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,0
+                            (getState() != State.STOW) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,Units.inchesToMeters(-2.7)
                         ), new Rotation3d())));
+
+        if (override != null) {
+            override.accept(null);
+        }else if (getState() == State.INTAKE) {
+            intake();
+        } else if (getState() == State.OUTAKE) {
+            outake();
+        } else if (getState() == State.STOW) {
+            stow();
+        } else if (getState() == State.IDLE) {
+            intakeidle();
+        } else if (getState() == State.STOP) {
+            stop();
+        }
     }
 
     public void stow() {
@@ -85,6 +103,18 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
     }
 
+    public void intakeRoll() {
+        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
+    }
+
+    public void outakeRoll() {
+        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
+    }
+
+    public void stopRoll() {
+        intakeIO.stopRollers();
+    }
+
     public void stop() {
         intakeIO.stopExtension();
         intakeIO.stopRollers();
@@ -95,16 +125,16 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     }
 
     private void registerStateCommands() {
-        registerStateCommand(State.STOP, Commands.run(() -> stop()));
-        registerStateCommand(State.STOW, Commands.run(() -> stow()));
-        registerStateCommand(State.IDLE, Commands.run(() -> intakeidle()));
-        registerStateCommand(State.INTAKE, Commands.run(() -> intake()));
-        registerStateCommand(State.OUTAKE, Commands.run(() -> outake()));
+
     }
 
     @Override
     protected void determineSelf() {
-        setState(State.STOP);
+        setState(State.STOW);
+    }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
     }
 
     public enum State {

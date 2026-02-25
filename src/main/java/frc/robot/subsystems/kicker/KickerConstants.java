@@ -26,6 +26,7 @@ public class KickerConstants {
 
     // setpoints
     public static final double kKickerShootSpeed = 0;
+    public static final double kKickerOutakeSpeed = 0;
     
     
 }

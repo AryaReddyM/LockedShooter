@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -43,6 +44,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
     private final Timer timer;
 
     private double tunedSetpoint = 0.0;
+    private Consumer<Object> override;
 
     public Turret(TurretIO turretIO, RobotState state) {
         super("Turret", State.UNDETERMINED, State.class);
@@ -108,7 +110,9 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
         Logger.processInputs("Turret", inputs);
 
         { // TURRET POS SETTER
-            if (getState() == State.HUB_TRACKING) {
+            if (override != null) {
+                override.accept(null);
+            } else if (getState() == State.HUB_TRACKING) {
                 setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(),
                         state.getCurrentHubSetpoint().getTurretFF());
             } else if (getState() == State.PASS_TRACKING) {
@@ -121,7 +125,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             }
         }
 
-        state.addTurretUpdates(RobotTime.getTimestampSeconds(), Rotation2d.fromRadians(inputs.desiredPos),
+        state.addTurretUpdates(RobotTime.getTimestampSeconds(), Rotation2d.fromRadians(inputs.desiredPos), //inputs.turretRotation2d
                 inputs.turretPos,
                 inputs.turretVelRadPerSec);
 
@@ -174,6 +178,10 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
     @Override
     protected void determineSelf() {
         setState(State.IDLE);
+    }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
     }
 
     public enum State {

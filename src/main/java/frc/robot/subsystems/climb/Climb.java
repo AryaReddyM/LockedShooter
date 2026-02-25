@@ -1,5 +1,7 @@
 package frc.robot.subsystems.climb;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -36,6 +38,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     private final BeamBreakerIO rightSensor;
 
     private final LoggedMechanismLigament2d climbElevatorExtension;
+    private Consumer<Object> override;
 
     public Climb(ClimbIO climbIO, BeamBreakerIO leftSensor, BeamBreakerIO rightSensor, RobotState state) {
         super("Climb", State.UNDETERMINED, State.class);
@@ -81,6 +84,19 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
                                         new Translation3d(0, 0,
                                                 inputs.desiredPos * ClimbConstants.kClimbPositionConversionFactor),
                                         new Rotation3d())));
+
+        if (override!= null) {
+            override.accept(null);   
+        }
+        else if (getState() == State.STOW) {
+            stow();
+        } else if (getState() == State.IDLE) {
+            stop();
+        } else if (getState() == State.UP) {
+            up();
+        } else if (getState() == State.UNDETERMINED) {
+            down();
+        }
     }
 
     public void stow() {
@@ -134,10 +150,11 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
     }
 
     private void registerStateCommands() {
-        registerStateCommand(State.STOW, Commands.run(() -> stow()));
-        registerStateCommand(State.IDLE, Commands.run(() -> stop()));
-        registerStateCommand(State.UP, Commands.run(() -> up()));
-        registerStateCommand(State.DOWN, Commands.run(() -> down()));
+
+    }
+
+    public void setOverride(Consumer<Object> override) {
+        this.override = override;
     }
 
     @Override

@@ -28,8 +28,8 @@ public class TurretConstants {
 
     public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
 
-    public static final double kTurretSimP = 0.7;
-    public static final double kTurretSimD = 0.2;
+    public static final double kTurretSimP = 0.1;
+    public static final double kTurretSimD = 0;
 
 
 
@@ -45,6 +45,10 @@ public class TurretConstants {
 
     public static final double latencyComepnsationMS = 20.0;
 
+    public static final double kMinOutputRange = 0;
+    public static final double kMaxOutputRange = 2 * Math.PI;
+    public static final double kForwardSoftLimit = Math.PI;
+    public static final double kBackwardSoftLimit = -Math.PI;
     
     public static final InterpolatingTreeMap<Double, ShotData> SHOT_MAP =
                 new InterpolatingTreeMap<>(InverseInterpolator.forDouble(), ShotData::interpolate);
