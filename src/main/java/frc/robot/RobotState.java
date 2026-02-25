@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -109,6 +110,7 @@ import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
 import frc.robot.util.FuelSim;
+import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.MathHelpers;
@@ -144,6 +146,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     private double simFuelCount = 0;
 
     private CommandXboxController controller = new CommandXboxController(0);
+    private CommandXboxController operatorController = new CommandXboxController(1);
 
     private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -724,6 +727,32 @@ public class RobotState extends StateMachine<RobotState.State> {
         // VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d(), 1.0,
         // AlignType.ROTATION)
         // );
+
+        Trigger limelightTag = new Trigger(() -> {
+            return LimelightHelpers.getTV("limelight");
+        });
+
+        limelightTag
+            .onTrue(
+                new InstantCommand(() -> {
+                    // Start rumble
+                    controller.getHID().setRumble(RumbleType.kLeftRumble, 0.5);
+                    controller.getHID().setRumble(RumbleType.kRightRumble, 0.5);
+
+                    operatorController.getHID().setRumble(RumbleType.kLeftRumble, 0.5);
+                    operatorController.getHID().setRumble(RumbleType.kRightRumble, 0.5);
+                })
+            )
+            .onFalse(
+                new InstantCommand(() -> {
+                    // Stop rumble
+                    controller.getHID().setRumble(RumbleType.kLeftRumble, 0.0);
+                    controller.getHID().setRumble(RumbleType.kRightRumble, 0.0);
+
+                    operatorController.getHID().setRumble(RumbleType.kLeftRumble, 0.0);
+                    operatorController.getHID().setRumble(RumbleType.kRightRumble, 0.0);
+                })
+            );  
     }
 
     public Drive getDrive() {
