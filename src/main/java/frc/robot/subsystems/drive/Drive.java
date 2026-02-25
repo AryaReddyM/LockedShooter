@@ -330,6 +330,8 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     Logger.processInputs("Drive/Gyro", gyroInputs);
     Logger.processInputs("Drive/DriveBase", driveInputs);
+    
+    Logger.recordOutput("Odometry/Pose3D", new Pose3d(getPose()));
     SmartDashboard.putData(fieldPose);
 
     for (var module : modules) {

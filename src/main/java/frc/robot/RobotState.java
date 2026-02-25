@@ -120,7 +120,7 @@ import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
+    public final static int robotState = 2; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -318,40 +318,40 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
-        // { // shooter
-        //     hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        //     passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        { // shooter
+            hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+            passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-        //     hubSupplier.get();
-        //     passSupplier.get();
+            hubSupplier.get();
+            passSupplier.get();
 
-        //     switch (robotState) {
-        //         case 1:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSpark(),
-        //                     new HoodIOSpark(),
-        //                     new FlywheelIOSpark());
-        //             break;
-        //         case 2:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIOSim(),
-        //                     new HoodIOSim(),
-        //                     new FlywheelIOSim());
-        //             break;
-        //         default:
-        //             shooter = new Shooter(
-        //                     this,
-        //                     new TurretIO() {
-        //                     },
-        //                     new HoodIO() {
-        //                     },
-        //                     new FlywheelIO() {
-        //                     });
-        //             break;
-        //     }
-        // }
+            switch (robotState) {
+                case 1:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSpark(),
+                            new HoodIOSpark(),
+                            new FlywheelIOSpark());
+                    break;
+                case 2:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSim(),
+                            new HoodIOSim(),
+                            new FlywheelIOSim());
+                    break;
+                default:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIO() {
+                            },
+                            new HoodIO() {
+                            },
+                            new FlywheelIO() {
+                            });
+                    break;
+            }
+        }
 
         { // climb
             switch (robotState) {
@@ -382,68 +382,68 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        // { // hopper
-        //     switch (robotState) {
-        //         case 1:
-        //             hopper = new Hopper(
-        //                     new HopperIOSpark(),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             hopper = new Hopper(
-        //                     new HopperIOSim(),
-        //                     this);
-        //             break;
-        //         default:
-        //             hopper = new Hopper(
-        //                     new HopperIO() {
-        //                     },
-        //                     this);
-        //             break;
-        //     }
-        // }
+        { // hopper
+            switch (robotState) {
+                case 1:
+                    hopper = new Hopper(
+                            new HopperIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    hopper = new Hopper(
+                            new HopperIOSim(),
+                            this);
+                    break;
+                default:
+                    hopper = new Hopper(
+                            new HopperIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
-        // { // intake
-        //     switch (robotState) {
-        //         case 1:
-        //             intake = new Intake(
-        //                     new IntakeIOSpark(),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             intake = new Intake(
-        //                     new IntakeIOSim(),
-        //                     this);
-        //             break;
-        //         default:
-        //             intake = new Intake(
-        //                     new IntakeIO() {
-        //                     },
-        //                     this);
-        //             break;
-        //     }
-        // }
+        { // intake
+            switch (robotState) {
+                case 1:
+                    intake = new Intake(
+                            new IntakeIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    intake = new Intake(
+                            new IntakeIOSim(),
+                            this);
+                    break;
+                default:
+                    intake = new Intake(
+                            new IntakeIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
-        // { // kicker
-        //     switch (robotState) {
-        //         case 1:
-        //             kicker = new Kicker(
-        //                     new KickerIOSpark(),
-        //                     this);
-        //             break;
-        //         case 2:
-        //             kicker = new Kicker(
-        //                     new KickerIOSim(),
-        //                     this);
-        //             break;
-        //         default:
-        //             kicker = new Kicker(
-        //                     new KickerIO() {
-        //                     },
-        //                     this);
-        //             break;
-        //     }
-        // }
+        { // kicker
+            switch (robotState) {
+                case 1:
+                    kicker = new Kicker(
+                            new KickerIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    kicker = new Kicker(
+                            new KickerIOSim(),
+                            this);
+                    break;
+                default:
+                    kicker = new Kicker(
+                            new KickerIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
         // // auto setup
         {
@@ -553,9 +553,8 @@ public class RobotState extends StateMachine<RobotState.State> {
         //         AutoCommands.getAutoByName(this, "Right HP Fuel (GAME)").get().getCommand(this));
         // autoChooser.addOption("Waypoint Auto",
         //         AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Outpost Auto",
-        //         AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot (GAME)").get().getCommand(this));
+        autoChooser.addOption("Outpost Auto", AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
 
         //Drive tuning Autos
         // autoChooser.addOption(
@@ -734,7 +733,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         // driver two
-
         {
             operatorController
                     .leftStick()
@@ -934,7 +932,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                     operatorController.getHID().setRumble(RumbleType.kLeftRumble, 0.0);
                     operatorController.getHID().setRumble(RumbleType.kRightRumble, 0.0);
                 })
-            );  
+            ); 
         }
     }
 

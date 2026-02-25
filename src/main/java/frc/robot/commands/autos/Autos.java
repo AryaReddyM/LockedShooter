@@ -657,9 +657,6 @@ public class Autos {
         }
     }
 
-
-
-
     //Other Autos
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
@@ -1146,6 +1143,19 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(
                                 () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+
+                        new ParallelCommandGroup(
+                            AutoBuilder.followPath(pathMap.get("Starting to Outpost - AR")),
+                            new SequentialCommandGroup(
+                                new WaitCommand(1),
+                                new InstantCommand(() -> {
+                                    state.getIntake().requestTransition(Intake.State.INTAKE);
+                                }),
+
+                                new WaitCommand(1.5),
+                                ActionCommands.aimAndShoot(state)
+                            )
+                        ),
                         AutoBuilder.followPath(pathMap.get("Starting to Outpost - AR")),
                         // new WaitCommand(2), // Temp seconds amount
                         AutoBuilder.followPath(pathMap.get("Outpost to 1st Shooting - AR")),
