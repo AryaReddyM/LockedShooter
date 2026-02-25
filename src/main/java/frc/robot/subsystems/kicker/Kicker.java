@@ -44,6 +44,8 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
         } else {
             stop();
         }
+
+        Logger.recordOutput("Kicker/Overriden", override!=null);
     }
 
     public void shoot() {
@@ -60,7 +62,7 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.SHOOT, State.OUTAKE);
+        addOmniTransitions(State.UNDETERMINED, State.IDLE, State.SHOOT, State.OUTAKE);
     }
 
     private void registerStateCommands() {

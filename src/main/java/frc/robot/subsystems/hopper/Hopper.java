@@ -69,6 +69,7 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
         } else {
             stop();
         }
+        Logger.recordOutput("Hopper/Overriden", override!=null);
      }
 
     public void shoot() {
@@ -84,7 +85,7 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.OUTAKE, State.SHOOT);
+        addOmniTransitions(State.UNDETERMINED, State.IDLE, State.OUTAKE, State.SHOOT);
     }
 
     private void registerStateCommands() {

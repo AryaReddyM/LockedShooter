@@ -17,6 +17,8 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.util.MathHelpers;
 import frc.robot.util.state.StateMachine;
@@ -42,6 +44,10 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         this.io = io;
         this.state = state;
         enable();
+
+        SmartDashboard.putData("Vision Disable", new InstantCommand(() -> {
+            state.disableVision();
+        }).withName("Vision Disable"));
     }
 
     @Override

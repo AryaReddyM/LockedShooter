@@ -77,6 +77,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         } else if (getState() == State.STOP) {
             stop();
         }
+        Logger.recordOutput("Intake/Overriden", override!=null);
     }
 
     public void stow() {

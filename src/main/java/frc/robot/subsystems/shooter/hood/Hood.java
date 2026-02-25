@@ -92,6 +92,7 @@ public class Hood extends StateMachine<Hood.State> {
                         .plus(new Transform3d(
                                 new Translation3d(),
                                 new Rotation3d(0, Units.degreesToRadians(-120) + inputs.desiredPos, 0))));
+        Logger.recordOutput("Hood/Overriden", override!=null);
     }
 
     @Override

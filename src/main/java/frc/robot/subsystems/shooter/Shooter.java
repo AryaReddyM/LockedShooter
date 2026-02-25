@@ -69,6 +69,8 @@ public class Shooter extends StateMachine<Shooter.State> {
             turret.requestTransition(Turret.State.HUB_TRACKING);
             flywheel.requestTransition(Flywheel.State.SHOOT);
             hood.requestTransition(Hood.State.HUB_TRACKING);
+            state.getHopper().requestTransition(Hopper.State.SHOOT);
+            state.getKicker().requestTransition(Kicker.State.SHOOT);
         }));
 
         registerStateCommand(State.PASSING, new InstantCommand(() -> {

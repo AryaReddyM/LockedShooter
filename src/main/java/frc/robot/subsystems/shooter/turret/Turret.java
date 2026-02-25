@@ -136,6 +136,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                                 new Translation3d(),
                                 new Rotation3d(0, 0, inputs.desiredPos)
                         )));
+        Logger.recordOutput("Turret/Overriden", override!=null);
     }
 
     public void setPos(double position, double ff) {

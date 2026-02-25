@@ -82,7 +82,7 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-            return AutoCommands.getAutoByName(state, "Center Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+            return AutoCommands.getAutoByName(state, "Center Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state)).withName(this.name);
         }
     }
  
@@ -132,7 +132,7 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-            return AutoCommands.getAutoByName(state, "Depot Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+            return AutoCommands.getAutoByName(state, "Depot Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state)).withName(this.name);
         }
     }
     
@@ -198,7 +198,7 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-            return AutoCommands.getAutoByName(state, "Depot Side To Depot (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+            return AutoCommands.getAutoByName(state, "Depot Side To Depot (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state)).withName(this.name);
         }
     }
     // Might change to go to home then depot with no shooting on the move
@@ -301,7 +301,7 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-            return AutoCommands.getAutoByName(state, "HP Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+            return AutoCommands.getAutoByName(state, "HP Only Starting 8 (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state)).withName(this.name);
         }
     }
     
@@ -363,7 +363,7 @@ public class Autos {
 
         @Override
         public Command getCommand(RobotState state) {
-             return AutoCommands.getAutoByName(state, "HP Side To HP (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state));
+             return AutoCommands.getAutoByName(state, "HP Side To HP (GAME)").get().getCommand(state).andThen(ActionCommands.autoClimb(state)).withName(this.name);
         }
     }
     // Might change to go to home then HP with no shooting on the move
@@ -574,7 +574,7 @@ public class Autos {
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot")),
-                        ActionCommands.autoClimb(state));
+                        ActionCommands.autoClimb(state)).withName(this.name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " +
                         e.getMessage()).withName(name + " (FAILED)");
@@ -649,7 +649,7 @@ public class Autos {
 
 
                         AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP")),
-                        ActionCommands.autoClimb(state));
+                        ActionCommands.autoClimb(state)).withName(this.name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " +
                         e.getMessage()).withName(name + " (FAILED)");

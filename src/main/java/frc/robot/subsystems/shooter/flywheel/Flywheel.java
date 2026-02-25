@@ -57,6 +57,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
 
         shoot(desiredRPS);
         inputs.isReady = flywheelIO.isAtSpeed(desiredRPS, GetTuned.getNumber("Flywheel/Speed Tolerance", FlywheelConstants.kFlywheelSpeedTolerance));
+        Logger.recordOutput("Flywheel/Overriden", override!=null);
     }
 
     public void shoot(double pos, double ff) {
@@ -69,7 +70,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.SHOOT, State.PASS, State.UNDETERMINED, State.TRACKING);
+        addOmniTransitions(State.IDLE, State.SHOOT, State.PASS, State.UNDETERMINED, State.TRACKING, State.TUNING);
     }
 
     private void registerStateCommands() {
