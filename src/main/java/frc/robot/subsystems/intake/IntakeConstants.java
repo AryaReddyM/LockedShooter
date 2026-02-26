@@ -36,11 +36,11 @@ public class IntakeConstants {
 
 
     // factors
-    public static final double kRollerPositionConversionFactor = 0;
-    public static final double kRollerVelocityConversionFactor = 0;
+    public static final double kRollerPositionConversionFactor = 1;
+    public static final double kRollerVelocityConversionFactor = 1/60;
 
-    public static final double kExtensionPositionConversionFactor = 0;
-    public static final double kExtensionVelocityConversionFactor = 0;
+    public static final double kExtensionPositionConversionFactor = 360/23;
+    public static final double kExtensionVelocityConversionFactor = (360/23) / 60;
 
     // setpoints
 

@@ -81,7 +81,7 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
     }
 
     public void stop() {
-        hopperIO.stopHopper();
+        hopperIO.setHopperSpeed(0);
     }
 
     private void registerStateTransitions() {

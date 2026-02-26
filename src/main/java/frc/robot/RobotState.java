@@ -391,26 +391,26 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        // { // hopper
-        // switch (robotState) {
-        // case 1:
-        // hopper = new Hopper(
-        // new HopperIOSpark(),
-        // this);
-        // break;
-        // case 2:
-        // hopper = new Hopper(
-        // new HopperIOSim(),
-        // this);
-        // break;
-        // default:
-        // hopper = new Hopper(
-        // new HopperIO() {
-        // },
-        // this);
-        // break;
-        // }
-        // }
+        { // hopper
+            switch (robotState) {
+                case 1:
+                    hopper = new Hopper(
+                            new HopperIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    hopper = new Hopper(
+                            new HopperIOSim(),
+                            this);
+                    break;
+                default:
+                    hopper = new Hopper(
+                            new HopperIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
         // { // intake
         // switch (robotState) {
@@ -433,26 +433,26 @@ public class RobotState extends StateMachine<RobotState.State> {
         // }
         // }
 
-        // { // kicker
-        // switch (robotState) {
-        // case 1:
-        // kicker = new Kicker(
-        // new KickerIOSpark(),
-        // this);
-        // break;
-        // case 2:
-        // kicker = new Kicker(
-        // new KickerIOSim(),
-        // this);
-        // break;
-        // default:
-        // kicker = new Kicker(
-        // new KickerIO() {
-        // },
-        // this);
-        // break;
-        // }
-        // }
+        { // kicker
+            switch (robotState) {
+                case 1:
+                    kicker = new Kicker(
+                            new KickerIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    kicker = new Kicker(
+                            new KickerIOSim(),
+                            this);
+                    break;
+                default:
+                    kicker = new Kicker(
+                            new KickerIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
         // // auto setup
         {
@@ -786,7 +786,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride(null);
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                hopper.setOverride(null);
+                                // hopper.setOverride(null);
                             if (kicker != null)
                                 kicker.setOverride(null);
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
@@ -810,9 +810,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                             });
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                hopper.setOverride((a) -> hopper.idle());
+                                hopper.setOverride((a) -> hopper.stop());
                             if (kicker != null)
-                                kicker.setOverride((a) -> kicker.idle());
+                                kicker.setOverride((a) -> kicker.stop());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
                             intake.setOverride((a) -> intake.intakeRoll());
                         } else if (operatorController.a().getAsBoolean() && shooter != null) {
@@ -835,9 +835,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride((a) -> climb.down());
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                hopper.setOverride((a) -> hopper.idle());
+                                hopper.setOverride((a) -> hopper.stop());
                             if (kicker != null)
-                                kicker.setOverride((a) -> kicker.idle());
+                                kicker.setOverride((a) -> kicker.stop());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
                             intake.setOverride((a) -> intake.outakeRoll());
                         } else if (operatorController.a().getAsBoolean() && shooter != null) {

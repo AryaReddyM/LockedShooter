@@ -58,7 +58,7 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     }
 
     public void stop() {
-        kickerIO.stopKicker();
+        kickerIO.setKickerSpeed(0);
     }
 
     private void registerStateTransitions() {

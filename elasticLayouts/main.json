@@ -529,10 +529,10 @@
         "layouts": [
           {
             "title": "Overrides",
-            "x": 2304.0,
+            "x": 300.0,
             "y": 0.0,
             "width": 256.0,
-            "height": 896.0,
+            "height": 400.0,
             "type": "List Layout",
             "properties": {
               "label_position": "TOP"
@@ -661,7 +661,7 @@
           },
           {
             "title": "States",
-            "x": 2048.0,
+            "x": 200.0,
             "y": 0.0,
             "width": 256.0,
             "height": 640.0,
@@ -776,7 +776,7 @@
             "title": "Climb Zero",
             "x": 0.0,
             "y": 512.0,
-            "width": 256.0,
+            "width": 200.0,
             "height": 128.0,
             "type": "Command",
             "properties": {
@@ -816,7 +816,7 @@
           },
           {
             "title": "Auto Selected",
-            "x": 1920.0,
+            "x": 200.0,
             "y": 512.0,
             "width": 128.0,
             "height": 128.0,
@@ -854,7 +854,7 @@
           },
           {
             "title": "Enabled",
-            "x": 1536.0,
+            "x": 200.0,
             "y": 512.0,
             "width": 128.0,
             "height": 128.0,
@@ -871,7 +871,7 @@
           },
           {
             "title": "E Stop",
-            "x": 1792.0,
+            "x": 200.0,
             "y": 512.0,
             "width": 128.0,
             "height": 128.0,
@@ -888,7 +888,7 @@
           },
           {
             "title": "Autonomous",
-            "x": 1664.0,
+            "x": 200.0,
             "y": 512.0,
             "width": 128.0,
             "height": 128.0,
@@ -905,7 +905,7 @@
           },
           {
             "title": "MatchTime",
-            "x": 1152.0,
+            "x": 200.0,
             "y": 384.0,
             "width": 384.0,
             "height": 256.0,
@@ -921,7 +921,7 @@
           },
           {
             "title": "Game State",
-            "x": 1536.0,
+            "x": 200.0,
             "y": 0.0,
             "width": 512.0,
             "height": 128.0,
@@ -934,7 +934,7 @@
           },
           {
             "title": "Shift Countdown",
-            "x": 1536.0,
+            "x": 200.0,
             "y": 128.0,
             "width": 256.0,
             "height": 256.0,
@@ -947,7 +947,7 @@
           },
           {
             "title": "Hub Active",
-            "x": 1792.0,
+            "x": 200.0,
             "y": 128.0,
             "width": 256.0,
             "height": 256.0,
@@ -964,7 +964,7 @@
           },
           {
             "title": "Auto Choices",
-            "x": 1536.0,
+            "x": 200.0,
             "y": 384.0,
             "width": 512.0,
             "height": 128.0,
