@@ -10,12 +10,12 @@ import edu.wpi.first.math.util.Units;
 public class IntakeConstants {
 
     
-    public static final int kRollersCanID = 0;
-    public static final int kExtensionCanID = 0;
-    public static final int kExtensionFollowerCanID = 0;
+    public static final int kRollersCanID = 48;
+    public static final int kExtensionCanID = 46;
+    public static final int kExtensionFollowerCanID = 47;
 
     // Roller PID
-    public static final double kRollerP = 0;
+    public static final double kRollerP = 0.12;
     public static final double kRollerI = 0;
     public static final double kRollerD = 0;
 
@@ -24,40 +24,43 @@ public class IntakeConstants {
 
     // Extension PID
 
-    public static final double kExtensionP = 0;
+    public static final double kExtensionP = 0.095;
     public static final double kExtensionI = 0;
     public static final double kExtensionD = 0;
-    public static final double kExtensionMaxAccel = 0;
-    public static final double kExtensionCruiseVel = 0;
-    public static final double kExtensionDeviationErr = 0;
-    public static final double kExtensionS = 0;
-    public static final double kExtensionV = 0;
+    public static final double kExtensionMaxAccel = 600;
+    public static final double kExtensionCruiseVel = 130;
+    public static final double kExtensionDeviationErr = 2;
+    public static final double kExtensionS = 0.15;
+    public static final double kExtensionV = 0.00131;
     public static final double kExtensionA = 0;
-    public static final double kExtensionCos = 0;
+    public static final double kExtensionCos = 0.2;
 
     public static final double kExtensionSimP = 0.3;
     public static final double kExtensionSimD = 0;
 
 
     // factors
-    public static final double kRollerPositionConversionFactor = 1;
-    public static final double kRollerVelocityConversionFactor = 1/60;
+    public static final double kRollerPositionConversionFactor = 1.0;
+    public static final double kRollerVelocityConversionFactor = 1.0/60.0;
 
     public static int kRollerCurrentLimit = 40;
 
-    public static final double kExtensionPositionConversionFactor = 360/23;
-    public static final double kExtensionVelocityConversionFactor = (360/23) / 60;
+    public static final double kExtensionPositionConversionFactor = 360.0/23.0;
+    public static final double kExtensionVelocityConversionFactor = (360.0/23.0) / 60.0;
 
     public static int kExtensionCurrentLimit = 40;
     // setpoints
 
-    public static final double kExtensionStowSetpoint = 0;
-    public static final double kExtensionIntakeSetpoint = 100;
-    public static final double kExtensionOuttakeSetpoint = 100;
+    public static final double kExtensionStowSetpoint = 5;
+    public static final double kExtensionIntakeSetpoint = 93;
+    public static final double kExtensionOuttakeSetpoint = 93;
     public static final double kExtensionClimbTowSetpoint = 50;
 
-    public static final double kRollerOuttakeSpeed = 0;
-    public static final double kRollerIntakeSpeed = 0;
+    public static final double kExtensionMax = 100.0;
+    public static final double kExtensionMin = 0.0;
+
+    public static final double kRollerOuttakeSpeed = 34;
+    public static final double kRollerIntakeSpeed = -34;
 
     public static final Transform3d intakeOrigin = new Transform3d(new Translation3d(
         Units.inchesToMeters(5),Units.inchesToMeters(0), Units.inchesToMeters(6.7)

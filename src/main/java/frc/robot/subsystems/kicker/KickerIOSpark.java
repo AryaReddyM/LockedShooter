@@ -70,15 +70,15 @@ public class KickerIOSpark implements KickerIO{
     kicker.configure(kickerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     kicker.clearFaults();
 
-    SparkUtil.tunePID(
-        "Kicker",
-        kicker,
-        kickerConfig,
-        new double[] {KickerConstants.kKickerP, KickerConstants.kKickerI, KickerConstants.kKickerD, 0,0,0,0, KickerConstants.kKickerMaxAccel, KickerConstants.kKickerCruiseVel, KickerConstants.kKickerDeviationErr},
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters,
-        false,
-        true);
+    // SparkUtil.tunePID(
+    //     "Kicker",
+    //     kicker,
+    //     kickerConfig,
+    //     new double[] {KickerConstants.kKickerP, KickerConstants.kKickerI, KickerConstants.kKickerD, 0,0,0,0, KickerConstants.kKickerMaxAccel, KickerConstants.kKickerCruiseVel, KickerConstants.kKickerDeviationErr},
+    //     ResetMode.kResetSafeParameters,
+    //     PersistMode.kPersistParameters,
+    //     false,
+    //     true);
 
     }
 

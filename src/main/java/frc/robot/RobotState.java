@@ -412,47 +412,47 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        // { // intake
-        // switch (robotState) {
-        // case 1:
-        // intake = new Intake(
-        // new IntakeIOSpark(),
-        // this);
-        // break;
-        // case 2:
-        // intake = new Intake(
-        // new IntakeIOSim(),
-        // this);
-        // break;
-        // default:
-        // intake = new Intake(
-        // new IntakeIO() {
-        // },
-        // this);
-        // break;
-        // }
-        // }
-
-        { // kicker
+        { // intake
             switch (robotState) {
                 case 1:
-                    kicker = new Kicker(
-                            new KickerIOSpark(),
+                    intake = new Intake(
+                            new IntakeIOSpark(),
                             this);
                     break;
                 case 2:
-                    kicker = new Kicker(
-                            new KickerIOSim(),
+                    intake = new Intake(
+                            new IntakeIOSim(),
                             this);
                     break;
                 default:
-                    kicker = new Kicker(
-                            new KickerIO() {
+                    intake = new Intake(
+                            new IntakeIO() {
                             },
                             this);
                     break;
             }
         }
+
+        // { // kicker
+        // switch (robotState) {
+        // case 1:
+        // kicker = new Kicker(
+        // new KickerIOSpark(),
+        // this);
+        // break;
+        // case 2:
+        // kicker = new Kicker(
+        // new KickerIOSim(),
+        // this);
+        // break;
+        // default:
+        // kicker = new Kicker(
+        // new KickerIO() {
+        // },
+        // this);
+        // break;
+        // }
+        // }
 
         // // auto setup
         {
@@ -711,14 +711,14 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
         // driver 1 controller
         {
-            // controller
-            // .leftTrigger(0.5)
-            // .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-            // .onFalse(intake.transitionCommand(Intake.State.IDLE));
+            controller
+            .leftTrigger(0.5)
+            .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+            .onFalse(intake.transitionCommand(Intake.State.IDLE));
 
-            // controller
-            // .leftBumper()
-            // .onTrue(intake.transitionCommand(Intake.State.STOW));
+            controller
+            .leftBumper()
+            .onTrue(intake.transitionCommand(Intake.State.STOW));
 
             // controller
             // .rightTrigger(0.5)
@@ -787,8 +787,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
                                 // hopper.setOverride(null);
-                            if (kicker != null)
-                                kicker.setOverride(null);
+                                if (kicker != null)
+                                    kicker.setOverride(null);
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
                             intake.setOverride(null);
                         } else if (operatorController.a().getAsBoolean() && shooter != null) {
