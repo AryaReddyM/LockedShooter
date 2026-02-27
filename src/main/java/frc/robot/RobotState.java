@@ -412,26 +412,26 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        // { // intake
-        // switch (robotState) {
-        // case 1:
-        // intake = new Intake(
-        // new IntakeIOSpark(),
-        // this);
-        // break;
-        // case 2:
-        // intake = new Intake(
-        // new IntakeIOSim(),
-        // this);
-        // break;
-        // default:
-        // intake = new Intake(
-        // new IntakeIO() {
-        // },
-        // this);
-        // break;
-        // }
-        // }
+        { // intake
+            switch (robotState) {
+                case 1:
+                    intake = new Intake(
+                            new IntakeIOSpark(),
+                            this);
+                    break;
+                case 2:
+                    intake = new Intake(
+                            new IntakeIOSim(),
+                            this);
+                    break;
+                default:
+                    intake = new Intake(
+                            new IntakeIO() {
+                            },
+                            this);
+                    break;
+            }
+        }
 
         { // kicker
             switch (robotState) {
@@ -711,14 +711,14 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
         // driver 1 controller
         {
-            // controller
-            // .leftTrigger(0.5)
-            // .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-            // .onFalse(intake.transitionCommand(Intake.State.IDLE));
+            controller
+            .leftTrigger(0.5)
+            .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+            .onFalse(intake.transitionCommand(Intake.State.IDLE));
 
-            // controller
-            // .leftBumper()
-            // .onTrue(intake.transitionCommand(Intake.State.STOW));
+            controller
+            .leftBumper()
+            .onTrue(intake.transitionCommand(Intake.State.STOW));
 
             // controller
             // .rightTrigger(0.5)
@@ -787,8 +787,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
                                 // hopper.setOverride(null);
-                            if (kicker != null)
-                                kicker.setOverride(null);
+                                if (kicker != null)
+                                    kicker.setOverride(null);
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
                             intake.setOverride(null);
                         } else if (operatorController.a().getAsBoolean() && shooter != null) {
@@ -810,7 +810,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             });
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                // hopper.setOverride((a) -> hopper.stop());
+                                hopper.setOverride((a) -> hopper.stop());
                             if (kicker != null)
                                 kicker.setOverride((a) -> kicker.stop());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
@@ -835,7 +835,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride((a) -> climb.down());
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                // hopper.setOverride((a) -> hopper.stop());
+                                hopper.setOverride((a) -> hopper.stop());
                             if (kicker != null)
                                 kicker.setOverride((a) -> kicker.stop());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {

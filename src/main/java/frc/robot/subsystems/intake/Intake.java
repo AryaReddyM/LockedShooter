@@ -74,6 +74,8 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
             stow();
         } else if (getState() == State.IDLE) {
             intakeidle();
+        } else if (getState() == State.CLIMB_TOW) {
+            climbTow();
         } else if (getState() == State.STOP) {
             stop();
         }
@@ -104,6 +106,11 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
     }
 
+    public void climbTow() {
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Tow Setpoint", IntakeConstants.kExtensionClimbTowSetpoint));
+        intakeIO.setRollerSpeed(0);
+    }
+
     public void intakeRoll() {
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
@@ -122,7 +129,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.STOW, State.IDLE, State.INTAKE, State.OUTAKE);
+        addOmniTransitions(State.STOW, State.IDLE, State.INTAKE, State.OUTAKE,State.CLIMB_TOW);
     }
 
     private void registerStateCommands() {
@@ -145,7 +152,8 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         STOW,
         IDLE,
         INTAKE,
-        OUTAKE
+        OUTAKE,
+        CLIMB_TOW
 
         // flags
 

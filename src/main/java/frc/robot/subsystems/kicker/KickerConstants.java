@@ -6,11 +6,11 @@ public class KickerConstants {
 
 
     // Kicker PID
-    public static final double kKickerP = 0.02;
+    public static final double kKickerP = 0.025;
     public static final double kKickerI = 0;
     public static final double kKickerD = 0;
-    public static final double kKickerMaxAccel = 10;
-    public static final double kKickerCruiseVel = 200;
+    public static final double kKickerMaxAccel = 100000;
+    public static final double kKickerCruiseVel = 100000;
     public static final double kKickerDeviationErr = 0;
 
 
@@ -25,8 +25,8 @@ public class KickerConstants {
 
 
     // setpoints
-    public static final double kKickerShootSpeed = 6;
-    public static final double kKickerOutakeSpeed = -6;
+    public static final double kKickerShootSpeed = -30;
+    public static final double kKickerOutakeSpeed = 30;
     
     
 }

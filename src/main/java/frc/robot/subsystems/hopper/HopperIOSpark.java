@@ -72,15 +72,15 @@ public class HopperIOSpark implements HopperIO{
     hopper.configure(hopperConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     hopper.clearFaults();
 
-    SparkUtil.tunePID(
-        "Hopper",
-        hopper,
-        hopperConfig,
-        new double[] {HopperConstants.kHopperP, HopperConstants.kHopperI, HopperConstants.kHopperD, 0,0,0,0, HopperConstants.kHopperMaxAccel, HopperConstants.kHopperCruiseVel, HopperConstants.kHopperDeviationErr},
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters,
-        false,
-        true);
+    // SparkUtil.tunePID(
+    //     "Hopper",
+    //     hopper,
+    //     hopperConfig,
+    //     new double[] {HopperConstants.kHopperP, HopperConstants.kHopperI, HopperConstants.kHopperD, 0,0,0,0, HopperConstants.kHopperMaxAccel, HopperConstants.kHopperCruiseVel, HopperConstants.kHopperDeviationErr},
+    //     ResetMode.kResetSafeParameters,
+    //     PersistMode.kPersistParameters,
+    //     false,
+    //     true);
 
     }
 
