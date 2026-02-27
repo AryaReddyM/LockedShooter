@@ -42,7 +42,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
                 VisionConstants.kCameraBForwardMeters, // for this, we need to just do it constantly. no biggie
                 VisionConstants.kCameraBRightMeters,
                 VisionConstants.kCameraBHeightOffGroundMeters,
-                0.0,
+                VisionConstants.kCameraBRollDegrees,
                 VisionConstants.kCameraBPitchDegrees,
                 VisionConstants.kCameraBYawDegrees
         };

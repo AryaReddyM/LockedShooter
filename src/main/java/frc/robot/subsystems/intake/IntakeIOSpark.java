@@ -56,7 +56,7 @@ public class IntakeIOSpark implements IntakeIO {
         rollerConfig
                 .inverted(false)
                 .idleMode(IdleMode.kBrake)
-                .smartCurrentLimit(10)
+                .smartCurrentLimit(IntakeConstants.kRollerCurrentLimit)
                 .voltageCompensation(12.0);
         rollerConfig.encoder
                 .positionConversionFactor(IntakeConstants.kRollerPositionConversionFactor)
@@ -81,9 +81,9 @@ public class IntakeIOSpark implements IntakeIO {
         // Configure extension motor
         SparkMaxConfig extensionConfig = new SparkMaxConfig();
         extensionConfig
-                .inverted(false)
+                .inverted(true)
                 .idleMode(IdleMode.kBrake)
-                .smartCurrentLimit(10)
+                .smartCurrentLimit(IntakeConstants.kExtensionCurrentLimit)
                 .voltageCompensation(12.0);
         extensionConfig.encoder
                 .positionConversionFactor(IntakeConstants.kExtensionPositionConversionFactor)
@@ -115,11 +115,6 @@ public class IntakeIOSpark implements IntakeIO {
         extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         extensionFollower.clearFaults();
 
-        
-
-                
-
-
         SparkUtil.tunePID(
                 "Intake Roller",
                 rollers,
@@ -134,10 +129,11 @@ public class IntakeIOSpark implements IntakeIO {
             "Intake Extension",
             extension,
             extensionConfig,
-            new double[] {IntakeConstants.kExtensionP, IntakeConstants.kExtensionI, IntakeConstants.kExtensionD, 0,0,0,0, IntakeConstants.kExtensionMaxAccel, IntakeConstants.kExtensionCruiseVel, IntakeConstants.kExtensionDeviationErr},
+            new double[] {IntakeConstants.kExtensionP, IntakeConstants.kExtensionI, IntakeConstants.kExtensionD, IntakeConstants.kExtensionS, IntakeConstants.kExtensionV,IntakeConstants.kExtensionA, IntakeConstants.kExtensionCos, IntakeConstants.kExtensionMaxAccel, IntakeConstants.kExtensionCruiseVel, IntakeConstants.kExtensionDeviationErr},
             ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters,
-                false,
+                true,
+                true,
                 true
         );
     }

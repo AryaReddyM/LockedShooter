@@ -86,6 +86,18 @@ public class SparkUtil {
   public static void tunePID(String key, SparkBase motor, SparkBaseConfig defaultConfig, double[] defaults,
       ResetMode resetMode, PersistMode persistMode, boolean feedForward, boolean maxMotion,
       Consumer<Double[]> listener) {
+        tunePID(key, motor, defaultConfig, defaults, resetMode, persistMode, feedForward, maxMotion);
+      }
+
+  public static void tunePID(String key, SparkBase motor, SparkBaseConfig defaultConfig, double[] defaults,
+      ResetMode resetMode, PersistMode persistMode, boolean feedForward, boolean maxMotion,
+      boolean isCos) {
+        tunePID(key, motor, defaultConfig, defaults, resetMode, persistMode, feedForward, maxMotion, a -> {}, isCos);
+      }
+
+  public static void tunePID(String key, SparkBase motor, SparkBaseConfig defaultConfig, double[] defaults,
+      ResetMode resetMode, PersistMode persistMode, boolean feedForward, boolean maxMotion,
+      Consumer<Double[]> listener, boolean isCos) {
     double defaultkP = getSafe(defaults, 0);
     double defaultkI = getSafe(defaults, 1);
     double defaultkD = getSafe(defaults, 2);
@@ -155,13 +167,23 @@ public class SparkUtil {
         listener.accept(changedDefaults);
       });
 
-      DogLog.tunable(key + "/kG", defaultkG, newG -> {
+      if (isCos) {
+        DogLog.tunable(key + "/kCos", defaultkG, newG -> {
+        motor.configure(
+            defaultConfig.apply(defaultConfig.closedLoop.apply(defaultConfig.closedLoop.feedForward.kCos(newG))),
+            resetMode, persistMode);
+        changedDefaults[6] = newG;
+        listener.accept(changedDefaults);
+      });
+      } else {
+        DogLog.tunable(key + "/kG", defaultkG, newG -> {
         motor.configure(
             defaultConfig.apply(defaultConfig.closedLoop.apply(defaultConfig.closedLoop.feedForward.kG(newG))),
             resetMode, persistMode);
         changedDefaults[6] = newG;
         listener.accept(changedDefaults);
       });
+      }
     }
 
     if (maxMotion) {

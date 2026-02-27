@@ -30,6 +30,10 @@ public class IntakeConstants {
     public static final double kExtensionMaxAccel = 0;
     public static final double kExtensionCruiseVel = 0;
     public static final double kExtensionDeviationErr = 0;
+    public static final double kExtensionS = 0;
+    public static final double kExtensionV = 0;
+    public static final double kExtensionA = 0;
+    public static final double kExtensionCos = 0;
 
     public static final double kExtensionSimP = 0.3;
     public static final double kExtensionSimD = 0;
@@ -39,14 +43,18 @@ public class IntakeConstants {
     public static final double kRollerPositionConversionFactor = 1;
     public static final double kRollerVelocityConversionFactor = 1/60;
 
+    public static int kRollerCurrentLimit = 40;
+
     public static final double kExtensionPositionConversionFactor = 360/23;
     public static final double kExtensionVelocityConversionFactor = (360/23) / 60;
 
+    public static int kExtensionCurrentLimit = 40;
     // setpoints
 
     public static final double kExtensionStowSetpoint = 0;
-    public static final double kExtensionIntakeSetpoint = -1.4;
-    public static final double kExtensionOuttakeSetpoint = -1;
+    public static final double kExtensionIntakeSetpoint = 100;
+    public static final double kExtensionOuttakeSetpoint = 100;
+    public static final double kExtensionClimbTowSetpoint = 50;
 
     public static final double kRollerOuttakeSpeed = 0;
     public static final double kRollerIntakeSpeed = 0;

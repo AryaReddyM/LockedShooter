@@ -36,15 +36,13 @@ public class VisionConstants {
         public static final double kTurretToCameraY = Units.inchesToMeters(0);
 
         // // CHASSIS LIMELIGHT
-        public static final double kCameraBPitchDegrees = 20.0;
-        public static final double kCameraBYawDegrees = 90; // this is added to robot orientation
-        public static final double kCameraBForwardMeters = 0;
-        public static final double kCameraBRightMeters = -0.25;
-        public static final double kCameraBHeightOffGroundMeters = 0.2; // verify for practice
+        public static final double kCameraBPitchDegrees = 0.0;
+        public static final double kCameraBYawDegrees = 180; // this is added to robot orientation
+        public static final double kCameraBRollDegrees = 90;
+        public static final double kCameraBForwardMeters = Units.inchesToMeters(2.801);
+        public static final double kCameraBRightMeters = Units.inchesToMeters(11.451);
+        public static final double kCameraBHeightOffGroundMeters = Units.inchesToMeters(15.768); // verify for practice
 
-        public static final double kTurretToCameraBX = Units.inchesToMeters(14.882); // verify for practice
-        // Distance from turret center to camera lens in Y
-        public static final double kTurretToCameraBY = 0;
 
         // THIS IS SOMETHING WE NEED TO DO
         public static final double kTurretToRobotCenterX = Units.inchesToMeters(-3.390);

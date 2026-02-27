@@ -103,6 +103,7 @@ public class IntakeIOSim implements IntakeIO {
 
   @Override
   public void setExtensionPosition(double pos) {
+    pos *= -7.0/500.0;
     this.desiredPos = pos;
     extensionClosedLoop = true;
     extensionController.setSetpoint(pos);

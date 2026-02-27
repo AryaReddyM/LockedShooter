@@ -45,7 +45,7 @@ public class VisionIOSimPhoton implements VisionIO {
                                                 VisionConstants.kCameraBRightMeters,
                                                 VisionConstants.kCameraBHeightOffGroundMeters),
                                 new Rotation3d(
-                                                0,
+                                                Units.degreesToRadians(VisionConstants.kCameraBRollDegrees),
                                                 -Units.degreesToRadians(VisionConstants.kCameraBPitchDegrees),
                                                 Units.degreesToRadians(VisionConstants.kCameraBYawDegrees)));
 

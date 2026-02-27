@@ -67,6 +67,16 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         if (fused.isPresent()) {
             state.updateMegatagEstimate(fused.get());
         }
+
+        Logger.recordOutput("Chassis Camera Visualization", new Pose3d(state.getLatestFieldToRobot().getValue()).plus(new Transform3d(
+            new Translation3d(VisionConstants.kCameraBForwardMeters, // for this, we need to just do it constantly. no biggie
+                VisionConstants.kCameraBRightMeters,
+                VisionConstants.kCameraBHeightOffGroundMeters), new Rotation3d(
+                    Units.degreesToRadians(VisionConstants.kCameraBRollDegrees),
+                Units.degreesToRadians(VisionConstants.kCameraBPitchDegrees),
+                Units.degreesToRadians(VisionConstants.kCameraBYawDegrees)
+                )
+        )));
     }
 
     private Optional<VisionFieldPoseEstimate> processCamera(

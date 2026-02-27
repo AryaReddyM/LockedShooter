@@ -137,7 +137,7 @@ public class ActionCommands {
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
 
             return new SequentialCommandGroup(
-                    state.getIntake().transitionCommand(Intake.State.STOW),
+                    state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
@@ -188,7 +188,7 @@ public class ActionCommands {
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
 
             return new SequentialCommandGroup(
-                    state.getIntake().transitionCommand(Intake.State.STOW),
+                    state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
