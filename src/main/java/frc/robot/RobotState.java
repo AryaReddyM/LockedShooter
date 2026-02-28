@@ -720,31 +720,13 @@ public class RobotState extends StateMachine<RobotState.State> {
             .leftBumper()
             .onTrue(intake.transitionCommand(Intake.State.STOW));
 
-            //temporary for test
-            controller
-            .rightTrigger(0.5)
-            .onTrue(
-                new ParallelCommandGroup(
-                    hopper.transitionCommand(Hopper.State.SHOOT), 
-                    kicker.transitionCommand(Kicker.State.SHOOT)
-                    )
-                )
-            .onFalse(
-                new ParallelCommandGroup(
-                    hopper.transitionCommand(Hopper.State.IDLE), 
-                    kicker.transitionCommand(Kicker.State.IDLE)
-                    )
-            );
-
-
             // controller
             // .rightTrigger(0.5)
             // .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
             // .onFalse(ActionCommands.trackBasedOnPos(this));
 
-            controller.rightBumper()
-            .onTrue(drive.transitionCommand(Drive.State.SLOW))
-            .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+            // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
+            // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
             // controller
             // .y()
