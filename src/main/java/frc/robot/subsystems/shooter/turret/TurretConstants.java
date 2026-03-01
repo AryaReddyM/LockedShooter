@@ -34,8 +34,8 @@ public class TurretConstants {
 
 
     // factors
-    public static final double kTurretPositionConversionFactor = 0;
-    public static final double kTurretVelocityConversionFactor = 0;
+    public static final double kTurretPositionConversionFactor = 2.0 * Math.PI / 4.0 / (200.0 / 20.0);
+    public static final double kTurretVelocityConversionFactor = (2.0 * Math.PI / 4.0 / (200.0 / 20.0)) / 60;
 
 
     // Configuration

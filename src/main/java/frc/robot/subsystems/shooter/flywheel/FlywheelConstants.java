@@ -24,8 +24,8 @@ public class FlywheelConstants {
 
 
     // factors
-    public static final double kFlywheelPositionConversionFactor = 0;
-    public static final double kFlywheelVelocityConversionFactor = 0;
+    public static final double kFlywheelPositionConversionFactor = 1.0;
+    public static final double kFlywheelVelocityConversionFactor = 1.0 / 60.0;
 
     public static final Distance kFlywheelRadius = Inches.of(2);
 

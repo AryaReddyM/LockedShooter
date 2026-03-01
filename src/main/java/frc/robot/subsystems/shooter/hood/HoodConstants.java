@@ -21,8 +21,8 @@ public class HoodConstants {
     public static final double kHoodSimD = 0.2;
 
     // factors
-    public static final double kHoodPositionConversionFactor = 0;
-    public static final double kHoodVelocityConversionFactor = 0;
+    public static final double kHoodPositionConversionFactor = 2.0 * Math.PI / 3.0 / (367.0 / 32.0);
+    public static final double kHoodVelocityConversionFactor = (2.0 * Math.PI / 3.0 / (367.0 / 32.0)) / 60.0;
 
     // Configuration
     public static final boolean kHoodinverted = false;
