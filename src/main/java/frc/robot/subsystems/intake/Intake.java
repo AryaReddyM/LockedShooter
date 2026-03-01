@@ -15,6 +15,8 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.subsystems.climb.ClimbConstants;
+import frc.robot.util.Elastic;
+import frc.robot.util.Elastic.Notification;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
@@ -65,24 +67,32 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         intakeIO.setExtensionPosition(
                 GetTuned.getNumber("Intake/Extension Stow Setpoint", IntakeConstants.kExtensionStowSetpoint));
         intakeIO.stopRollers();
+        Elastic.sendNotification(
+                new Notification().withTitle("Stow").withDescription("Intake is stowing"));
     }
 
     public void intakeidle() {
         intakeIO.setExtensionPosition(
                 GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
         intakeIO.stopRollers();
+        Elastic.sendNotification(
+                new Notification().withTitle("Idle").withDescription("Intake is idling"));
     }
 
     public void intake() {
         intakeIO.setExtensionPosition(
                 GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
+        Elastic.sendNotification(
+                new Notification().withTitle("Intaking").withDescription("Intake is intaking"));
     }
 
     public void outake() {
         intakeIO.setExtensionPosition(
                 GetTuned.getNumber("Intake/Extension Outtake Setpoint", IntakeConstants.kExtensionOuttakeSetpoint));
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
+        Elastic.sendNotification(
+                new Notification().withTitle("Outaking").withDescription("Intake is outaking"));
     }
 
     public void stop() {
