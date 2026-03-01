@@ -327,9 +327,17 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
+
         // { // shooter
-        // hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        // passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+        hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+        passSupplier = ShooterSetpoint.passSetpointSupplier(this);
+
+        shooter = new Shooter(
+            this,
+            new TurretIOSim(),
+            new HoodIOSim(),
+            new FlywheelIOSpark()
+        );
 
         // hubSupplier.get();
         // passSupplier.get();
@@ -728,10 +736,10 @@ public class RobotState extends StateMachine<RobotState.State> {
             // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
             // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
-            // controller
-            // .y()
-            // .whileTrue(ActionCommands.autoClimb(this))
-            // .onFalse(climb.transitionCommand(Climb.State.STOW));
+            controller
+            .y()
+            .whileTrue(ActionCommands.autoClimb(this))
+            .onFalse(climb.transitionCommand(Climb.State.STOW));
 
             // controller
             // .a()
@@ -786,7 +794,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride(null);
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                // hopper.setOverride(null);
+                                hopper.setOverride(null);
                                 if (kicker != null)
                                     kicker.setOverride(null);
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
@@ -860,7 +868,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride((a) -> climb.up());
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                // hopper.setOverride((a) -> hopper.shoot());
+                                hopper.setOverride((a) -> hopper.shoot());
                             if (kicker != null)
                                 kicker.setOverride((a) -> kicker.shoot());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
@@ -885,7 +893,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             climb.setOverride((a) -> climb.stow());
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
-                                // hopper.setOverride((a) -> hopper.outake());
+                                hopper.setOverride((a) -> hopper.outake());
                             if (kicker != null)
                                 kicker.setOverride((a) -> kicker.outtake());
                         } else if (operatorController.b().getAsBoolean() && intake != null) {

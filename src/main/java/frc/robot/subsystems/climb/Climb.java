@@ -94,7 +94,7 @@ public class Climb extends StateMachine<Climb.State> implements ClimbIO {
             stop();
         } else if (getState() == State.UP) {
             up();
-        } else if (getState() == State.UNDETERMINED) {
+        } else if (getState() == State.DOWN) {
             down();
         }
         Logger.recordOutput("Climb/Overriden", override!=null);

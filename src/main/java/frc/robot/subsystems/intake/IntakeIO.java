@@ -16,6 +16,11 @@ public interface IntakeIO {
     double extensionAppliedVolts = 0;
     double extensionCurrentAmps = 0;
 
+    double extensionFollowerPosRad = 0;
+    double extensionFollowerVelPerSec = 0;
+    double extensionFollowerAppliedVolts = 0;
+    double extensionFollowerCurrentAmps = 0;
+
     double desiredExtensionPos = 0;
   }
 

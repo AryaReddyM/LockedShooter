@@ -119,7 +119,21 @@ public class IntakeIOSpark implements IntakeIO {
 
                 SparkMaxConfig extensionFollowerConfig = new SparkMaxConfig();
                 extensionFollowerConfig
+                                .idleMode(IdleMode.kBrake)
+                                .smartCurrentLimit(IntakeConstants.kExtensionCurrentLimit)
+                                .voltageCompensation(12.0)
                                 .follow(IntakeConstants.kExtensionCanID, true);
+
+                 extensionFollowerConfig.encoder
+                                .positionConversionFactor(IntakeConstants.kExtensionPositionConversionFactor)
+                                .velocityConversionFactor(IntakeConstants.kExtensionVelocityConversionFactor);
+                extensionFollowerConfig.signals
+                                .primaryEncoderPositionAlwaysOn(true)
+                                .primaryEncoderVelocityAlwaysOn(true)
+                                .primaryEncoderVelocityPeriodMs(20)
+                                .appliedOutputPeriodMs(20)
+                                .busVoltagePeriodMs(20)
+                                .outputCurrentPeriodMs(20);
 
                 extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters,
                                 PersistMode.kPersistParameters);
@@ -166,6 +180,14 @@ public class IntakeIOSpark implements IntakeIO {
                                 new DoubleSupplier[] { extension::getAppliedOutput, extension::getBusVoltage },
                                 (values) -> inputs.extensionAppliedVolts = values[0] * values[1]);
                 ifOk(extension, extension::getOutputCurrent, (value) -> inputs.extensionCurrentAmps = value);
+
+                 ifOk(extensionFollower, extensionFollower.getEncoder()::getPosition, (value) -> inputs.extensionFollowerPosRad = value);
+                ifOk(extensionFollower, extensionFollower.getEncoder()::getVelocity, (value) -> inputs.extensionFollowerVelPerSec = value);
+                ifOk(
+                                extensionFollower,
+                                new DoubleSupplier[] { extensionFollower::getAppliedOutput, extensionFollower::getBusVoltage },
+                                (values) -> inputs.extensionFollowerAppliedVolts = values[0] * values[1]);
+                ifOk(extensionFollower, extensionFollower::getOutputCurrent, (value) -> inputs.extensionFollowerCurrentAmps = value);
 
                 ifOk(rollers, rollerEncoder::getPosition, (value) -> inputs.rollerPosRad = value);
                 ifOk(rollers, rollerEncoder::getVelocity, (value) -> inputs.rollerVelPerSec = value);

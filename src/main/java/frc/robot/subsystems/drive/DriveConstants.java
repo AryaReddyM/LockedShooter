@@ -67,7 +67,7 @@ public class DriveConstants {
 
 
   // Drive PID configuration
-  public static final double driveKp = 0.001;
+  public static final double driveKp = 0.01;
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
 
@@ -76,8 +76,8 @@ public class DriveConstants {
   public static final double driveSimKs = 0.9;
   public static final double driveSimKv = 3;
 
-  public static final double driveKs = 0.06538;
-  public static final double driveKv = 0.19993;
+  public static final double driveKs = 0.1;
+  public static final double driveKv = 1.8;
 
   public static final double driveIntegrationCap = .001;
   public static double turnIntegrationCap = .5;

@@ -138,7 +138,7 @@ public class ActionCommands {
 
             return new SequentialCommandGroup(
                     state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),
@@ -152,7 +152,9 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()));
+        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()
+        // state.getShooter()
+        ));
     }
 
       public static Command autoClimb(RobotState state) {
@@ -181,7 +183,7 @@ public class ActionCommands {
             Translation2d preClimbTranslation = chosenUpright.plus(new Translation2d(0.4 * direction, 0.75 * direction));
             Translation2d alignClimbTranslation = chosenUpright.plus(new Translation2d(0.4 * direction, 0.42 * direction));
 
-            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.42 * direction));
+            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(-0.08 * direction, 0.25 * direction));
 
             Pose2d preClimbPose = new Pose2d(preClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
             Pose2d alignClimbPose = new Pose2d(alignClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
@@ -189,7 +191,7 @@ public class ActionCommands {
 
             return new SequentialCommandGroup(
                     state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),
@@ -204,8 +206,9 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb()
-        // state.getIntake(), state.getShooter()
+        }, Set.of(state.getDrive(), state.getClimb(),
+        state.getIntake()
+        // state.getShooter()
         ));
     }
 
