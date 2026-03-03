@@ -38,7 +38,6 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
         flywheelIO.updateInputs(inputs);
         Logger.processInputs("Flywheel", inputs);
         
-        System.out.println(tunedSetpoint);
         double desiredRPS = 0;
         { // FLYWHEEL SPEED SETTER
             if (override != null) {

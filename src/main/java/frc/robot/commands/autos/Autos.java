@@ -54,15 +54,15 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Center to Home Center")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
-                    new WaitCommand(10)
+                    new WaitCommand(10),
 
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                 ).withName(name);
 
@@ -104,15 +104,15 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side To Home Depot")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),  
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),  
 
-                    new WaitCommand(10)
+                    new WaitCommand(10),
 
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                 ).withName(name);
 
@@ -155,11 +155,11 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Home Depot")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                        
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                        
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                     new WaitCommand(4),
 
@@ -170,13 +170,13 @@ public class Autos {
                         state.getIntake().transitionCommand(Intake.State.INTAKE)
                     ),
                     new ParallelCommandGroup(
-                    state.getIntake().transitionCommand(Intake.State.IDLE)
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING)
                     ),
 
-                    new WaitCommand(6)
+                    new WaitCommand(6),
 
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                 ).withName(name);
 
@@ -222,8 +222,8 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
                     ),
 
                     new ParallelCommandGroup(
@@ -241,8 +241,8 @@ public class Autos {
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Mid Depot Side Half Sweep")),
-                        state.getIntake().transitionCommand(Intake.State.INTAKE)
-                        // state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
                     ),
                     
                     state.getIntake().transitionCommand(Intake.State.IDLE)
@@ -273,15 +273,15 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP Side To Home HP")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
-                    new WaitCommand(10)
+                    new WaitCommand(10),
 
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
                     
                 ).withName(name);
 
@@ -323,26 +323,26 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP Side to Home HP")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                     new WaitCommand(4),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Home HP to HP"))
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        AutoBuilder.followPath(pathMap.get("Home HP to HP")),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                     ),
 
-                    // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
-                    new WaitCommand(8)
+                    new WaitCommand(8),
 
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                 ).withName(name);
 
@@ -386,8 +386,8 @@ public class Autos {
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP Side to HP")),
-                        state.getIntake().transitionCommand(Intake.State.IDLE)
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)                        
                     ),
 
                     new WaitCommand(5),
@@ -398,8 +398,8 @@ public class Autos {
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Mid HP Side Half Sweep")),
-                        state.getIntake().transitionCommand(Intake.State.INTAKE)
-                        // state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
+                        state.getIntake().transitionCommand(Intake.State.INTAKE),
+                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
                     ),
                     
                     state.getIntake().transitionCommand(Intake.State.IDLE)
@@ -439,7 +439,7 @@ public class Autos {
                                 state.getIntake().requestTransition(Intake.State.STOW); 
                             }),
                         new InstantCommand(() -> {
-                                // state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
                             })                        
                     ),
                     // MAYBE SHOOT DEPENDING ON HOW LONG IT TAKES TO SPIN UP IF TOO LONG SHOOT AFTER INTAKING
@@ -458,11 +458,11 @@ public class Autos {
                         //need to test and figure out timings 
                         new SequentialCommandGroup(
                             new InstantCommand(() -> {
-                                // state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                                state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                             }),
                             new WaitCommand(2), // need to figure out 
                             new InstantCommand(() -> {
-                                // state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
                             })
                         ),
                         new SequentialCommandGroup(
@@ -490,13 +490,13 @@ public class Autos {
                             state.getIntake().requestTransition(Intake.State.STOW); 
                         }),
                         new InstantCommand(() -> {
-                            // state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                            state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                         }),
                         new WaitCommand(5.5)//need to figure out
                     ),
                     
                     new InstantCommand(() -> {
-                            // state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
                         }),
                     ActionCommands.autoClimb(state)
 
@@ -526,7 +526,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
                         new WaitCommand(0.25),
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
@@ -537,11 +537,11 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                         new WaitCommand(2),
 
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
@@ -568,10 +568,10 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                         new WaitCommand(3),
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot")),
                         ActionCommands.autoClimb(state)).withName(this.name);
@@ -600,7 +600,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
                         new WaitCommand(0.25),
                         AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
@@ -611,11 +611,11 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                         new WaitCommand(2),
 
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
@@ -642,13 +642,10 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                         new WaitCommand(3),
-                        
-                        
-                        
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
 
                         AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP")),

@@ -15,7 +15,7 @@ public class FlywheelConstants {
 
 
     // Flywheel PID
-    public static final double kFlywheelP = 0.4;
+    public static final double kFlywheelP = 0.04;
     public static final double kFlywheelI = 0;
     public static final double kFlywheelD = 0;
     public static final double kFlywheelMaxAccel = 100000000;
@@ -23,7 +23,7 @@ public class FlywheelConstants {
     public static final double kFlywheelDeviationErr = 0.01;
 
 
-    // factors
+// factors
     public static final double kFlywheelPositionConversionFactor = 1.0;
     public static final double kFlywheelVelocityConversionFactor = 1.0 / 60.0;
 
@@ -32,7 +32,7 @@ public class FlywheelConstants {
 
     // Configuration
     public static final boolean kFlywheelinverted = false;
-    public static final int kFlywheelCurrentLimit = 40;
+    public static final int kFlywheelCurrentLimit = 60;
 
     public static final double kFlywheelSpeedTolerance = 0.4;
 
