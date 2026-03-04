@@ -49,7 +49,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         intakeIO.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
 
-        intakeLigament.setAngle(Rotation2d.fromRadians(inputs.desiredExtensionPos));
+        intakeLigament.setAngle(Rotation2d.fromRadians(inputs.extensionPosRad));
         Logger.recordOutput("Intake/Mechanism", intakeMechanism);
 
         Logger.recordOutput("Intake/Pose",

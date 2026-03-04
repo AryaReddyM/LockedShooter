@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -277,7 +278,6 @@ public class Autos {
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
 
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                     new WaitCommand(10),
 
@@ -1179,9 +1179,11 @@ public class Autos {
         public depotAuto() {
             this.name = "Depot (GAME)";
             this.sequentialPathStrings = new String[] {
-                    "Starting to Depot - AR",
-                    "Depot to 1st Shooting - AR",
-                    "1st Shooting to 2nd Shooting - AR"
+                    "Start Depot Side to Depot",
+                    "Depot to Mid Under Trench",
+                    "Mid Depot Side Sweep",
+                    "Mid HP Side to Home HP",
+                    "Home HP to Ladder HP"
             };
 
             tagPos = VisionConstants.kAprilTagLayout.getTagPose(7).get().toPose2d()
@@ -1195,42 +1197,36 @@ public class Autos {
             // return ActionCommands.autoClimb(state);
             try {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
-                new ActionCommands();
-
+                
                 return new SequentialCommandGroup(
-                        new InstantCommand(
-                                () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
+                        new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         
                         new ParallelCommandGroup(
-                             AutoBuilder.followPath(pathMap.get("Starting to Depot - AR")),
-                             new SequentialCommandGroup(
-                                new WaitCommand(1),
-                                new InstantCommand(() -> {
-                                    state.getIntake().requestTransition(Intake.State.INTAKE);
-                                }),
-
-                                new WaitCommand(1.5),
-                                ActionCommands.aimAndShoot(state)
-                             )
+                            AutoBuilder.followPath(pathMap.get("Start Depot Side to Depot")),
+                            new SequentialCommandGroup(
+                                new WaitCommand(1.0), 
+                                new InstantCommand(() -> state.getIntake().requestTransition(Intake.State.INTAKE)),
+                                ActionCommands.aimAndShoot(state).withTimeout(2.0) 
+                            )
                         ),
-                        AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
-                        new WaitCommand(1),
-                        new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.IDLE);
-                        }),
-                        AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
-                        new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.SHOOTING);
-                            state.getIntake().requestTransition(Intake.State.STOW);
-                        }),
-                        new WaitCommand(5),
+                        
+                        new ParallelDeadlineGroup(
+                            AutoBuilder.followPath(pathMap.get("Depot to Mid Under Trench")),
+                            new InstantCommand(() -> state.getShooter().requestTransition(State.IDLE))
+                        ),
+
+                        AutoBuilder.followPath(pathMap.get("Mid Depot Side Sweep")),
+                        new InstantCommand(() -> state.getIntake().requestTransition(Intake.State.STOW)),
+
+                        AutoBuilder.followPath(pathMap.get("Mid HP Side to Home HP")),
+                        AutoBuilder.followPath(pathMap.get("Home HP to Ladder HP")),
+                        
+                        new WaitCommand(1.0), 
                         ActionCommands.autoClimb(state)
-                )
-                        .withName(name);
+                ).withName(name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command").withName(name + " (FAILED)");
             }
         }
     }
-
 }
