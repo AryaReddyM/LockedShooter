@@ -7,6 +7,7 @@ public interface FlywheelIO {
   public static class FlywheelIOInputs {
     double posRad = 0;
     double velPerSec = 0;
+    double omegaRadPerSec = 0;
     double appliedVolts = 0;
     double currentAmps = 0;
     

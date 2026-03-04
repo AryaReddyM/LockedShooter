@@ -100,7 +100,11 @@ public class ShooterSetpoint {
         // Calculate shot
         TurretCalculator.ShotData shot;
         if (useMovingPrediction) {
-            shot = TurretCalculator.iterativeMovingShotFromFunnelClearance(robotState, robotPose, robotSpeeds, target, 3);
+            if (RobotState.robotState == 1) {
+                shot = TurretCalculator.iterativeMovingShotFromMap(robotState, robotPose, robotSpeeds, target, 3);
+            } else {
+                shot = TurretCalculator.iterativeMovingShotFromFunnelClearance(robotState, robotPose, robotSpeeds, target, 3);
+            }
         } else {
             shot = TurretCalculator.calculateShotFromFunnelClearance(robotState, robotPose, target, target);
         }

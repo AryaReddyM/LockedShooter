@@ -3,6 +3,8 @@ package frc.robot.subsystems.shooter.turret;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,6 +59,7 @@ public class TurretConstants {
 
 
 
+        
         static {
             SHOT_MAP.put(5.34, new ShotData(RPM.of(2900), Degrees.of(27)));
             TOF_MAP.put(5.34, 1.30);
@@ -93,6 +96,9 @@ public class TurretConstants {
 
             SHOT_MAP.put(1.55, new ShotData(RPM.of(2275), Degrees.of(15)));
             TOF_MAP.put(1.55, 1.23);
+
+            // SHOT_MAP.put(distance, RadiansPerSecond.of(Flywheel.omegaRadPerSec), Radians.of(hood.pos));
+            // TOF_MAP.put(distance, amount in air before it lands at expected target);
         }
 
         public static final Distance kdistanceAboveFunnel = Inches.of(20);

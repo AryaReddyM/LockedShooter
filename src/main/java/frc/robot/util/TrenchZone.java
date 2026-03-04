@@ -14,34 +14,45 @@ public class TrenchZone {
     static double HOOD_LOWER_RADIUS = 0.6;
     static double INTAKE_LOWER_RADIUS = 1.0;
     
+
     public static double getDistanceToClosestTrench(RobotState state) {
-    Pose2d robotPose = state.getLatestFieldToRobot().getValue();
-    Translation2d robotTranslation = robotPose.getTranslation();
+        Pose2d robotPose = state.getLatestFieldToRobot().getValue();
+        Translation2d robotTranslation = robotPose.getTranslation();
 
-    double bottomTrenchY = VisionConstants.FieldConstants.TRENCH_CENTER.in(Meters);
-    double topTrenchY = VisionConstants.FieldConstants.FIELD_WIDTH.in(Meters) 
-                        - VisionConstants.FieldConstants.TRENCH_CENTER.in(Meters);
+        double bottomTrenchY = VisionConstants.FieldConstants.TRENCH_CENTER.in(Meters);
+        double topTrenchY = VisionConstants.FieldConstants.FIELD_WIDTH.in(Meters)
+                - VisionConstants.FieldConstants.TRENCH_CENTER.in(Meters);
 
-    double allianceTrenchXCenter = VisionConstants.FieldConstants.TRENCH_BUMP_X.in(Meters);
-    double opponentTrenchXCenter = VisionConstants.FieldConstants.FIELD_LENGTH.in(Meters) 
-                                   - VisionConstants.FieldConstants.TRENCH_BUMP_X.in(Meters);
+        double allianceTrenchXCenter = VisionConstants.FieldConstants.TRENCH_BUMP_X.in(Meters);
+        double opponentTrenchXCenter = VisionConstants.FieldConstants.FIELD_LENGTH.in(Meters)
+                - VisionConstants.FieldConstants.TRENCH_BUMP_X.in(Meters);
 
-    Translation2d[] trenchCenters = {
-        new Translation2d(allianceTrenchXCenter, bottomTrenchY),
-        new Translation2d(allianceTrenchXCenter, topTrenchY),
-        new Translation2d(opponentTrenchXCenter, bottomTrenchY),
-        new Translation2d(opponentTrenchXCenter, topTrenchY)
-    };
+        Translation2d[] trenchCenters = {
+                new Translation2d(allianceTrenchXCenter, bottomTrenchY),
+                new Translation2d(allianceTrenchXCenter, topTrenchY),
+                new Translation2d(opponentTrenchXCenter, bottomTrenchY),
+                new Translation2d(opponentTrenchXCenter, topTrenchY)
+        };
 
-    double minDistance = Double.MAX_VALUE;
-    for (Translation2d trenchPoint : trenchCenters) {
-        double distance = robotTranslation.getDistance(trenchPoint);
-        if (distance < minDistance) {
-            minDistance = distance;
+        double minDistance = Double.MAX_VALUE;
+        for (Translation2d trenchPoint : trenchCenters) {
+            double distance = robotTranslation.getDistance(trenchPoint);
+            if (distance < minDistance) {
+                minDistance = distance;
+            }
         }
+
+        return minDistance;
     }
 
-    return minDistance;
+    public static double getDistanceToClosestShootingPose(RobotState state) {
+        Pose2d robotPose = state.getLatestFieldToRobot().getValue();
+        Translation2d robotTranslation = robotPose.getTranslation();
+
+        double blueHub = VisionConstants.kBlueHubPose.toTranslation2d().getDistance(robotTranslation);
+        double redHub = VisionConstants.kRedHubPose.toTranslation2d().getDistance(robotTranslation);
+
+        return Math.min(blueHub, redHub);
     }
 
     public static boolean intakeLowerRequired(RobotState state) {

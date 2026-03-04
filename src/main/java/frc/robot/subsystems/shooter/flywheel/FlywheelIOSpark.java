@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter.flywheel;
 
 
+import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.util.SparkUtil.ifOk;
 
 import java.util.function.DoubleSupplier;
@@ -104,6 +105,7 @@ public class FlywheelIOSpark implements FlywheelIO{
     public void updateInputs(FlywheelIOInputs inputs) {
         ifOk(flywheel, flywheelEncoder::getPosition, (value) -> inputs.posRad = value);
         ifOk(flywheel, flywheelEncoder::getVelocity, (value) -> inputs.velPerSec = value);
+        ifOk(flywheel, flywheelEncoder::getVelocity, (value) -> inputs.omegaRadPerSec = value / FlywheelConstants.kFlywheelRadius.in(Meters));
         ifOk(
                 flywheel,
                 new DoubleSupplier[] { flywheel::getAppliedOutput, flywheel::getBusVoltage },
