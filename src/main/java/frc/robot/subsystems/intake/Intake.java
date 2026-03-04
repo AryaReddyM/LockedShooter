@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.util.GetTuned;
+import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class Intake extends StateMachine<Intake.State> implements IntakeIO {
@@ -64,7 +65,10 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                             (getState() != State.STOW) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,Units.inchesToMeters(-2.7)
                         ), new Rotation3d())));
 
-        if (override != null) {
+        if (TrenchZone.intakeLowerRequired(state)) {
+            intakeIO.setExtensionPosition(
+                GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
+        } else if (override != null) {
             override.accept(null);
         }else if (getState() == State.INTAKE) {
             intake();

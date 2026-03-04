@@ -107,7 +107,7 @@ public class ActionCommands {
         }, Set.of(state.getShooter()));
     }
 
-    public static Command autoClimbV2(RobotState state) {
+    public static Command autoClimb(RobotState state) {
         return new DeferredCommand(() -> {
 
             boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
@@ -131,7 +131,7 @@ public class ActionCommands {
             }
 
             Translation2d preClimbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.75 * direction));
-            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.42 * direction));
+            Translation2d climbTranslation = chosenUpright.plus(new Translation2d(0.0, 0.24 * direction));
 
             Pose2d preClimbPose = new Pose2d(preClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
             Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
@@ -157,7 +157,7 @@ public class ActionCommands {
         ));
     }
 
-      public static Command autoClimb(RobotState state) {
+      public static Command autoClimbV2(RobotState state) {
         return new DeferredCommand(() -> {
 
             boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;

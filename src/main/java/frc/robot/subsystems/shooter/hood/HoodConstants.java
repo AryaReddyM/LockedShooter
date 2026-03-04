@@ -26,7 +26,9 @@ public class HoodConstants {
 
     // Configuration
     public static final boolean kHoodinverted = false;
-    public static final int kHoodCurrentLimit = 10;
+    public static final int kHoodCurrentLimit = 40;
+
+    public static final double kHoodMaxSetpointUnderTrench = 0.0;
 
     // setpoints
     public static final Transform3d turretToHood = new Transform3d(new Translation3d(

@@ -59,6 +59,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.util.Elastic;
 import frc.robot.util.RobotTime;
 import frc.robot.util.SimulatedRobotState;
+import frc.robot.util.TrenchZone;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.state.StateMachine;
 
@@ -223,6 +224,19 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         () -> -robotState.getController().getRightX(),
         () -> {
           // This only runs if the state is TRAVERSING_AT_ANGLE
+
+          if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
+            Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
+            double degrees = currentPose.getRotation().getDegrees();
+            
+
+            if (Math.abs(degrees) <= 90) {
+              return Rotation2d.fromDegrees(0);
+            } else {
+              return Rotation2d.fromDegrees(180);
+            }
+          }
+
           Pose2d target = robotState.getDriveAnglePos();
 
           Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
@@ -234,7 +248,14 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
           return goal;
         },
-        this::getState // Pass the state supplier
+        () -> {
+          State currentState = getState();
+          if (TrenchZone.driveRotationOverrideRequired(robotState) && currentState == State.SLOW) {
+            return State.TRAVERSING_AT_ANGLE;
+          }
+
+          return currentState;
+        } // Pass the state supplier
     ));
 
     registerStateCommand(State.CROSSED, new InstantCommand(() -> stopWithX()));
