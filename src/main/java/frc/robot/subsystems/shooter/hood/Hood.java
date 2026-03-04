@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class Hood extends StateMachine<Hood.State> {
@@ -22,6 +23,8 @@ public class Hood extends StateMachine<Hood.State> {
     private final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
     private double tunedSetpoint = 0.0;
     private Consumer<Object> override;
+
+
 
     public Hood(HoodIO hoodIO, RobotState state) {
         super("Hood", State.UNDETERMINED, State.class);
@@ -44,6 +47,10 @@ public class Hood extends StateMachine<Hood.State> {
     }
 
     public void setPos(double position, double ff) {
+        if (TrenchZone.hoodLowerRequired(state) && position > HoodConstants.kHoodMaxSetpointUnderTrench) {
+            position = HoodConstants.kHoodMaxSetpointUnderTrench;
+        }
+
         hoodIO.setHoodPosition(position, ff);
     }
 
@@ -69,6 +76,11 @@ public class Hood extends StateMachine<Hood.State> {
         Logger.processInputs("Hood", inputs);
 
         { // HOOD POS SETTER
+
+            if (TrenchZone.hoodLowerRequired(state) && hoodIO.getHoodPosition() > HoodConstants.kHoodMaxSetpointUnderTrench) {
+                setPos(HoodConstants.kHoodMaxSetpointUnderTrench, 0);
+            }
+
             if (override != null) {
                 override.accept(null);
             } else if (getState() == State.HUB_TRACKING) {

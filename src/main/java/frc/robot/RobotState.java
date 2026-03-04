@@ -118,6 +118,7 @@ import frc.robot.util.MathHelpers;
 import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
+import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
@@ -1235,6 +1236,12 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     @Override
     public void update() {
+
+        // LOGGING FOR TOF
+        {
+            Logger.recordOutput("Distance to Hub", TrenchZone.getDistanceToClosestShootingPose(this));
+        }
+
         String gameState = "No Game State";
         double secondsUntilAllianceShift = 25;
         String message = DriverStation.getGameSpecificMessage();
