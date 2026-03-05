@@ -7,14 +7,18 @@ import edu.wpi.first.math.util.Units;
 
 public class HoodConstants {
 
-    public static final int kHoodCanID = 0;
+    public static final int kHoodCanID = 54;
 
     // Hood PID
-    public static final double kHoodP = 0;
+    public static final double kHoodP = 0.8;
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
-    public static final double kHoodMaxAccel = 0;
-    public static final double kHoodCruiseVel = 0;
+    public static final double kHoodS = 0.195;
+    public static final double kHoodV = 0;
+    public static final double kHoodA = 0;
+    public static final double kHoodG = 0.401;
+    public static final double kHoodMaxAccel = 100000;
+    public static final double kHoodCruiseVel = 3000;
     public static final double kHoodDeviationErr = 0;
 
     public static final double kHoodSimP = 0.7;
@@ -28,7 +32,9 @@ public class HoodConstants {
     public static final boolean kHoodinverted = false;
     public static final int kHoodCurrentLimit = 40;
 
-    public static final double kHoodMaxSetpointUnderTrench = 0.0;
+    public static final double kHoodMaxSetpointUnderTrench = Units.degreesToRadians(10.0);
+    public static final double kHoodMinLimit = Units.degreesToRadians(25.0);
+    public static final double kHoodMaxLimit = Units.degreesToRadians(38.0) + kHoodMinLimit;
 
     // setpoints
     public static final Transform3d turretToHood = new Transform3d(new Translation3d(

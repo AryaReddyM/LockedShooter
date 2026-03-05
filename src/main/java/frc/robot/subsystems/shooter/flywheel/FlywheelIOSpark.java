@@ -83,7 +83,7 @@ public class FlywheelIOSpark implements FlywheelIO{
     flywheelFollowerConfig
         .follow(FlywheelConstants.kFlywheelCanID);
 
-    // flywheelFollower.configure(flywheelFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    flywheelFollower.configure(flywheelFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flywheel.clearFaults();
 
 

@@ -97,7 +97,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                                     * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
                             Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
                             Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
-                            Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
+                        Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
                 }
             }
             inputs.robotTurretPos = new Pose3d(
@@ -119,7 +119,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                 setPos(state.getCurrentPassSetpoint().getTurretRadiansFromCenter(),
                         state.getCurrentPassSetpoint().getTurretFF());
             } else if (getState() == State.TUNING) {
-                setPos(tunedSetpoint, 0);
+                setPos(tunedSetpoint);
             } else {
                 stop();
             }
@@ -143,12 +143,16 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
         turretIO.setTurretPosition(position, ff);
     }
 
+    public void setPos(double position) {
+        turretIO.setTurretPosition(position);
+    }
+
     public void stop() {
         turretIO.stopTurret();
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.UNDETERMINED);
+        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.UNDETERMINED, State.TUNING);
     }
 
     private void registerStateCommands() {

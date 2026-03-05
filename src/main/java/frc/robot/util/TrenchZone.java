@@ -47,7 +47,7 @@ public class TrenchZone {
 
     public static double getDistanceToClosestShootingPose(RobotState state) {
         Pose2d robotPose = state.getLatestFieldToRobot().getValue();
-        Translation2d robotTranslation = robotPose.getTranslation();
+        Translation2d robotTranslation = robotPose.getTranslation().plus(VisionConstants.kTurretCameraToRobotCenter.getTranslation());
 
         double blueHub = VisionConstants.kBlueHubPose.toTranslation2d().getDistance(robotTranslation);
         double redHub = VisionConstants.kRedHubPose.toTranslation2d().getDistance(robotTranslation);

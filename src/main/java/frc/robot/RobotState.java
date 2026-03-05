@@ -335,8 +335,8 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         shooter = new Shooter(
             this,
-            new TurretIOSim(),
-            new HoodIOSim(),
+            new TurretIOSpark(),
+            new HoodIOSpark(),
             new FlywheelIOSpark()
         );
 

@@ -38,6 +38,7 @@ public interface TurretIO {
   public default void setTurretVoltage(double volts) {}
 
   public default void setTurretPosition(double position, double ff) {}
+  public default void setTurretPosition(double position) {}
 
   public default double getTurretPosition() {return 0.0;}
   public default double getTurretVelocity() {return 0.0;}

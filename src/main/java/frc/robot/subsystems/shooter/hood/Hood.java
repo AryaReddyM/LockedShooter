@@ -39,7 +39,7 @@ public class Hood extends StateMachine<Hood.State> {
     }
 
     public void registerStateTransitions() {
-        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.UNDETERMINED);
+        addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.UNDETERMINED, State.TUNING);
     }
 
     public void registerStateCommands() {

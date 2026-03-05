@@ -35,7 +35,7 @@ public class HoodIOSpark implements HoodIO{
 
     public HoodIOSpark(){
 
-    hood = new SparkMax(0, MotorType.kBrushless);
+    hood = new SparkMax(HoodConstants.kHoodCanID, MotorType.kBrushless);
 
     hoodEncoder = hood.getEncoder();
 
@@ -70,17 +70,26 @@ public class HoodIOSpark implements HoodIO{
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
 
+    hoodConfig
+        .softLimit
+        .forwardSoftLimit(HoodConstants.kHoodMaxLimit)
+        .forwardSoftLimitEnabled(true)
+        .reverseSoftLimit(HoodConstants.kHoodMinLimit)
+        .reverseSoftLimitEnabled(true);
+
     hood.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     hood.clearFaults();
+
+    hoodEncoder.setPosition(HoodConstants.kHoodMinLimit);
 
     SparkUtil.tunePID(
             "Hood",
             hood,
             hoodConfig,
-            new double[] {HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD, 0,0,0,0, HoodConstants.kHoodMaxAccel, HoodConstants.kHoodCruiseVel, HoodConstants.kHoodCruiseVel},
+            new double[] {HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD, HoodConstants.kHoodS, HoodConstants.kHoodV, HoodConstants.kHoodA, HoodConstants.kHoodG, HoodConstants.kHoodMaxAccel, HoodConstants.kHoodCruiseVel, HoodConstants.kHoodCruiseVel},
             ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters,
-                false,
+                true,
                 true
         );
 
@@ -107,7 +116,7 @@ public class HoodIOSpark implements HoodIO{
     @Override
     public void setHoodPosition(double position, double ff) {
         this.desiredPos = position;
-        hoodController.setSetpoint(position, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
+        hoodController.setSetpoint(position, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
     }
 
     @Override

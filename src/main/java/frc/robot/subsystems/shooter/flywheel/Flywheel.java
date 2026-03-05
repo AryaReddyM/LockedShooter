@@ -16,7 +16,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
     private final RobotState state;
     private final FlywheelIO flywheelIO;
     private final FlywheelIOInputsAutoLogged inputs = new FlywheelIOInputsAutoLogged();
-    private double tunedSetpoint = 400.0;
+    private double tunedSetpoint = 100.0;
 
     private Supplier<Double> override;
 

@@ -17,7 +17,10 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import dev.doglog.DogLog;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -30,7 +33,7 @@ public class TurretIOSpark implements TurretIO {
     // Hardware objects
     private final SparkMax turret;
 
-    private final AbsoluteEncoder turretAbsoluteEncoder;
+    private final RelativeEncoder turretAbsoluteEncoder;
 
     // Closed loop controllers
     private final SparkClosedLoopController turretController;
@@ -39,9 +42,9 @@ public class TurretIOSpark implements TurretIO {
     private double desiredPos = 0.0;
 
     public TurretIOSpark() {
-        turret = new SparkMax(0, MotorType.kBrushless);
+        turret = new SparkMax(TurretConstants.kTurretCanId, MotorType.kBrushless);
 
-        turretAbsoluteEncoder = turret.getAbsoluteEncoder();
+        turretAbsoluteEncoder = turret.getEncoder();
 
         turretController = turret.getClosedLoopController();
 
@@ -100,6 +103,10 @@ public class TurretIOSpark implements TurretIO {
             latencyCompensatedMS = newVal;
         });
 
+        SmartDashboard.putData("Turret/Zero", new InstantCommand(() -> {
+            turretAbsoluteEncoder.setPosition(0);
+        }));
+
         
     }
 
@@ -131,8 +138,16 @@ public class TurretIOSpark implements TurretIO {
 
     @Override
     public void setTurretPosition(double position, double ff) {
+        position = MathUtil.inputModulus(position, TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit);
         this.desiredPos = position;
         turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0 ,ff, ArbFFUnits.kVoltage);
+    }
+
+    @Override
+    public void setTurretPosition(double position) {
+        position = MathUtil.inputModulus(position, TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit);
+        this.desiredPos = position;
+        turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl);
     }
 
     @Override

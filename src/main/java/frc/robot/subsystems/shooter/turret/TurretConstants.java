@@ -17,15 +17,17 @@ import frc.robot.util.TurretCalculator.ShotData;
 
 // Turret PID
 public class TurretConstants {
-    public static final double kTurretP = 0;
+    public static final int kTurretCanId = 24;
+
+    public static final double kTurretP = 1.26;
     public static final double kTurretI = 0;
     public static final double kTurretD = 0;
     public static final double kTurretS = 0;
     public static final double kTurretV = 0;
     public static final double kTurretA = 0;
     public static final double kTurretG = 0;
-    public static final double kTurretMaxAccel = 0;
-    public static final double kTurretCruiseVel = 0;
+    public static final double kTurretMaxAccel = 8000;
+    public static final double kTurretCruiseVel = 70000;
     public static final double kTurretDeviationErr = 0;
 
     public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
@@ -102,7 +104,7 @@ public class TurretConstants {
         }
 
         public static final Distance kdistanceAboveFunnel = Inches.of(20);
-        public static final Angle kMinTurnAngle = Rotations.of(-0.55);
-        public static final Angle kMaxTurnAngle = Rotations.of(0.55);
+        public static final Angle kMinTurnAngle = Radians.of(kBackwardSoftLimit);
+        public static final Angle kMaxTurnAngle = Radians.of(kForwardSoftLimit);
     
 }
