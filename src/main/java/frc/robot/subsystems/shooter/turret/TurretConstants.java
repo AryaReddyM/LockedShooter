@@ -2,6 +2,7 @@ package frc.robot.subsystems.shooter.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
@@ -14,6 +15,9 @@ import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.math.interpolation.InverseInterpolator;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
+import frc.robot.util.TurretCalculator;
 import frc.robot.util.TurretCalculator.ShotData;
 
 // Turret PID
@@ -50,8 +54,6 @@ public class TurretConstants {
 
     public static final double latencyComepnsationMS = 20.0;
 
-    public static final double kMinOutputRange = 0;
-    public static final double kMaxOutputRange = 2 * Math.PI;
     public static final double kForwardSoftLimit = Math.PI;
     public static final double kBackwardSoftLimit = -Math.PI;
     
@@ -100,13 +102,13 @@ public class TurretConstants {
             // SHOT_MAP.put(1.55, new ShotData(RPM.of(2275), Degrees.of(15)));
             // TOF_MAP.put(1.55, 1.23);
 
-            SHOT_MAP.put(2.947297, new ShotData(RadiansPerSecond.of(230.315558), Radians.of(0.431984)));
+            SHOT_MAP.put(2.947297, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(21, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radians.of(0.431984)));
             TOF_MAP.put(2.947297, 1.4);
 
-            SHOT_MAP.put(3.409922, new ShotData(RadiansPerSecond.of(238.052691), Radians.of(0.492857)));
+            SHOT_MAP.put(3.409922,new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(21.2, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radians.of(0.492857)));
             TOF_MAP.put(0.492857, 1.3);
 
-            SHOT_MAP.put(4.310985, new ShotData(RadiansPerSecond.of(255.432842), Radians.of(0.562425)));
+            SHOT_MAP.put(4.310985, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(22.5, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radians.of(0.562425)));
             TOF_MAP.put(4.310985, 1.42);
 
             // SHOT_MAP.put(distance, RadiansPerSecond.of(Flywheel.omegaRadPerSec), Radians.of(hood.pos));

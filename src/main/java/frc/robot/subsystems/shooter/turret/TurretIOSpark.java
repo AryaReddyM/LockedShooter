@@ -61,7 +61,7 @@ public class TurretIOSpark implements TurretIO {
                 .velocityConversionFactor(TurretConstants.kTurretVelocityConversionFactor);
         turretConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                .positionWrappingInputRange(TurretConstants.kMinOutputRange, TurretConstants.kMaxOutputRange)
+                .positionWrappingInputRange(TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit)
                 .positionWrappingEnabled(false)
                 .pid(TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD).maxMotion
                 .maxAcceleration(TurretConstants.kTurretMaxAccel)

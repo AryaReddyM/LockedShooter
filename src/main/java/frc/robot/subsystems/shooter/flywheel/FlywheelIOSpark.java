@@ -72,6 +72,7 @@ public class FlywheelIOSpark implements FlywheelIO{
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(true)
+        .outputRange(0,1)
         .pid(FlywheelConstants.kFlywheelP, FlywheelConstants.kFlywheelI, FlywheelConstants.kFlywheelD)
         .maxMotion
         .maxAcceleration(FlywheelConstants.kFlywheelMaxAccel)
@@ -140,17 +141,17 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public void setFlywheelSpeed(double speed, double ff) {
-        setFlywheelSpeed(speed);
-        // flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
+        // setFlywheelSpeed(speed);
+        flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
     }
 
     @Override
     public void setFlywheelSpeed(double speed) {
-        //flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
-        double currentVelocity = flywheelEncoder.getVelocity();
-        double bangBangOutput = flywheelBangBangController.calculate(currentVelocity, speed);
-        double ff = FlywheelConstants.kFlywheelS + FlywheelConstants.kFlywheelV * speed;
-        flywheel.setVoltage(bangBangOutput * 12.0 + ff);
+        flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
+        // double currentVelocity = flywheelEncoder.getVelocity();
+        // double bangBangOutput = flywheelBangBangController.calculate(currentVelocity, speed);
+        // double ff = FlywheelConstants.kFlywheelS + FlywheelConstants.kFlywheelV * speed;
+        // flywheel.setVoltage(bangBangOutput * 12.0 + ff);
     }
 
     @Override
@@ -160,7 +161,13 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public boolean isAtSpeed(double speed, double tolerance) {
-        return flywheelBangBangController.atSetpoint();
+        // if (speed < 1) {
+        //     return false;
+        // }
+        // double currentVelocity = flywheelEncoder.getVelocity();
+        return true;
+        // return Math.abs(currentVelocity - speed) < tolerance;
+        // return flywheelBangBangController.atSetpoint();
     }
   }
 
