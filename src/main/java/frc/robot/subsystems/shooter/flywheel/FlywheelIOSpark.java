@@ -17,9 +17,14 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import dev.doglog.DogLog;
+import dev.doglog.internal.tunable.Tunable;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.controller.BangBangController;
 import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.util.SparkUtil;
 
@@ -31,6 +36,8 @@ public class FlywheelIOSpark implements FlywheelIO{
     // Hardware objects
     private final SparkFlex flywheel;
     private final SparkFlex flywheelFollower;
+    private final BangBangController flywheelBangBangController;
+
 
     @SuppressWarnings("unused")
     private final RelativeEncoder flywheelEncoder;
@@ -47,6 +54,8 @@ public class FlywheelIOSpark implements FlywheelIO{
     flywheelEncoder = flywheel.getEncoder();
 
     flywheelController = flywheel.getClosedLoopController();
+    flywheelBangBangController = new BangBangController(); // need to add a tolerance
+;
 
     // Configure extention motor
     SparkFlexConfig flywheelConfig = new SparkFlexConfig();
@@ -95,7 +104,9 @@ public class FlywheelIOSpark implements FlywheelIO{
     flywheelFollower.configure(flywheelFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flywheel.clearFaults();
 
-
+    DogLog.tunable("Flywheel/Tolerance", FlywheelConstants.kFlywheelSpeedTolerance, (a) -> {
+        flywheelBangBangController.setTolerance(a);
+    });
 
 
     SparkUtil.tunePID(
@@ -129,12 +140,17 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public void setFlywheelSpeed(double speed, double ff) {
-        flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
+        setFlywheelSpeed(speed);
+        // flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl, ClosedLoopSlot.kSlot0, ff, ArbFFUnits.kVoltage);
     }
 
     @Override
     public void setFlywheelSpeed(double speed) {
-        flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
+        //flywheelController.setSetpoint(speed, ControlType.kMAXMotionVelocityControl);
+        double currentVelocity = flywheelEncoder.getVelocity();
+        double bangBangOutput = flywheelBangBangController.calculate(currentVelocity, speed);
+        double ff = FlywheelConstants.kFlywheelS + FlywheelConstants.kFlywheelV * speed;
+        flywheel.setVoltage(bangBangOutput * 12.0 + ff);
     }
 
     @Override
@@ -144,10 +160,7 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public boolean isAtSpeed(double speed, double tolerance) {
-        if (Math.abs(flywheelController.getSetpoint() - speed) < tolerance) {
-            return true;
-        }
-        return false;
+        return flywheelBangBangController.atSetpoint();
     }
   }
 
