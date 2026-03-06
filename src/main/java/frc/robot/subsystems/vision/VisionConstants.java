@@ -38,7 +38,7 @@ public class VisionConstants {
         // // CHASSIS LIMELIGHT
         public static final double kCameraBPitchDegrees = 45.0;
         public static final double kCameraBYawDegrees = 180; // this is added to robot orientation
-        public static final double kCameraBRollDegrees = 180.0;
+        public static final double kCameraBRollDegrees = 0.0;
         public static final double kCameraBForwardMeters = Units.inchesToMeters(13);
         public static final double kCameraBRightMeters = Units.inchesToMeters(0.75);
         public static final double kCameraBHeightOffGroundMeters = Units.inchesToMeters(5.75); // verify for practice

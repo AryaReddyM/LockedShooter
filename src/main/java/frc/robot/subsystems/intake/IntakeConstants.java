@@ -15,7 +15,7 @@ public class IntakeConstants {
     public static final int kExtensionFollowerCanID = 47;
 
     // Roller PID
-    public static final double kRollerP = 0.12;
+    public static final double kRollerP = 0.022;
     public static final double kRollerI = 0;
     public static final double kRollerD = 0;
 
@@ -52,8 +52,8 @@ public class IntakeConstants {
     // setpoints
 
     public static final double kExtensionStowSetpoint = 5;
-    public static final double kExtensionIntakeSetpoint = 93;
-    public static final double kExtensionOuttakeSetpoint = 93;
+    public static final double kExtensionIntakeSetpoint = 96;
+    public static final double kExtensionOuttakeSetpoint = 96;
     public static final double kExtensionClimbTowSetpoint = 50;
 
     public static final double kExtensionMax = 100.0;

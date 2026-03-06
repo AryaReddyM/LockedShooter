@@ -52,7 +52,7 @@ public record MegatagPoseEstimate(
                 poseEstimate.timestampSeconds,
                 poseEstimate.latency,
                 poseEstimate.avgTagArea,
-                fiducialIds.length > 1 ? 1.0 : 1.0 - poseEstimate.rawFiducials[0].ambiguity,
+                fiducialIds.length,
                 fiducialIds);
     }
 

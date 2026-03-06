@@ -211,7 +211,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   private void registerStateTransitions() {
     addOmniTransitions(State.IDLE, State.CROSSED, State.ALIGNING, State.PATHFINDING, State.SLOW, State.TRAVERSING,
-        State.TRAVERSING_AT_ANGLE);
+        State.TRAVERSING_AT_ANGLE, State.UNDETERMINED);
   }
 
   private void registerStateCommands() {

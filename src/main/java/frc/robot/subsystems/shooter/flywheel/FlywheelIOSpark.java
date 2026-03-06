@@ -20,6 +20,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.util.SparkUtil;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -76,6 +77,14 @@ public class FlywheelIOSpark implements FlywheelIO{
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
 
+     flywheelConfig
+        .closedLoop
+        .feedForward
+        .kS(FlywheelConstants.kFlywheelS)
+        .kV(FlywheelConstants.kFlywheelV)
+        .kA(FlywheelConstants.kFlywheelA)
+        .kG(FlywheelConstants.kFlywheelG);
+
     flywheel.configure(flywheelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     flywheel.clearFaults();
 
@@ -93,10 +102,10 @@ public class FlywheelIOSpark implements FlywheelIO{
         "Flywheel",
         flywheel,
         flywheelConfig,
-        new double[] {FlywheelConstants.kFlywheelP, FlywheelConstants.kFlywheelI, FlywheelConstants.kFlywheelD, 0,0,0,0, FlywheelConstants.kFlywheelMaxAccel, FlywheelConstants.kFlywheelCruiseVel, FlywheelConstants.kFlywheelDeviationErr},
+        new double[] {FlywheelConstants.kFlywheelP, FlywheelConstants.kFlywheelI, FlywheelConstants.kFlywheelD, FlywheelConstants.kFlywheelS, FlywheelConstants.kFlywheelV, FlywheelConstants.kFlywheelA, FlywheelConstants.kFlywheelG, FlywheelConstants.kFlywheelMaxAccel, FlywheelConstants.kFlywheelCruiseVel, FlywheelConstants.kFlywheelDeviationErr},
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters,
-        false,
+        true,
         true);
 
     }

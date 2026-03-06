@@ -154,7 +154,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
      * to trust the vision data.
      */
     private boolean isMotionValid(double timestamp, boolean isTurret, String logPath) {
-        final double kMaxAngularVel = Units.degreesToRadians(120.0);
+        final double kMaxAngularVel = Units.degreesToRadians(360.0);
         final double kWindow = 0.1; // 100ms window
 
         // Check Chassis movement
@@ -178,10 +178,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
             boolean isMT2) {
         int offset = isMT2 ? 6 : 0;
         // Use the LL4 provided standard deviations if available
-        return VecBuilder.fill(
-                cam.standardDeviations[offset],
-                cam.standardDeviations[offset + 1],
-                isMT2 ? 9999 : cam.standardDeviations[offset + 5]);
+        return VecBuilder.fill(0.2, 0.2, 99999999);
     }
 
     private Optional<VisionFieldPoseEstimate> fuseEstimates(

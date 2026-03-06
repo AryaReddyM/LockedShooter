@@ -61,6 +61,15 @@ public class HoodIOSpark implements HoodIO{
         .maxAcceleration(HoodConstants.kHoodMaxAccel)
         .cruiseVelocity(HoodConstants.kHoodCruiseVel)
         .allowedProfileError(HoodConstants.kHoodDeviationErr);
+
+    hoodConfig
+        .closedLoop
+        .feedForward
+        .kS(HoodConstants.kHoodS)
+        .kV(HoodConstants.kHoodV)
+        .kA(HoodConstants.kHoodA)
+        .kG(HoodConstants.kHoodG);
+
     hoodConfig
         .signals
         .primaryEncoderPositionAlwaysOn(true)

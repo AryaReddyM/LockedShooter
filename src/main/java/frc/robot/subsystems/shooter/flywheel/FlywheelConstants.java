@@ -19,6 +19,10 @@ public class FlywheelConstants {
     public static final double kFlywheelP = 0.04;
     public static final double kFlywheelI = 0;
     public static final double kFlywheelD = 0;
+    public static final double kFlywheelS = 0.0;
+    public static final double kFlywheelV = 0.0;
+    public static final double kFlywheelA = 0.0;
+    public static final double kFlywheelG = 0.0;
     public static final double kFlywheelMaxAccel = 100000000;
     public static final double kFlywheelCruiseVel = 100000000;
     public static final double kFlywheelDeviationErr = 0.01;

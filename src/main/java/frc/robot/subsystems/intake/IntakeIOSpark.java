@@ -211,7 +211,7 @@ public class IntakeIOSpark implements IntakeIO {
 
         @Override
         public void stopRollers() {
-                rollers.stopMotor();
+                setRollerSpeed(0);
         }
 
         @Override

@@ -53,9 +53,6 @@ public class VisionIOHardwareLimelight implements VisionIO {
 
     @Override
     public void readInputs(CameraInputsAutoLogged turretCamera, CameraInputsAutoLogged chassisCamera) {
-        readCameraData(tableA, turretCamera, VisionConstants.kLimelightTableName);
-        readCameraData(tableB, chassisCamera, VisionConstants.kLimelightBTableName);
-
         LimelightHelpers.SetIMUMode(VisionConstants.kLimelightTableName,
                 DriverStation.isEnabled() ? 4 : 1);
         LimelightHelpers.SetIMUMode(VisionConstants.kLimelightBTableName,
@@ -75,6 +72,9 @@ public class VisionIOHardwareLimelight implements VisionIO {
         LimelightHelpers.SetRobotOrientation(VisionConstants.kLimelightBTableName, gyroAngle.getDegrees(),
                 gyroAngularVelocity, 0, 0, 0, 0);
         
+        readCameraData(tableA, turretCamera, VisionConstants.kLimelightTableName);
+        readCameraData(tableB, chassisCamera, VisionConstants.kLimelightBTableName);
+        
         Logger.processInputs("Vision/Turret Camera", turretCamera);
         Logger.processInputs("Vision/Chassis Camera", chassisCamera);
     }
@@ -88,7 +88,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
                 var robotPose3d = LimelightHelpers.toPose3D(
                         LimelightHelpers.getBotPose(limelightName));
 
-                if (megatag != null) {
+                if (megatag != null && megatag.pose != null) {
                     camera.megatagPoseEstimate = MegatagPoseEstimate.fromLimelight(megatag);
                     camera.megatag2PoseEstimate = MegatagPoseEstimate.fromLimelight(megatag);
                     camera.megatag2Count = megatag.tagCount;
@@ -102,6 +102,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
                 table.getEntry("stddevs").getDoubleArray(DEFAULT_STDDEVS);
             } catch (Exception e) {
                 System.err.println("Error processing Limelight data: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

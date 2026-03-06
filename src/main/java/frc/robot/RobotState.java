@@ -734,8 +734,8 @@ public class RobotState extends StateMachine<RobotState.State> {
             // .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
             // .onFalse(ActionCommands.trackBasedOnPos(this));
 
-            // controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
-            // .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+            controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
+            .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
             controller
             .y()
