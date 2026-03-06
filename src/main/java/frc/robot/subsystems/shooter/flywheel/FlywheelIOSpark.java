@@ -12,23 +12,16 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkFlexConfig;
 
 import dev.doglog.DogLog;
-import dev.doglog.internal.tunable.Tunable;
-
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.math.controller.BangBangController;
-import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.util.SparkUtil;
-
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 
 public class FlywheelIOSpark implements FlywheelIO{
@@ -67,7 +60,11 @@ public class FlywheelIOSpark implements FlywheelIO{
     flywheelConfig
         .encoder
         .positionConversionFactor(FlywheelConstants.kFlywheelPositionConversionFactor)
-        .velocityConversionFactor(FlywheelConstants.kFlywheelVelocityConversionFactor);
+        .velocityConversionFactor(FlywheelConstants.kFlywheelVelocityConversionFactor)
+        .quadratureAverageDepth(10)
+        .quadratureMeasurementPeriod(2)
+        .uvwAverageDepth(10)
+        .uvwMeasurementPeriod(2);
     flywheelConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

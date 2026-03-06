@@ -48,7 +48,11 @@ public class KickerIOSpark implements KickerIO{
     kickerConfig
         .encoder
         .positionConversionFactor(KickerConstants.kKickerPositionConversionFactor)
-        .velocityConversionFactor(KickerConstants.kKickerVelocityConversionFactor);
+        .velocityConversionFactor(KickerConstants.kKickerVelocityConversionFactor)
+        .quadratureAverageDepth(10)
+        .quadratureMeasurementPeriod(2)
+        .uvwAverageDepth(10)
+        .uvwMeasurementPeriod(2);
     kickerConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

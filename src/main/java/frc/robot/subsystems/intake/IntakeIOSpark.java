@@ -88,7 +88,11 @@ public class IntakeIOSpark implements IntakeIO {
                                 .voltageCompensation(12.0);
                 extensionConfig.encoder
                                 .positionConversionFactor(IntakeConstants.kExtensionPositionConversionFactor)
-                                .velocityConversionFactor(IntakeConstants.kExtensionVelocityConversionFactor);
+                                .velocityConversionFactor(IntakeConstants.kExtensionVelocityConversionFactor)
+                                .quadratureAverageDepth(10)
+                                .quadratureMeasurementPeriod(2)
+                                .uvwAverageDepth(10)
+                                .uvwMeasurementPeriod(2);
                 extensionConfig.closedLoop
                                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                                 .positionWrappingEnabled(true)

@@ -50,7 +50,11 @@ public class HopperIOSpark implements HopperIO{
     hopperConfig
         .encoder
         .positionConversionFactor(HopperConstants.kHopperPositionConversionFactor)
-        .velocityConversionFactor(HopperConstants.kHopperVelocityConversionFactor);
+        .velocityConversionFactor(HopperConstants.kHopperVelocityConversionFactor)
+        .quadratureAverageDepth(10)
+        .quadratureMeasurementPeriod(2)
+        .uvwAverageDepth(10)
+        .uvwMeasurementPeriod(2);
     hopperConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

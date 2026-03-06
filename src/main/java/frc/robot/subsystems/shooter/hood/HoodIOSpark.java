@@ -52,7 +52,11 @@ public class HoodIOSpark implements HoodIO{
     hoodConfig
         .encoder
         .positionConversionFactor(HoodConstants.kHoodPositionConversionFactor)
-        .velocityConversionFactor(HoodConstants.kHoodVelocityConversionFactor);
+        .velocityConversionFactor(HoodConstants.kHoodVelocityConversionFactor)
+        .quadratureAverageDepth(10)
+        .quadratureMeasurementPeriod(2)
+        .uvwAverageDepth(10)
+        .uvwMeasurementPeriod(2);
     hoodConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
