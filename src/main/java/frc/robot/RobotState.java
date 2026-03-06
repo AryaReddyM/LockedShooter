@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -92,7 +94,7 @@ import frc.robot.subsystems.kicker.KickerIO;
 import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterConstants;
+import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
@@ -119,6 +121,7 @@ import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.TrenchZone;
+import frc.robot.util.TurretCalculator;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
@@ -328,48 +331,37 @@ public class RobotState extends StateMachine<RobotState.State> {
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
 
+        { // shooter
+            hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
+            passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-        // { // shooter
-        hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
-        passSupplier = ShooterSetpoint.passSetpointSupplier(this);
-
-        shooter = new Shooter(
-            this,
-            new TurretIOSpark(),
-            new HoodIOSpark(),
-            new FlywheelIOSpark()
-        );
-
-        // hubSupplier.get();
-        // passSupplier.get();
-
-        // switch (robotState) {
-        // case 1:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIOSpark(),
-        // new HoodIOSpark(),
-        // new FlywheelIOSpark());
-        // break;
-        // case 2:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIOSim(),
-        // new HoodIOSim(),
-        // new FlywheelIOSim());
-        // break;
-        // default:
-        // shooter = new Shooter(
-        // this,
-        // new TurretIO() {
-        // },
-        // new HoodIO() {
-        // },
-        // new FlywheelIO() {
-        // });
-        // break;
-        // }
-        // }
+            switch (robotState) {
+                case 1:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSpark(),
+                            new HoodIOSpark(),
+                            new FlywheelIOSpark());
+                    break;
+                case 2:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIOSim(),
+                            new HoodIOSim(),
+                            new FlywheelIOSim());
+                    break;
+                default:
+                    shooter = new Shooter(
+                            this,
+                            new TurretIO() {
+                            },
+                            new HoodIO() {
+                            },
+                            new FlywheelIO() {
+                            });
+                    break;
+            }
+        }
 
         { // climb
             switch (robotState) {
@@ -480,11 +472,11 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
-        // addChildSubsystem(shooter);
+        addChildSubsystem(shooter);
         addChildSubsystem(climb);
-        // addChildSubsystem(hopper);
-        // addChildSubsystem(intake);
-        // addChildSubsystem(kicker);
+        addChildSubsystem(hopper);
+        addChildSubsystem(intake);
+        addChildSubsystem(kicker);
         enable();
 
         Logger.recordOutput("Bumper/Pose", new Pose3d());
@@ -721,13 +713,13 @@ public class RobotState extends StateMachine<RobotState.State> {
         // driver 1 controller
         {
             controller
-            .leftTrigger(0.5)
-            .onTrue(intake.transitionCommand(Intake.State.INTAKE))
-            .onFalse(intake.transitionCommand(Intake.State.IDLE));
+                    .leftTrigger(0.5)
+                    .onTrue(intake.transitionCommand(Intake.State.INTAKE))
+                    .onFalse(intake.transitionCommand(Intake.State.IDLE));
 
             controller
-            .leftBumper()
-            .onTrue(intake.transitionCommand(Intake.State.STOW));
+                    .leftBumper()
+                    .onTrue(intake.transitionCommand(Intake.State.STOW));
 
             // controller
             // .rightTrigger(0.5)
@@ -735,12 +727,12 @@ public class RobotState extends StateMachine<RobotState.State> {
             // .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
-            .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
+                    .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
 
             controller
-            .y()
-            .whileTrue(ActionCommands.autoClimb(this))
-            .onFalse(climb.transitionCommand(Climb.State.STOW));
+                    .y()
+                    .whileTrue(ActionCommands.autoClimb(this))
+                    .onFalse(climb.transitionCommand(Climb.State.STOW));
 
             // controller
             // .a()
@@ -796,8 +788,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                         } else if (operatorController.x().getAsBoolean()) {
                             if (hopper != null)
                                 hopper.setOverride(null);
-                                if (kicker != null)
-                                    kicker.setOverride(null);
+                            if (kicker != null)
+                                kicker.setOverride(null);
                         } else if (operatorController.b().getAsBoolean() && intake != null) {
                             intake.setOverride(null);
                         } else if (operatorController.a().getAsBoolean() && shooter != null) {

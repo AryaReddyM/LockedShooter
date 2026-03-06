@@ -38,9 +38,13 @@ import org.littletonrobotics.junction.Logger;
 /** Add your docs here. */
 public class TurretCalculator {
     public static Distance getDistanceToTarget(RobotState state, Pose2d robot, Translation3d target) {
-        return Meters.of(robot.transformBy(
+        Distance dist = Meters.of(robot.transformBy(
             new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), new Rotation2d())
         ).getTranslation().getDistance(target.toTranslation2d()));
+
+        Logger.recordOutput("Actual Turret Calculator Distance", dist.in(Meters));
+
+        return dist;
     }
 
     // see https://www.desmos.com/geometry/l4edywkmha
@@ -228,7 +232,7 @@ public class TurretCalculator {
         }
 
         public Angle getHoodAngle() {
-            return Radians.of(this.hoodAngle);
+        return Radians.of(this.hoodAngle);
         }
 
         public Translation3d getTarget() {

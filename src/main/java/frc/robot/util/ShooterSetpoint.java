@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.RobotState;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.subsystems.shooter.turret.SetpointLogAutoLogged;
 import edu.wpi.first.math.MathUtil;
@@ -72,9 +71,7 @@ public class ShooterSetpoint {
                 (distanceToTarget * distanceToTarget + turretTarget.getZ() * turretTarget.getZ());
 
         // Compute shooter RPS
-        double shooterRPS = launchSpeedMetersPerSec /
-                GetTuned.getNumber("Shooter/Ball Launch Vel MPS per RPS",
-                        ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec);
+        double shooterRPS = launchSpeedMetersPerSec;
         if (overrideRPS.isPresent())
             shooterRPS = overrideRPS.get();
         boolean validSetpoint = true;

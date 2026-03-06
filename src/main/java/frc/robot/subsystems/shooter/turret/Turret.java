@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
@@ -76,13 +75,11 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                 if (state.getShooter().getState() == Shooter.State.PASSING
                         || state.getShooter().getState() == Shooter.State.PASS_TRACKING) {
                     turretVisualizer.updateFuel(state,
-                            MetersPerSecond.of(state.getCurrentPassSetpoint().getShooterRPS()
-                                    * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+                            MetersPerSecond.of(state.getCurrentPassSetpoint().getShooterRPS()),
                             Degrees.of(90).minus(Radians.of(state.getCurrentPassSetpoint().getHoodRadians())));
                 } else {
                     turretVisualizer.updateFuel(state,
-                            MetersPerSecond.of(state.getCurrentHubSetpoint().getShooterRPS()
-                                    * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+                            MetersPerSecond.of(state.getCurrentHubSetpoint().getShooterRPS()),
                             Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())));
                 }
 
@@ -93,8 +90,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
 
                     ShooterSetpoint currentSetpoint = (state.getShooter().getState() == Shooter.State.SHOOTING) ? state.getCurrentHubSetpoint() : state.getCurrentPassSetpoint();
                     state.getFuelSim().launchFuel(
-                            MetersPerSecond.of(currentSetpoint.getShooterRPS()
-                                    * ShooterConstants.kBallLaunchVelMetersPerSecPerRotPerSec),
+                            MetersPerSecond.of(currentSetpoint.getShooterRPS()),
                             Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
                             Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
                         Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
