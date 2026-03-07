@@ -60,9 +60,7 @@ public class TurretIOSpark implements TurretIO {
                 .positionConversionFactor(TurretConstants.kTurretPositionConversionFactor)
                 .velocityConversionFactor(TurretConstants.kTurretVelocityConversionFactor)
                 .quadratureAverageDepth(10)
-                .quadratureMeasurementPeriod(2)
-                .uvwAverageDepth(10)
-                .uvwMeasurementPeriod(2);
+                .quadratureMeasurementPeriod(2);
         turretConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                 .positionWrappingInputRange(TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit)

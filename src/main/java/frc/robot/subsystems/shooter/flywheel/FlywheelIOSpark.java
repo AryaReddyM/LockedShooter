@@ -62,9 +62,7 @@ public class FlywheelIOSpark implements FlywheelIO{
         .positionConversionFactor(FlywheelConstants.kFlywheelPositionConversionFactor)
         .velocityConversionFactor(FlywheelConstants.kFlywheelVelocityConversionFactor)
         .quadratureAverageDepth(10)
-        .quadratureMeasurementPeriod(2)
-        .uvwAverageDepth(10)
-        .uvwMeasurementPeriod(2);
+        .quadratureMeasurementPeriod(2);
     flywheelConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -115,7 +113,7 @@ public class FlywheelIOSpark implements FlywheelIO{
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters,
         true,
-        true);
+        false);
 
     }
 
