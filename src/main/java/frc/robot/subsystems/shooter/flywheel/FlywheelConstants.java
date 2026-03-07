@@ -16,7 +16,7 @@ public class FlywheelConstants {
 
 
     // Flywheel PID
-    public static final double kFlywheelP = 0.044;
+    public static final double kFlywheelP = 0.5;
     public static final double kFlywheelI = 0;
     public static final double kFlywheelD = 0;
     public static final double kFlywheelS = 0.0;
@@ -42,5 +42,5 @@ public class FlywheelConstants {
     public static final double kFlywheelSpeedTolerance = 0.4;
 
     // setpoints
-    public static final double kSlowSpeed = 10.0;
+    public static final double kSlowSpeed = 0.0;
 }

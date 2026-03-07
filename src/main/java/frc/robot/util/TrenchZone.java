@@ -11,7 +11,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 public class TrenchZone {
 
     // meters
-    static double HOOD_LOWER_RADIUS = 0.6;
+    static double HOOD_LOWER_RADIUS = 1.0;
     static double INTAKE_LOWER_RADIUS = 1.0;
     
 

@@ -721,10 +721,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .leftBumper()
                     .onTrue(intake.transitionCommand(Intake.State.STOW));
 
-            // controller
-            // .rightTrigger(0.5)
-            // .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-            // .onFalse(ActionCommands.trackBasedOnPos(this));
+            controller
+            .rightTrigger(0.5)
+            .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+            .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
                     .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
@@ -734,26 +734,25 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .whileTrue(ActionCommands.autoClimb(this))
                     .onFalse(climb.transitionCommand(Climb.State.STOW));
 
-            // controller
-            // .a()
-            // .onTrue(new InstantCommand(() -> {
-            // shooter.requestTransition(Shooter.State.OUTTAKE);
-            // intake.requestTransition(Intake.State.OUTAKE);
-            // }))
-            // .onFalse(new InstantCommand(() -> {
-            // ActionCommands.trackBasedOnPos(this);
-            // intake.requestTransition(Intake.State.OUTAKE);
-            // }));
+            controller
+            .a()
+            .onTrue(new InstantCommand(() -> {
+            shooter.requestTransition(Shooter.State.OUTTAKE);
+            intake.requestTransition(Intake.State.OUTAKE);
+            }))
+            .onFalse(new InstantCommand(() -> {
+            ActionCommands.trackBasedOnPos(this);
+            intake.requestTransition(Intake.State.OUTAKE);
+            }));
 
-            // controller
-            // .x()
-            // .whileTrue(ActionCommands.goToFixedPosAndShoot(this))
-            // .onFalse(new InstantCommand(() -> {
-            // shooter.getFlywheel().setOverride(null);
-            // shooter.getHood().setOverride(null);
-            // shooter.getTurret().setOverride(null);
-            // }));
-
+            controller
+            .x()
+            .whileTrue(ActionCommands.goToFixedPosAndShoot(this))
+            .onFalse(new InstantCommand(() -> {
+            shooter.getFlywheel().setOverride(null);
+            shooter.getHood().setOverride(null);
+            shooter.getTurret().setOverride(null);
+            }));
         }
 
         // driver two

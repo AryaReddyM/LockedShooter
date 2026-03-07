@@ -151,8 +151,8 @@ public class ActionCommands {
                     // () -> state.getClimb().getRightSensorDistance()),
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
-        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake()
-        // state.getShooter()
+        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake(),
+        state.getShooter()
         ));
     }
 
@@ -206,8 +206,8 @@ public class ActionCommands {
                     state.getClimb().transitionCommand(Climb.State.DOWN));
 
         }, Set.of(state.getDrive(), state.getClimb(),
-        state.getIntake()
-        // state.getShooter()
+        state.getIntake(),
+        state.getShooter()
         ));
     }
 
@@ -225,8 +225,8 @@ public class ActionCommands {
             double turretPos = GetTuned.getNumber("FixedPos/Turret", 3.0301607114946028);
 
             final double finalPos = turretPos;
-            final double shooterRps = GetTuned.getNumber("FixedPos/RPS", 119.7624492018563);
-            final double hoodPos = GetTuned.getNumber("FixedPos/Hood", 0.17588117203342102);
+            final double shooterRps = GetTuned.getNumber("FixedPos/RPS", 9.8);
+            final double hoodPos = GetTuned.getNumber("FixedPos/Hood", 0);
             final double hoodFF = GetTuned.getNumber("FixedPos/Hood FF", 0);
             final double turretFF = GetTuned.getNumber("FixedPos/Turret FF", 0);
 

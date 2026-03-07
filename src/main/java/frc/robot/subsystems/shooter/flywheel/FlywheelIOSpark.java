@@ -156,13 +156,10 @@ public class FlywheelIOSpark implements FlywheelIO{
 
     @Override
     public boolean isAtSpeed(double speed, double tolerance) {
-        // if (speed < 1) {
-        //     return false;
-        // }
-        // double currentVelocity = flywheelEncoder.getVelocity();
-        return true;
-        // return Math.abs(currentVelocity - speed) < tolerance;
-        // return flywheelBangBangController.atSetpoint();
+        if (speed < 1) {
+            return false;
+        }
+        return ((speed - tolerance) < flywheelEncoder.getVelocity());
     }
   }
 

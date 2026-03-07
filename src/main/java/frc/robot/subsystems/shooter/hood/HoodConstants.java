@@ -33,8 +33,8 @@ public class HoodConstants {
     public static final int kHoodCurrentLimit = 40;
 
     public static final double kHoodMaxSetpointUnderTrench = Units.degreesToRadians(10.0);
-    public static final double kHoodMinLimit = Units.degreesToRadians(25.0);
-    public static final double kHoodMaxLimit = Units.degreesToRadians(38.0) + kHoodMinLimit;
+    public static final double kHoodMinLimit = Units.degreesToRadians(20.0);
+    public static final double kHoodMaxLimit = Units.degreesToRadians(25.0) + kHoodMinLimit;
 
     // setpoints
     public static final Transform3d turretToHood = new Transform3d(new Translation3d(
