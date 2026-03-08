@@ -1,13 +1,8 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +13,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.ctre.phoenix6.swerve.jni.SwerveJNI.DriveState;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
@@ -41,13 +32,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -61,12 +46,8 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.ActionCommands;
-import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
-import frc.robot.commands.DriveCommands;
-import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
 import frc.robot.subsystems.climb.BeamBreakerIO;
 import frc.robot.subsystems.climb.BeamBreakerSim;
 import frc.robot.subsystems.climb.BeamBreakerTOF;
@@ -94,7 +75,6 @@ import frc.robot.subsystems.kicker.KickerIO;
 import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.subsystems.kicker.KickerIOSpark;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
@@ -113,15 +93,13 @@ import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.DynamicPathGenerator;
 import frc.robot.util.Elastic;
-import frc.robot.util.FuelSim;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
+import frc.robot.util.FuelSim;
 import frc.robot.util.MathHelpers;
-import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.TrenchZone;
-import frc.robot.util.TurretCalculator;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
@@ -273,6 +251,46 @@ public class RobotState extends StateMachine<RobotState.State> {
                             new ModuleIOSim(),
                             new ModuleIOSim(),
                             this);
+
+                    fuelSim.spawnStartingFuel();
+
+                    fuelSim.start();
+                    fuelSim.enableAirResistance();
+
+                    SmartDashboard.putData(Commands.runOnce(() -> {
+                        fuelSim.clearFuel();
+                        fuelSim.spawnStartingFuel();
+                    })
+                            .withName("Reset Fuel")
+                            .ignoringDisable(true));
+
+                    fuelSim.registerRobot(
+                            Meter.of(DriveConstants.trackWidth),
+                            Meter.of(DriveConstants.wheelBase),
+                            Meter.of(DriveConstants.kBumperHeight),
+                            () -> {
+                                Pose2d drivePose = getLatestFieldToRobot().getValue();
+                                return drivePose.transformBy(
+                                        new Transform2d(
+                                                VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(),
+                                                Rotation2d.kZero));
+                            },
+                            this::getLatestDesiredFieldRelativeChassisSpeed);
+
+                    fuelSim.registerIntake(
+                            Meters.of(DriveConstants.trackWidth +
+                                    Units.inchesToMeters(6)).div(2).in(Meters),
+                            Meters.of(DriveConstants.trackWidth +
+                                    Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
+                                    .in(Meters),
+                            -Meters.of(DriveConstants.trackWidth +
+                                    Units.inchesToMeters(6)).div(2).in(Meters),
+                            Meters.of(DriveConstants.trackWidth +
+                                    Units.inchesToMeters(6)).div(2).in(Meters),
+                            () -> intake.getState() == Intake.State.INTAKE,
+                            () -> {
+                                simFuelCount++;
+                            });
                     break;
                 default:
                     drive = new Drive(
@@ -288,45 +306,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                             }, this);
 
             }
-
-            fuelSim.spawnStartingFuel();
-
-            fuelSim.start();
-            fuelSim.enableAirResistance();
-
-            SmartDashboard.putData(Commands.runOnce(() -> {
-                fuelSim.clearFuel();
-                fuelSim.spawnStartingFuel();
-            })
-                    .withName("Reset Fuel")
-                    .ignoringDisable(true));
-
-            fuelSim.registerRobot(
-                    Meter.of(DriveConstants.trackWidth),
-                    Meter.of(DriveConstants.wheelBase),
-                    Meter.of(DriveConstants.kBumperHeight),
-                    () -> {
-                        Pose2d drivePose = getLatestFieldToRobot().getValue();
-                        return drivePose.transformBy(
-                                new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(),
-                                        Rotation2d.kZero));
-                    },
-                    this::getLatestDesiredFieldRelativeChassisSpeed);
-
-            // fuelSim.registerIntake(
-            // Meters.of(DriveConstants.trackWidth +
-            // Units.inchesToMeters(6)).div(2).in(Meters),
-            // Meters.of(DriveConstants.trackWidth +
-            // Units.inchesToMeters(6)).div(2).plus(Inches.of(8.5))
-            // .in(Meters),
-            // -Meters.of(DriveConstants.trackWidth +
-            // Units.inchesToMeters(6)).div(2).in(Meters),
-            // Meters.of(DriveConstants.trackWidth +
-            // Units.inchesToMeters(6)).div(2).in(Meters),
-            // () -> intake.getState() == Intake.State.INTAKE,
-            // () -> {
-            // simFuelCount++;
-            // });
 
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
         }
@@ -722,9 +701,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .onTrue(intake.transitionCommand(Intake.State.STOW));
 
             controller
-            .rightTrigger(0.5)
-            .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
-            .onFalse(ActionCommands.trackBasedOnPos(this));
+                    .rightTrigger(0.5)
+                    .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+                    .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
                     .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
@@ -735,24 +714,24 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .onFalse(climb.transitionCommand(Climb.State.STOW));
 
             controller
-            .a()
-            .onTrue(new InstantCommand(() -> {
-            shooter.requestTransition(Shooter.State.OUTTAKE);
-            intake.requestTransition(Intake.State.OUTAKE);
-            }))
-            .onFalse(new InstantCommand(() -> {
-            ActionCommands.trackBasedOnPos(this);
-            intake.requestTransition(Intake.State.OUTAKE);
-            }));
+                    .a()
+                    .onTrue(new InstantCommand(() -> {
+                        shooter.requestTransition(Shooter.State.OUTTAKE);
+                        intake.requestTransition(Intake.State.OUTAKE);
+                    }))
+                    .onFalse(new InstantCommand(() -> {
+                        ActionCommands.trackBasedOnPos(this);
+                        intake.requestTransition(Intake.State.OUTAKE);
+                    }));
 
             controller
-            .x()
-            .whileTrue(ActionCommands.goToFixedPosAndShoot(this))
-            .onFalse(new InstantCommand(() -> {
-            shooter.getFlywheel().setOverride(null);
-            shooter.getHood().setOverride(null);
-            shooter.getTurret().setOverride(null);
-            }));
+                    .x()
+                    .whileTrue(ActionCommands.goToFixedPosAndShoot(this))
+                    .onFalse(new InstantCommand(() -> {
+                        shooter.getFlywheel().setOverride(null);
+                        shooter.getHood().setOverride(null);
+                        shooter.getTurret().setOverride(null);
+                    }));
         }
 
         // driver two
@@ -1222,6 +1201,9 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public void updateSimulation() {
+        if (robotState != 2) {
+            return;
+        }
         fuelSim.updateSim();
     }
 

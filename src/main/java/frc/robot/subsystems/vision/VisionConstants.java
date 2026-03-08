@@ -23,6 +23,19 @@ public class VisionConstants {
         // Large variance used to downweight unreliable vision measurements
         public static final double kLargeVariance = 1e6;
 
+        public static final int[] validIds = new int[] {29,13,30,14,31,15, 32,16, 28,12,17,1, 23,7, 22,6, 26,10, 25,9,21,5,24,8, 18,2, 27,11, 20,4, 19,3};
+
+        public static double linearStdDevBaseline = 0.02; // Meters
+        public static double angularStdDevBaseline = 0.06;
+        public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
+        public static double angularStdDevMegatag2Factor =
+                Double.POSITIVE_INFINITY;
+
+        public static double[] cameraStdDevFactors =
+                new double[] {
+                        1.0, // Chassis
+                        1.3 // Turret
+                };
         // Limelight constants
         // TURRET LIMELIGHT
         // Pitch angle: How many radians the camera is pitched up around Y axis. 0 is

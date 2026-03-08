@@ -27,25 +27,38 @@ public class VisionIOHardwareLimelight implements VisionIO {
 
     /** Configures Limelight camera poses in robot coordinate system. */
     private void setLLSettings() {
-        double[] cameraAPose = {
-                0, // the only reason x and y are not used here is because with limelight, we are able to directly get the pose2d of the robot relative to the tag
-                0, // once we have that, this code automatically applies the needed offset to turn the camera pose to turret pose (offset in constant), which then is turned to robot pose thru getTurretToCamera(true)
-                VisionConstants.kCameraHeightOffGroundMeters,
-                0.0,
-                VisionConstants.kCameraPitchDegrees,
-                0
-        };
+
+        LimelightHelpers.SetIMUMode(VisionConstants.kLimelightTableName,
+                DriverStation.isEnabled() ? 4 : 1);
+        LimelightHelpers.SetIMUMode(VisionConstants.kLimelightBTableName,
+                DriverStation.isEnabled() ? 4 : 1);
+        
+        LimelightHelpers.SetIMUAssistAlpha(VisionConstants.kLimelightTableName, 0.01); // faster tracking (less precise?)
+        LimelightHelpers.SetIMUAssistAlpha(VisionConstants.kLimelightBTableName, 0.01);
+        
+        LimelightHelpers.SetFiducialIDFiltersOverride(VisionConstants.kLimelightTableName, VisionConstants.validIds);
+        LimelightHelpers.SetFiducialIDFiltersOverride(VisionConstants.kLimelightBTableName, VisionConstants.validIds);
+
+        
+        // double[] cameraAPose = {
+        //         0, // the only reason x and y are not used here is because with limelight, we are able to directly get the pose2d of the robot relative to the tag
+        //         0, // once we have that, this code automatically applies the needed offset to turn the camera pose to turret pose (offset in constant), which then is turned to robot pose thru getTurretToCamera(true)
+        //         VisionConstants.kCameraHeightOffGroundMeters,
+        //         0.0,
+        //         VisionConstants.kCameraPitchDegrees,
+        //         0
+        // };
 
         // tableA.getEntry("camerapose_robotspace_set").setDoubleArray(cameraAPose);
 
-        double[] cameraBPose = {
-                VisionConstants.kCameraBForwardMeters, // for this, we need to just do it constantly. no biggie
-                VisionConstants.kCameraBRightMeters,
-                VisionConstants.kCameraBHeightOffGroundMeters,
-                VisionConstants.kCameraBRollDegrees,
-                VisionConstants.kCameraBPitchDegrees,
-                VisionConstants.kCameraBYawDegrees
-        };
+        // double[] cameraBPose = {
+        //         VisionConstants.kCameraBForwardMeters, // for this, we need to just do it constantly. no biggie
+        //         VisionConstants.kCameraBRightMeters,
+        //         VisionConstants.kCameraBHeightOffGroundMeters,
+        //         VisionConstants.kCameraBRollDegrees,
+        //         VisionConstants.kCameraBPitchDegrees,
+        //         VisionConstants.kCameraBYawDegrees
+        // };
 
         // tableB.getEntry("camerapose_robotspace_set").setDoubleArray(cameraBPose);
 
@@ -53,10 +66,7 @@ public class VisionIOHardwareLimelight implements VisionIO {
 
     @Override
     public void readInputs(CameraInputsAutoLogged turretCamera, CameraInputsAutoLogged chassisCamera) {
-        LimelightHelpers.SetIMUMode(VisionConstants.kLimelightTableName,
-                DriverStation.isEnabled() ? 4 : 1);
-        LimelightHelpers.SetIMUMode(VisionConstants.kLimelightBTableName,
-                DriverStation.isEnabled() ? 4 : 1);
+        setLLSettings();
 
         var gyroAngle = robotState.getLatestFieldToRobot().getValue().getRotation();
         var gyroAngularVelocity = Units.radiansToDegrees(robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
@@ -81,19 +91,30 @@ public class VisionIOHardwareLimelight implements VisionIO {
 
     private void readCameraData(
             NetworkTable table, VisionIO.CameraInputs camera, String limelightName) {
+        
         camera.seesTarget = table.getEntry("tv").getDouble(0) == 1.0;
         if (camera.seesTarget) {
             try {
                 var megatag = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+                var megatagOne = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+
                 var robotPose3d = LimelightHelpers.toPose3D(
                         LimelightHelpers.getBotPose(limelightName));
 
+                if (megatagOne != null && megatag.pose != null) {
+                    camera.megatagPoseEstimate = MegatagPoseEstimate.fromLimelight(megatagOne);
+                    camera.megatagCount = megatagOne.tagCount;
+                    camera.fiducialObservations = FiducialObservation.fromLimelight(megatagOne.rawFiducials);
+                    camera.megatagAvgDist = megatagOne.avgTagDist;
+                }
+
                 if (megatag != null && megatag.pose != null) {
-                    camera.megatagPoseEstimate = MegatagPoseEstimate.fromLimelight(megatag);
                     camera.megatag2PoseEstimate = MegatagPoseEstimate.fromLimelight(megatag);
                     camera.megatag2Count = megatag.tagCount;
                     camera.fiducialObservations = FiducialObservation.fromLimelight(megatag.rawFiducials);
+                    camera.megatag2avgDist = megatag.avgTagDist;
                 }
+
                 if (robotPose3d != null) {
                     camera.pose3d = robotPose3d;
                 }

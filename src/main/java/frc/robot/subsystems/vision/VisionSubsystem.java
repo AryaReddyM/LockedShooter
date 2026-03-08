@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
@@ -62,10 +63,18 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         var chassisEst = processCamera(chassisCamera, "Chassis", false);
 
         // Weighted Fusion
-        Optional<VisionFieldPoseEstimate> fused = fuseEstimates(turretEst, chassisEst);
+        // Optional<VisionFieldPoseEstimate> fused = fuseEstimates(turretEst, chassisEst);
 
-        if (fused.isPresent()) {
-            state.updateMegatagEstimate(fused.get());
+        // if (fused.isPresent()) {
+        //     state.updateMegatagEstimate(fused.get());
+        // }
+
+        if (turretEst.isPresent()) {
+            state.updateMegatagEstimate(turretEst.get());
+        }
+
+        if (chassisEst.isPresent()) {
+            state.updateMegatagEstimate(chassisEst.get());
         }
 
         Logger.recordOutput("Chassis Camera Visualization", new Pose3d(state.getLatestFieldToRobot().getValue()).plus(new Transform3d(
@@ -88,7 +97,20 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         // 1. Pick the best estimate (Prefer Megatag 2)
         boolean useMT2 = cam.megatag2PoseEstimate != null && cam.megatag2Count > 0;
         var estimate = useMT2 ? cam.megatag2PoseEstimate : cam.megatagPoseEstimate;
+
+        if (!useMT2 && cam.megatagCount <= 0) {
+            return Optional.empty();
+        }
+
         if (estimate == null) {
+            return Optional.empty();
+        }
+
+        if (estimate.fieldToRobot().equals(Pose2d.kZero)) {
+            return Optional.empty();
+        }
+
+        if (cam.fiducialObservations.length == 0) {
             return Optional.empty();
         }
 
@@ -115,7 +137,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         Pose2d fieldToRobot = estimate.fieldToRobot().plus(robotToCamera.get());
 
         // 5. Standard Deviation Calculation
-        Matrix<N3, N1> stdDevs = calculateStdDevs(cam, estimate, useMT2);
+        Matrix<N3, N1> stdDevs = calculateStdDevs(cam, estimate, useMT2, isTurret);
 
         if (isTurret)
             lastTurretTimestamp = timestamp;
@@ -175,10 +197,28 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
     }
 
     private Matrix<N3, N1> calculateStdDevs(VisionIO.CameraInputs cam, MegatagPoseEstimate est,
-            boolean isMT2) {
-        int offset = isMT2 ? 6 : 0;
-        // Use the LL4 provided standard deviations if available
-        return VecBuilder.fill(0.2, 0.2, 99999999);
+            boolean isMT2, boolean isTurret) {
+
+        int tagCount = isMT2 ? cam.megatag2Count : cam.megatagCount;
+        double avgDist = isMT2 ? cam.megatag2avgDist : cam.megatagAvgDist;
+
+        double stdDevFactor =
+            Math.pow(avgDist, 2.0) / tagCount;
+        double linearStdDev = VisionConstants.linearStdDevBaseline * stdDevFactor;
+        double angularStdDev = VisionConstants.angularStdDevBaseline * stdDevFactor;
+        
+        if (isMT2) {
+          linearStdDev *= VisionConstants.linearStdDevMegatag2Factor;
+          angularStdDev *= VisionConstants.angularStdDevMegatag2Factor;
+        }
+
+        int cameraIndex = isTurret ? 1 : 0;
+        if (cameraIndex < VisionConstants.cameraStdDevFactors.length) {
+          linearStdDev *= VisionConstants.cameraStdDevFactors[cameraIndex];
+          angularStdDev *= VisionConstants.cameraStdDevFactors[cameraIndex];
+        }
+
+        return VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev);
     }
 
     private Optional<VisionFieldPoseEstimate> fuseEstimates(

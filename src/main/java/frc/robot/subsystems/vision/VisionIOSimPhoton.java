@@ -121,6 +121,7 @@ public class VisionIOSimPhoton implements VisionIO {
                                         .average()
                                         .orElse(0.0);
 
+
                         // --- Quality heuristic (MegaTag2-like) ---
                         double quality = tagCount * avgArea;
 
@@ -167,6 +168,8 @@ public class VisionIOSimPhoton implements VisionIO {
                                                 avgArea,
                                                 quality,
                                                 fiducialIds);
+                                inputs.megatag2avgDist = 1.0;
+                                inputs.megatagAvgDist = 1.0;
 
                                 // Mirror for compatibility
                                 inputs.megatagPoseEstimate = inputs.megatag2PoseEstimate;

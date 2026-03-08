@@ -514,6 +514,7 @@ public class Autos {
             this.sequentialPathStrings = new String[] {
                     "Start Depot Side to Mid Intake",
                     "Mid Intake to Start Depot Side",
+                    "Start Depot Side to Mid Intake Second",
                     "Home Depot Far to Ladder Depot"
             };
         }
@@ -544,7 +545,7 @@ public class Autos {
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
+                                AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake Second")),
                                 new SequentialCommandGroup(
                                         new WaitCommand(0.6),
                                         state.getIntake().transitionCommand(Intake.State.INTAKE))),
@@ -588,6 +589,7 @@ public class Autos {
             this.sequentialPathStrings = new String[] {
                     "Start HP Side to Mid Intake",
                     "Mid Intake to Start HP Side",
+                    "Start HP Side to Mid Intake Second",
                     "Home HP Far to Ladder HP"
             };
         }
@@ -618,7 +620,7 @@ public class Autos {
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                         new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
+                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake Second")),
                                 new SequentialCommandGroup(
                                         new WaitCommand(0.6),
                                         state.getIntake().transitionCommand(Intake.State.INTAKE))),

@@ -22,6 +22,9 @@ public interface VisionIO {
         public int megatagCount = 0;
         public Pose3d pose3d = new Pose3d();
         public double[] standardDeviations = new double[12];
+
+        public double megatag2avgDist = 0;
+        public double megatagAvgDist = 0;
     }
 
 
