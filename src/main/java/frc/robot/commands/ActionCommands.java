@@ -215,7 +215,7 @@ public class ActionCommands {
         return new DeferredCommand(() -> {
             boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
             Pose2d goalPos = VisionConstants.Hub.nearFace.transformBy(new Transform2d(
-                new Translation2d(Units.inchesToMeters(30), 0), new Rotation2d()
+                new Translation2d(Units.inchesToMeters(80), 0), new Rotation2d()
             ));
 
             if (!isBlue) {

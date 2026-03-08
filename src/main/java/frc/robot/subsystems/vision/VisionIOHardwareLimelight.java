@@ -101,14 +101,16 @@ public class VisionIOHardwareLimelight implements VisionIO {
                 var robotPose3d = LimelightHelpers.toPose3D(
                         LimelightHelpers.getBotPose(limelightName));
 
-                if (megatagOne != null && megatag.pose != null) {
+                if (megatagOne != null && megatagOne.pose != null && !megatagOne.pose.getTranslation().equals(VisionConstants.kErrorPoseRed.getTranslation())) {
+
+
                     camera.megatagPoseEstimate = MegatagPoseEstimate.fromLimelight(megatagOne);
                     camera.megatagCount = megatagOne.tagCount;
                     camera.fiducialObservations = FiducialObservation.fromLimelight(megatagOne.rawFiducials);
                     camera.megatagAvgDist = megatagOne.avgTagDist;
                 }
 
-                if (megatag != null && megatag.pose != null) {
+                if (megatag != null && megatag.pose != null && !megatag.pose.getTranslation().equals(VisionConstants.kErrorPoseRed.getTranslation())) {
                     camera.megatag2PoseEstimate = MegatagPoseEstimate.fromLimelight(megatag);
                     camera.megatag2Count = megatag.tagCount;
                     camera.fiducialObservations = FiducialObservation.fromLimelight(megatag.rawFiducials);

@@ -98,7 +98,7 @@ public class ShooterSetpoint {
         TurretCalculator.ShotData shot;
         if (useMovingPrediction) {
             if (RobotState.robotState == 1) {
-                shot = TurretCalculator.iterativeMovingShotFromMap(robotState, robotPose, robotSpeeds, target, 3);
+                shot = TurretCalculator.iterativeMovingShotFromMap(robotState, robotPose, robotSpeeds, target, 10);
             } else {
                 shot = TurretCalculator.iterativeMovingShotFromFunnelClearance(robotState, robotPose, robotSpeeds, target, 3);
             }

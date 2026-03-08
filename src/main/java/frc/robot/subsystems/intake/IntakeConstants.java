@@ -51,16 +51,16 @@ public class IntakeConstants {
     public static int kExtensionCurrentLimit = 60;
     // setpoints
 
-    public static final double kExtensionStowSetpoint = 5;
-    public static final double kExtensionIntakeSetpoint = 96;
-    public static final double kExtensionOuttakeSetpoint = 96;
-    public static final double kExtensionClimbTowSetpoint = 50;
+    public static final double kExtensionStowSetpoint = -93;
+    public static final double kExtensionIntakeSetpoint = 0;
+    public static final double kExtensionOuttakeSetpoint = 0;
+    public static final double kExtensionClimbTowSetpoint = -50;
 
-    public static final double kExtensionMax = 100.0;
-    public static final double kExtensionMin = 0.0;
+    public static final double kExtensionMax = 0;
+    public static final double kExtensionMin = -96;
 
-    public static final double kRollerOuttakeSpeed = 34;
-    public static final double kRollerIntakeSpeed = -34;
+    public static final double kRollerOuttakeSpeed = 40;
+    public static final double kRollerIntakeSpeed = -40;
 
     public static final Transform3d intakeOrigin = new Transform3d(new Translation3d(
         Units.inchesToMeters(5),Units.inchesToMeters(0), Units.inchesToMeters(6.7)

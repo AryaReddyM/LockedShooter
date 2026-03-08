@@ -188,6 +188,12 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     registerStateCommands();
     enable();
 
+    SmartDashboard.putData("Swerve Zero", Commands.runOnce(
+        () -> this.setPose(
+            new Pose2d(this.getPose().getTranslation(), Rotation2d.kZero)),
+        this)
+        .ignoringDisable(true));
+        
     SmartDashboard.putData("Swerve Drive", new Sendable() {
       @Override
       public void initSendable(SendableBuilder builder) {
@@ -228,7 +234,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
           if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
             Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
             double degrees = currentPose.getRotation().getDegrees();
-            
 
             if (Math.abs(degrees) <= 90) {
               return Rotation2d.fromDegrees(0);
@@ -250,7 +255,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         },
         () -> {
           State currentState = getState();
-          if (TrenchZone.driveRotationOverrideRequired(robotState) && currentState == State.SLOW) {
+          if (currentState == State.SLOW) { // TrenchZone.driveRotationOverrideRequired(robotState) &&
             return State.TRAVERSING_AT_ANGLE;
           }
 

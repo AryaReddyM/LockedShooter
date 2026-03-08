@@ -515,7 +515,6 @@ public class Autos {
                     "Start Depot Side to Mid Intake",
                     "Mid Intake to Start Depot Side",
                     "Start Depot Side to Mid Intake Second",
-                    "Home Depot Far to Ladder Depot"
             };
         }
 
@@ -540,7 +539,7 @@ public class Autos {
 
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
-                        new WaitCommand(2),
+                        new WaitCommand(4),
 
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
@@ -569,13 +568,14 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
 
-                        new WaitCommand(3),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        // new WaitCommand(),
+                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
-                        AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot")),
-                        ActionCommands.autoClimb(state)).withName(this.name);
+                        // AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot"))
+                        // ActionCommands.autoClimb(state)
+                        ).withName(this.name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " +
                         e.getMessage()).withName(name + " (FAILED)");
@@ -590,7 +590,6 @@ public class Autos {
                     "Start HP Side to Mid Intake",
                     "Mid Intake to Start HP Side",
                     "Start HP Side to Mid Intake Second",
-                    "Home HP Far to Ladder HP"
             };
         }
 
@@ -615,7 +614,7 @@ public class Autos {
 
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
-                        new WaitCommand(2),
+                        new WaitCommand(4),
 
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
@@ -644,14 +643,15 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
 
-                        new WaitCommand(3),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        // new WaitCommand(3),
+                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
 
-                        AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP")),
-                        ActionCommands.autoClimb(state)).withName(this.name);
+                        // AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP"))
+                        // ActionCommands.autoClimb(state)
+                        ).withName(this.name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " +
                         e.getMessage()).withName(name + " (FAILED)");

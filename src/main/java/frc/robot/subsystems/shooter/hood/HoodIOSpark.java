@@ -15,6 +15,10 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -97,13 +101,16 @@ public class HoodIOSpark implements HoodIO{
             "Hood",
             hood,
             hoodConfig,
-            new double[] {HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD, HoodConstants.kHoodS, HoodConstants.kHoodV, HoodConstants.kHoodA, HoodConstants.kHoodG, HoodConstants.kHoodMaxAccel, HoodConstants.kHoodCruiseVel, HoodConstants.kHoodCruiseVel},
+            new double[] {HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD, HoodConstants.kHoodS, HoodConstants.kHoodV, HoodConstants.kHoodA, HoodConstants.kHoodG, HoodConstants.kHoodMaxAccel, HoodConstants.kHoodCruiseVel, HoodConstants.kHoodDeviationErr},
             ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters,
                 true,
                 true
         );
 
+    SmartDashboard.putData("Hood Zero", new InstantCommand(() -> {
+        hoodEncoder.setPosition(0);
+    }));
     }
 
     @Override

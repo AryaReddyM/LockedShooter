@@ -32,8 +32,8 @@ public class HoodConstants {
     public static final boolean kHoodinverted = false;
     public static final int kHoodCurrentLimit = 40;
 
-    public static final double kHoodMaxSetpointUnderTrench = Units.degreesToRadians(10.0);
-    public static final double kHoodMinLimit = Units.degreesToRadians(20.0);
+    public static final double kHoodMaxSetpointUnderTrench = Units.degreesToRadians(25.0);
+    public static final double kHoodMinLimit = Units.degreesToRadians(25.0);
     public static final double kHoodMaxLimit = Units.degreesToRadians(25.0) + kHoodMinLimit;
 
     // setpoints

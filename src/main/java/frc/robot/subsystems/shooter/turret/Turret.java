@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.util.GetTuned;
 import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.TurretVisualizer;
@@ -173,23 +174,24 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
     }
 
     public boolean isReady() {
-        boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
-            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+        return true;
+        // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
 
-            double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
-            double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+        //     double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+        //     double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
 
-            boolean shouldShoot = isBlue
-                    ? currentPose.getX() <= blueHubX
-                    : currentPose.getX() >= redHubX;
+        //     boolean shouldShoot = isBlue
+        //             ? currentPose.getX() <= blueHubX
+        //             : currentPose.getX() >= redHubX;
 
-            if (shouldShoot && RobotState.hubActivated.get()) {
-                return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
-                    - turretIO.getTurretPosition()) < Units.degreesToRadians(TurretConstants.kReadyToleranceDegrees);
-            } else {
-                return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
-                    - turretIO.getTurretPosition()) < Units.degreesToRadians(TurretConstants.kReadyToleranceDegrees);
-            }
+        //     if (shouldShoot && RobotState.hubActivated.get()) {
+        //         return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
+        //             - turretIO.getTurretPosition()) < Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance", TurretConstants.kReadyToleranceDegrees));
+        //     } else {
+        //         return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
+        //             - turretIO.getTurretPosition()) < Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance", TurretConstants.kReadyToleranceDegrees));
+        //     }
     }
 
     public Rotation2d getRotation() {

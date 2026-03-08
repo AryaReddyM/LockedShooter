@@ -689,6 +689,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                                     drive)
                                     .ignoringDisable(true));
         }
+
         // driver 1 controller
         {
             controller

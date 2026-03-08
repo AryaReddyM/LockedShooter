@@ -24,6 +24,7 @@ public class VisionConstants {
         public static final double kLargeVariance = 1e6;
 
         public static final int[] validIds = new int[] {29,13,30,14,31,15, 32,16, 28,12,17,1, 23,7, 22,6, 26,10, 25,9,21,5,24,8, 18,2, 27,11, 20,4, 19,3};
+        public static final Pose2d kErrorPoseRed = new Pose2d(8.364, 4.141, Rotation2d.fromDegrees(0));
 
         public static double linearStdDevBaseline = 0.02; // Meters
         public static double angularStdDevBaseline = 0.06;

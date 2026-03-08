@@ -95,7 +95,7 @@ public class TurretIOSpark implements TurretIO {
                 new double[] { TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD,
                         TurretConstants.kTurretS, TurretConstants.kTurretV, TurretConstants.kTurretA,
                         TurretConstants.kTurretG, TurretConstants.kTurretMaxAccel, TurretConstants.kTurretCruiseVel,
-                        TurretConstants.kTurretCruiseVel },
+                        TurretConstants.kTurretDeviationErr },
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters,
                 true,
