@@ -59,7 +59,7 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
         if (override != null) {
             override.accept(null);
         } else if (getState() == State.SHOOT) {
-            if (state.getShooter().getFlywheel().isReady()) {
+            if (state.getShooter().getFlywheel().isReady() && state.getShooter().getTurret().isReady()) {
                 shoot();
             } else {
                 stop();

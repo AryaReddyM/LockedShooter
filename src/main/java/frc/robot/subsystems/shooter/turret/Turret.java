@@ -13,15 +13,19 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import dev.doglog.DogLog;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.LinearVelocityUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -166,6 +170,26 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
                     - turretIO.getTurretPosition()) < tolerance;
         });
+    }
+
+    public boolean isReady() {
+        boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+
+            double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+            double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+
+            boolean shouldShoot = isBlue
+                    ? currentPose.getX() <= blueHubX
+                    : currentPose.getX() >= redHubX;
+
+            if (shouldShoot && RobotState.hubActivated.get()) {
+                return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
+                    - turretIO.getTurretPosition()) < Units.degreesToRadians(TurretConstants.kReadyToleranceDegrees);
+            } else {
+                return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
+                    - turretIO.getTurretPosition()) < Units.degreesToRadians(TurretConstants.kReadyToleranceDegrees);
+            }
     }
 
     public Rotation2d getRotation() {
