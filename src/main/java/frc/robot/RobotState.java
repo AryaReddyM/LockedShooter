@@ -734,6 +734,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                         shooter.getTurret().setOverride(null);
                     }));
 
+            controller
+                    .b()
+                    .whileTrue(ActionCommands.shakeIntake(this));
+
             { // flywheel multipliers
                 // controller.back().onTrue(new InstantCommand(() -> {
                 //     shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() + 0.05);

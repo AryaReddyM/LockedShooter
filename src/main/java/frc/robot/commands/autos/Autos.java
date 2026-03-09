@@ -59,8 +59,9 @@ public class Autos {
                     ),
 
                     state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    ActionCommands.shakeIntake(state).withTimeout(10),
 
-                    new WaitCommand(10),
+                    // new WaitCommand(10),
 
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
@@ -108,9 +109,10 @@ public class Autos {
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
                     ),
 
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),  
-
-                    new WaitCommand(10),
+                    state.getShooter().transitionCommand(Shooter.State.SHOOTING), 
+                    
+                    ActionCommands.shakeIntake(state).withTimeout(10), 
+                    // new WaitCommand(10),
 
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
@@ -160,8 +162,9 @@ public class Autos {
                     ),
 
                     state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    ActionCommands.shakeIntake(state).withTimeout(4),
 
-                    new WaitCommand(4),
+                    // new WaitCommand(4),
 
                     AutoBuilder.followPath(pathMap.get("Home Depot to Depot")),
 
@@ -170,11 +173,12 @@ public class Autos {
                         state.getIntake().transitionCommand(Intake.State.INTAKE)
                     ),
                     new ParallelCommandGroup(
-                    state.getIntake().transitionCommand(Intake.State.IDLE),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
                     ),
 
-                    new WaitCommand(6),
+                    ActionCommands.shakeIntake(state).withTimeout(6),
+                    // new WaitCommand(6),
 
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
@@ -278,8 +282,8 @@ public class Autos {
                     ),
 
                     state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                    new WaitCommand(10),
+                    ActionCommands.shakeIntake(state).withTimeout(10),
+                    // new WaitCommand(10),
 
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
                     
@@ -329,8 +333,8 @@ public class Autos {
                     ),
 
                     state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                    new WaitCommand(4),
+                    ActionCommands.shakeIntake(state).withTimeout(4),
+                    // new WaitCommand(4),
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Home HP to HP")),
@@ -339,8 +343,8 @@ public class Autos {
                     ),
 
                     state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                    new WaitCommand(8),
+                    ActionCommands.shakeIntake(state).withTimeout(8),
+                    // new WaitCommand(8),
 
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
@@ -460,7 +464,8 @@ public class Autos {
                             new InstantCommand(() -> {
                                 state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                             }),
-                            new WaitCommand(2), // need to figure out 
+                            ActionCommands.shakeIntake(state).withTimeout(4),
+                            // new WaitCommand(2), // need to figure out 
                             new InstantCommand(() -> {
                                 state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
                             })
@@ -492,7 +497,8 @@ public class Autos {
                         new InstantCommand(() -> {
                             state.getShooter().requestTransition(Shooter.State.SHOOTING); 
                         }),
-                        new WaitCommand(5.5)//need to figure out
+                        ActionCommands.shakeIntake(state).withTimeout(5.5)
+                        // new WaitCommand(5.5)//need to figure out
                     ),
                     
                     new InstantCommand(() -> {
@@ -538,8 +544,8 @@ public class Autos {
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                        new WaitCommand(4),
+                        ActionCommands.shakeIntake(state).withTimeout(5),
+                        // new WaitCommand(4),
 
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
@@ -568,10 +574,11 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        ActionCommands.shakeIntake(state).withTimeout(8),
 
                         // new WaitCommand(),
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                         // AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot"))
                         // ActionCommands.autoClimb(state)
@@ -613,8 +620,8 @@ public class Autos {
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-
-                        new WaitCommand(4),
+                        ActionCommands.shakeIntake(state).withTimeout(5),
+                        // new WaitCommand(4),
 
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
@@ -643,10 +650,11 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        ActionCommands.shakeIntake(state).withTimeout(8),
 
                         // new WaitCommand(3),
-                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
 
                         // AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP"))

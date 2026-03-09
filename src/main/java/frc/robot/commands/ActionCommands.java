@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
@@ -57,6 +58,15 @@ public class ActionCommands {
                         new Pose2d(5, 5, Rotation2d.fromDegrees(0))),
                 Optional.empty(),
                 new GoalEndState(0, new Rotation2d()));
+    }
+
+    public static Command shakeIntake(RobotState state) {
+        return new RepeatCommand(new SequentialCommandGroup(
+            state.getIntake().transitionCommand(Intake.State.STOW),
+            new WaitCommand(2),
+            state.getIntake().transitionCommand(Intake.State.IDLE),
+            new WaitCommand(2)
+        ));
     }
 
     public static Command aimAndShoot(RobotState state) {
