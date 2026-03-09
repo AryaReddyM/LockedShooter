@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -20,6 +21,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.LinearVelocityUnit;
 import edu.wpi.first.units.measure.Angle;
@@ -69,6 +71,17 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
         registerStateTransitions();
         registerStateCommands();
         enable();
+
+        { // tof tuner
+            
+            for (double distance : TurretConstants.LOGGED_DISTANCES) {
+                double tof = TurretConstants.TOF_MAP.get(distance);
+                
+                DogLog.tunable("TOF Tuning/" + distance, tof, newtof -> {
+                    TurretConstants.TOF_MAP.put(distance, newtof);
+                });
+            }
+        }
     }
 
     @Override
@@ -88,17 +101,20 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                             Degrees.of(90).minus(Radians.of(state.getCurrentHubSetpoint().getHoodRadians())));
                 }
 
-                if ((state.getShooter().getState() == Shooter.State.SHOOTING || state.getShooter().getState() == Shooter.State.PASSING) && state.getSimFuelCount() > 0
+                if ((state.getShooter().getState() == Shooter.State.SHOOTING
+                        || state.getShooter().getState() == Shooter.State.PASSING) && state.getSimFuelCount() > 0
                         && (timer.hasElapsed(0.08))) {
                     state.setSimFuelCount(state.getSimFuelCount() - 1);
                     timer.reset();
 
-                    ShooterSetpoint currentSetpoint = (state.getShooter().getState() == Shooter.State.SHOOTING) ? state.getCurrentHubSetpoint() : state.getCurrentPassSetpoint();
+                    ShooterSetpoint currentSetpoint = (state.getShooter().getState() == Shooter.State.SHOOTING)
+                            ? state.getCurrentHubSetpoint()
+                            : state.getCurrentPassSetpoint();
                     state.getFuelSim().launchFuel(
                             MetersPerSecond.of(currentSetpoint.getShooterRPS()),
                             Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
                             Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
-                        Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
+                            Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
                 }
             }
             inputs.robotTurretPos = new Pose3d(
@@ -106,7 +122,8 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                     state.getLatestFieldToRobot().getValue().getY(),
                     0.0,
                     new Rotation3d(0.0, 0.0,
-                            state.getLatestFieldToRobot().getValue().getRotation().plus(Rotation2d.fromRadians(inputs.desiredPos)).getRadians()));
+                            state.getLatestFieldToRobot().getValue().getRotation()
+                                    .plus(Rotation2d.fromRadians(inputs.desiredPos)).getRadians()));
         }
         Logger.processInputs("Turret", inputs);
 
@@ -126,7 +143,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             }
         }
 
-        state.addTurretUpdates(RobotTime.getTimestampSeconds(), inputs.turretRotation2d, //inputs.turretRotation2d
+        state.addTurretUpdates(RobotTime.getTimestampSeconds(), inputs.turretRotation2d, // inputs.turretRotation2d
                 inputs.turretPos,
                 inputs.turretVelRadPerSec);
 
@@ -135,9 +152,8 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                         .plus(VisionConstants.kTurretToRobotCenter)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, 0, inputs.desiredPos)
-                        )));
-        Logger.recordOutput("Turret/Overriden", override!=null);
+                                new Rotation3d(0, 0, inputs.desiredPos))));
+        Logger.recordOutput("Turret/Overriden", override != null);
     }
 
     public void setPos(double position, double ff) {
@@ -175,23 +191,28 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
 
     public boolean isReady() {
         return true;
-        // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
-        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+        // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) ==
+        // Alliance.Blue;
+        // Pose2d currentPose = state.getLatestFieldToRobot().getValue();
 
-        //     double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
-        //     double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+        // double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+        // double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
 
-        //     boolean shouldShoot = isBlue
-        //             ? currentPose.getX() <= blueHubX
-        //             : currentPose.getX() >= redHubX;
+        // boolean shouldShoot = isBlue
+        // ? currentPose.getX() <= blueHubX
+        // : currentPose.getX() >= redHubX;
 
-        //     if (shouldShoot && RobotState.hubActivated.get()) {
-        //         return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
-        //             - turretIO.getTurretPosition()) < Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance", TurretConstants.kReadyToleranceDegrees));
-        //     } else {
-        //         return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
-        //             - turretIO.getTurretPosition()) < Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance", TurretConstants.kReadyToleranceDegrees));
-        //     }
+        // if (shouldShoot && RobotState.hubActivated.get()) {
+        // return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
+        // - turretIO.getTurretPosition()) <
+        // Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance",
+        // TurretConstants.kReadyToleranceDegrees));
+        // } else {
+        // return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
+        // - turretIO.getTurretPosition()) <
+        // Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance",
+        // TurretConstants.kReadyToleranceDegrees));
+        // }
     }
 
     public Rotation2d getRotation() {
