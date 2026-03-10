@@ -193,11 +193,7 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // vision initialization TODO
         {
-            fieldToRobot.addSample(0.0, MathHelpers.kPose2dZero);
-            robotToTurret.addSample(0.0, MathHelpers.kRotation2dZero);
-            turretAngularVelocity.addSample(0.0, 0.0);
-            driveYawAngularVelocity.addSample(0.0, 0.0);
-            turretPositionRadians.addSample(0.0, 0.0);
+            clearBuffers();
 
             visionEstimateConsumer = new Consumer<VisionFieldPoseEstimate>() {
                 @Override
@@ -520,7 +516,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("HP Side Quick Shoot Climb",
                 AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
-        autoChooser.addOption("Depot Side Circut Shoot (GAME)", AutoCommands.getAutoByName(this, "Depot Side Circut Shoot (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Circut Shoot (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side Circut Shoot (GAME)").get().getCommand(this));
 
         // Other autos
         // autoChooser.addOption("Valid Auto Template", new
@@ -578,6 +575,27 @@ public class RobotState extends StateMachine<RobotState.State> {
         // autoChooser.addOption(
         // "Drive SysId (Dynamic Reverse)",
         // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    }
+
+    public void clearBuffers() {
+        fieldToRobot.clear();
+        robotToTurret.clear();
+        turretAngularVelocity.clear();
+        driveYawAngularVelocity.clear();
+        turretPositionRadians.clear();
+
+        fieldToRobot.addSample(0.0, MathHelpers.kPose2dZero);
+        robotToTurret.addSample(0.0, MathHelpers.kRotation2dZero);
+        turretAngularVelocity.addSample(0.0, 0.0);
+        driveYawAngularVelocity.addSample(0.0, 0.0);
+        turretPositionRadians.addSample(0.0, 0.0);
+    }
+
+    public void resetBuffersToPose(Pose2d pose) {
+        double now = Timer.getFPGATimestamp();
+
+        fieldToRobot.clear();
+        fieldToRobot.addSample(now, pose);
     }
 
     private void setupNotis() {
@@ -682,13 +700,13 @@ public class RobotState extends StateMachine<RobotState.State> {
         // only works at home, cannot reset pose in a match
         if (DriverStation.getMatchType().equals(MatchType.None)) {
             // controller
-            //         .b()
-            //         .onTrue(
-            //                 Commands.runOnce(
-            //                         () -> drive.setPose(
-            //                                 new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-            //                         drive)
-            //                         .ignoringDisable(true));
+            // .b()
+            // .onTrue(
+            // Commands.runOnce(
+            // () -> drive.setPose(
+            // new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+            // drive)
+            // .ignoringDisable(true));
         }
 
         // driver 1 controller
@@ -722,7 +740,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                         intake.requestTransition(Intake.State.OUTAKE);
                     }))
                     .onFalse(new InstantCommand(() -> {
-                        hopper.requestTransition(Hopper.State.IDLE); //this is already done thru trackBasedOnPos
+                        hopper.requestTransition(Hopper.State.IDLE); // this is already done thru trackBasedOnPos
                         kicker.requestTransition(Kicker.State.IDLE);
                         ActionCommands.trackBasedOnPos(this);
                         intake.requestTransition(Intake.State.IDLE);
@@ -742,12 +760,14 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .whileTrue(ActionCommands.shakeIntake(this));
 
             { // flywheel multipliers
-                // controller.back().onTrue(new InstantCommand(() -> {
-                //     shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() + 0.05);
-                // }));
+              // controller.back().onTrue(new InstantCommand(() -> {
+              // shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() +
+              // 0.05);
+              // }));
 
                 // controller.back().onTrue(new InstantCommand(() -> {
-                //     shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() - 0.05);
+                // shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() -
+                // 0.05);
                 // }));
             }
         }
