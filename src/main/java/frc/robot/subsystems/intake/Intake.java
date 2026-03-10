@@ -32,7 +32,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     private Consumer<Object> override;
 
     public Intake(IntakeIO intakeIO, RobotState state) {
-        super("Intake", State.STOW, State.class);
+        super("Intake", State.UNDETERMINED, State.class);
         this.intakeIO = intakeIO;
         this.state = state;
 
@@ -58,7 +58,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                         .plus(IntakeConstants.intakeOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, -inputs.desiredExtensionPos, 0))));
+                                new Rotation3d(0, -(inputs.desiredExtensionPos + 90), 0))));
         Logger.recordOutput("Intake/ExtensionPose",
                 new Pose3d()
                         .plus(new Transform3d()).plus(new Transform3d(new Translation3d(
@@ -80,6 +80,8 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
             intakeidle();
         } else if (getState() == State.CLIMB_TOW) {
             climbTow();
+        } else if (getState() == State.SHAKE) {
+            shake();
         } else if (getState() == State.STOP) {
             stop();
         }
@@ -115,6 +117,11 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         intakeIO.setRollerSpeed(0);
     }
 
+    public void shake() {
+        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Shake Setpoint", IntakeConstants.kExtensionShakeSetpoint));
+        intakeIO.setRollerSpeed(0);
+    }
+
     public void intakeRoll() {
         intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
@@ -133,7 +140,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
     }
 
     private void registerStateTransitions() {
-        addOmniTransitions(State.STOW, State.IDLE, State.INTAKE, State.OUTAKE,State.CLIMB_TOW);
+        addOmniTransitions(State.STOW, State.IDLE, State.INTAKE, State.OUTAKE,State.CLIMB_TOW, State.SHAKE);
     }
 
     private void registerStateCommands() {
@@ -142,7 +149,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
 
     @Override
     protected void determineSelf() {
-        setState(State.STOW);
+        setState(State.IDLE);
     }
 
     public void setOverride(Consumer<Object> override) {
@@ -157,7 +164,8 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
         IDLE,
         INTAKE,
         OUTAKE,
-        CLIMB_TOW
+        CLIMB_TOW,
+        SHAKE
 
         // flags
 

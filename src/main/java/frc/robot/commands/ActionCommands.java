@@ -62,10 +62,10 @@ public class ActionCommands {
 
     public static Command shakeIntake(RobotState state) {
         return new RepeatCommand(new SequentialCommandGroup(
-            state.getIntake().transitionCommand(Intake.State.STOW),
-            new WaitCommand(2),
+            state.getIntake().transitionCommand(Intake.State.SHAKE),
+            new WaitCommand(0.6),
             state.getIntake().transitionCommand(Intake.State.IDLE),
-            new WaitCommand(2)
+            new WaitCommand(0.6)
         ));
     }
 
@@ -108,7 +108,7 @@ public class ActionCommands {
                     ? currentPose.getX() <= blueHubX
                     : currentPose.getX() >= redHubX;
 
-            if (shouldShoot && RobotState.hubActivated.get()) {
+            if (shouldShoot) {
                 return state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING);
             } else {
                 return state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING);

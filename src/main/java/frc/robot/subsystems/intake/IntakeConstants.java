@@ -55,6 +55,7 @@ public class IntakeConstants {
     public static final double kExtensionIntakeSetpoint = 0;
     public static final double kExtensionOuttakeSetpoint = 0;
     public static final double kExtensionClimbTowSetpoint = -50;
+    public static final double kExtensionShakeSetpoint = -60;
 
     public static final double kExtensionMax = 0;
     public static final double kExtensionMin = -96;

@@ -520,6 +520,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "Depot Side Quick Shoot Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("HP Side Quick Shoot Climb",
                 AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
+        autoChooser.addOption("Depot Side Circut Shoot (GAME)", AutoCommands.getAutoByName(this, "Depot Side Circut Shoot (GAME)").get().getCommand(this));
 
         // Other autos
         // autoChooser.addOption("Valid Auto Template", new
@@ -680,14 +681,14 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // only works at home, cannot reset pose in a match
         if (DriverStation.getMatchType().equals(MatchType.None)) {
-            controller
-                    .b()
-                    .onTrue(
-                            Commands.runOnce(
-                                    () -> drive.setPose(
-                                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-                                    drive)
-                                    .ignoringDisable(true));
+            // controller
+            //         .b()
+            //         .onTrue(
+            //                 Commands.runOnce(
+            //                         () -> drive.setPose(
+            //                                 new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+            //                         drive)
+            //                         .ignoringDisable(true));
         }
 
         // driver 1 controller
@@ -721,8 +722,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                         intake.requestTransition(Intake.State.OUTAKE);
                     }))
                     .onFalse(new InstantCommand(() -> {
+                        hopper.requestTransition(Hopper.State.IDLE); //this is already done thru trackBasedOnPos
+                        kicker.requestTransition(Kicker.State.IDLE);
                         ActionCommands.trackBasedOnPos(this);
-                        intake.requestTransition(Intake.State.OUTAKE);
+                        intake.requestTransition(Intake.State.IDLE);
                     }));
 
             controller

@@ -29,9 +29,9 @@ public class VisionIOHardwareLimelight implements VisionIO {
     private void setLLSettings() {
 
         LimelightHelpers.SetIMUMode(VisionConstants.kLimelightTableName,
-                DriverStation.isEnabled() ? 4 : 1);
+                DriverStation.isEnabled() ? 1 : 1);
         LimelightHelpers.SetIMUMode(VisionConstants.kLimelightBTableName,
-                DriverStation.isEnabled() ? 4 : 1);
+                DriverStation.isEnabled() ? 1 : 1);
         
         LimelightHelpers.SetIMUAssistAlpha(VisionConstants.kLimelightTableName, 0.01); // faster tracking (less precise?)
         LimelightHelpers.SetIMUAssistAlpha(VisionConstants.kLimelightBTableName, 0.01);

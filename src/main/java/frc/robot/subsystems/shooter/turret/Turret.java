@@ -73,10 +73,10 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
         enable();
 
         { // tof tuner
-            
+
             for (double distance : TurretConstants.LOGGED_DISTANCES) {
                 double tof = TurretConstants.TOF_MAP.get(distance);
-                
+
                 DogLog.tunable("TOF Tuning/" + distance, tof, newtof -> {
                     TurretConstants.TOF_MAP.put(distance, newtof);
                 });
@@ -190,29 +190,29 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
     }
 
     public boolean isReady() {
+        boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+        Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+
+        double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+        double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+
+        boolean shouldShoot = isBlue
+                ? currentPose.getX() <= blueHubX
+                : currentPose.getX() >= redHubX;
+
+        if (shouldShoot) {
+             Logger.recordOutput("Turret/Ready", Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
+                    - turretIO.getTurretPosition()) < Units.degreesToRadians(
+                            GetTuned.getNumber("Turret/Tolerance",
+                                    TurretConstants.kReadyToleranceDegrees)));
+        } else {
+            Logger.recordOutput("Turret/Ready", Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
+                    - turretIO.getTurretPosition()) < Units.degreesToRadians(
+                            GetTuned.getNumber("Turret/Tolerance",
+                                    TurretConstants.kReadyToleranceDegrees)));
+        }
+
         return true;
-        // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) ==
-        // Alliance.Blue;
-        // Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-
-        // double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
-        // double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
-
-        // boolean shouldShoot = isBlue
-        // ? currentPose.getX() <= blueHubX
-        // : currentPose.getX() >= redHubX;
-
-        // if (shouldShoot && RobotState.hubActivated.get()) {
-        // return Math.abs(state.getCurrentHubSetpoint().getTurretRadiansFromCenter()
-        // - turretIO.getTurretPosition()) <
-        // Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance",
-        // TurretConstants.kReadyToleranceDegrees));
-        // } else {
-        // return Math.abs(state.getCurrentPassSetpoint().getTurretRadiansFromCenter()
-        // - turretIO.getTurretPosition()) <
-        // Units.degreesToRadians(GetTuned.getNumber("Turret/Tolerance",
-        // TurretConstants.kReadyToleranceDegrees));
-        // }
     }
 
     public Rotation2d getRotation() {

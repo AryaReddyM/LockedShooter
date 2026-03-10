@@ -109,7 +109,7 @@ public class HoodIOSpark implements HoodIO{
         );
 
     SmartDashboard.putData("Hood Zero", new InstantCommand(() -> {
-        hoodEncoder.setPosition(0);
+        hoodEncoder.setPosition(HoodConstants.kHoodMinLimit);
     }));
     }
 

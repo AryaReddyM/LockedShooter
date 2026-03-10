@@ -25,15 +25,15 @@ import frc.robot.util.TurretCalculator.ShotData;
 public class TurretConstants {
     public static final int kTurretCanId = 24;
 
-    public static final double kTurretP = 0.9;
+    public static final double kTurretP = 0.91;
     public static final double kTurretI = 0;
     public static final double kTurretD = 0;
     public static final double kTurretS = 0;
     public static final double kTurretV = 0;
     public static final double kTurretA = 0;
     public static final double kTurretG = 0;
-    public static final double kTurretMaxAccel = 600;
-    public static final double kTurretCruiseVel = 300;
+    public static final double kTurretMaxAccel = 800;
+    public static final double kTurretCruiseVel = 600;
     public static final double kTurretDeviationErr = 1;
 
     public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
