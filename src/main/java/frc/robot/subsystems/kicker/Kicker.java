@@ -34,11 +34,11 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
         if (override != null) {
             override.accept(null);
         }else if (getState() == State.SHOOT) {
-            if (state.getShooter().getFlywheel().isReady() && state.getShooter().getTurret().isReady()) {
+            // if (state.getShooter().getFlywheel().isReady() && state.getShooter().getTurret().isReady()) {
                 shoot();
-            } else {
-                stop();
-            }
+            // } else {
+                // stop();
+            // }
         } else if (getState() == State.OUTAKE) {
             outtake();
         } else {

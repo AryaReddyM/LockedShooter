@@ -29,6 +29,7 @@ import frc.robot.RobotState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
 import frc.robot.util.DynamicPathGenerator;

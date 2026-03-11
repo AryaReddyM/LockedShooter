@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 public class DriveConstants {
 
   public static final double maxSpeedMetersPerSec = 5.265648;
+  public static final double maxSpeedMetersPerSecPathPlanner = 2.5;
   public static final double slowSpeedMetersPerSec = 2;
 
   public static final double odometryFrequency = 100.0; // Hz
@@ -115,7 +116,7 @@ public class DriveConstants {
       robotMOI,
       new ModuleConfig(
           wheelRadiusMeters,
-          maxSpeedMetersPerSec,
+          maxSpeedMetersPerSecPathPlanner,
           wheelCOF,
           driveGearbox.withReduction(driveMotorReduction),
           driveMotorCurrentLimit,
@@ -123,8 +124,8 @@ public class DriveConstants {
       moduleTranslations);
 
   public static final PathConstraints pathConstraint = new PathConstraints(
-        4.8,
-        5.0,
+        3.8,
+        3.0,
         Units.degreesToRadians(360), 
         Units.degreesToRadians(360)
     );
@@ -156,7 +157,7 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 3.2;
+  public static double kABDriveP = 2.5;
   public static double kABDriveI = 0.0;
   public static double kABDriveD = 0.0;
 

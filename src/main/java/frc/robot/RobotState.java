@@ -699,14 +699,14 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // only works at home, cannot reset pose in a match
         if (DriverStation.getMatchType().equals(MatchType.None)) {
-            // controller
-            // .b()
-            // .onTrue(
-            // Commands.runOnce(
-            // () -> drive.setPose(
-            // new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-            // drive)
-            // .ignoringDisable(true));
+            controller
+            .povDown()
+            .onTrue(
+            Commands.runOnce(
+            () -> drive.setPose(
+            new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+            drive)
+            .ignoringDisable(true));
         }
 
         // driver 1 controller
