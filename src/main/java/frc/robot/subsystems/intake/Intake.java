@@ -119,7 +119,7 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
 
     public void shake() {
         intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Shake Setpoint", IntakeConstants.kExtensionShakeSetpoint));
-        intakeIO.setRollerSpeed(0);
+        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
 
     public void intakeRoll() {

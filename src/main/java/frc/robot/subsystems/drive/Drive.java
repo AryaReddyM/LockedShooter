@@ -271,9 +271,9 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private void configureAutobuilder() {
     Elastic.sendNotification(new Notification().withTitle("Auto Builder").withDescription("Auto builder reset"));
     AutoBuilder.configure(
-        () -> robotState.getLatestFieldToRobot().getValue(),
+        this::getPose,
         this::setPose,
-        () -> robotState.getLatestRobotRelativeChassisSpeed(),
+        this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
             new PIDConstants(kABDriveP, kABDriveI, kABDriveD), new PIDConstants(kABTurnP, kABTurnI, kABTurnD)),
@@ -538,9 +538,10 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
+    poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+    robotState.resetBuffersToPose(pose);
     Elastic.sendNotification(
         new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
-    poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
   public void zeroGyro() {
