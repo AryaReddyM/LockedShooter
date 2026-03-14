@@ -43,7 +43,7 @@ public class IntakeConstants {
     public static final double kRollerPositionConversionFactor = 1.0;
     public static final double kRollerVelocityConversionFactor = 1.0/60.0;
 
-    public static int kRollerCurrentLimit = 70;
+    public static int kRollerCurrentLimit = 80;
 
     public static final double kExtensionPositionConversionFactor = 360.0/23.0;
     public static final double kExtensionVelocityConversionFactor = (360.0/23.0) / 60.0;

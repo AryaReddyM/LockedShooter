@@ -62,14 +62,14 @@ public class HopperIOSpark implements HopperIO{
         .maxAcceleration(HopperConstants.kHopperMaxAccel)
         .cruiseVelocity(HopperConstants.kHopperCruiseVel)
         .allowedProfileError(HopperConstants.kHopperDeviationErr);
-    hopperConfig
-        .signals
-        .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderVelocityAlwaysOn(true)
-        .primaryEncoderVelocityPeriodMs(20)
-        .appliedOutputPeriodMs(20)
-        .busVoltagePeriodMs(20)
-        .outputCurrentPeriodMs(20);
+    // hopperConfig
+    //     .signals
+    //     .primaryEncoderPositionAlwaysOn(true)
+    //     .primaryEncoderVelocityAlwaysOn(true)
+    //     .primaryEncoderVelocityPeriodMs(20)
+    //     .appliedOutputPeriodMs(20)
+    //     .busVoltagePeriodMs(20)
+    //     .outputCurrentPeriodMs(20);
 
     hopper.configure(hopperConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     hopper.clearFaults();

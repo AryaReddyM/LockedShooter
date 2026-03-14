@@ -40,6 +40,7 @@ public class TurretIOSpark implements TurretIO {
 
     private double latencyCompensatedMS = TurretConstants.latencyComepnsationMS;
     private double desiredPos = 0.0;
+    private boolean turretDisabled = false;
 
     public TurretIOSpark() {
         turret = new SparkMax(TurretConstants.kTurretCanId, MotorType.kBrushless);
@@ -109,7 +110,13 @@ public class TurretIOSpark implements TurretIO {
             turretAbsoluteEncoder.setPosition(0);
         }));
 
-        
+        SmartDashboard.putData("Turret/Disable", new InstantCommand(() -> {
+            turretDisabled = true;
+        }));
+        SmartDashboard.putData("Turret/Enable", new InstantCommand(() -> {
+            turretDisabled = false;
+            
+        }));
     }
 
     @Override
@@ -140,6 +147,10 @@ public class TurretIOSpark implements TurretIO {
 
     @Override
     public void setTurretPosition(double position, double ff) {
+        if (turretDisabled) {
+            return;
+        }
+
         position = MathUtil.inputModulus(position, TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit);
         this.desiredPos = position;
         turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl, ClosedLoopSlot.kSlot0 ,ff, ArbFFUnits.kVoltage);
@@ -147,6 +158,9 @@ public class TurretIOSpark implements TurretIO {
 
     @Override
     public void setTurretPosition(double position) {
+        if (turretDisabled) {
+            return;
+        }
         position = MathUtil.inputModulus(position, TurretConstants.kBackwardSoftLimit, TurretConstants.kForwardSoftLimit);
         this.desiredPos = position;
         turretController.setSetpoint(position, ControlType.kMAXMotionPositionControl);

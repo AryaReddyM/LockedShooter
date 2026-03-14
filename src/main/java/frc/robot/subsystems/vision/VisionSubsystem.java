@@ -95,9 +95,11 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
             return Optional.empty();
         }
         // 1. Pick the best estimate (Prefer Megatag 2)
-        boolean useMT2 = false;//cam.megatag2PoseEstimate != null && cam.megatag2Count > 0;
+        boolean useMT2 = cam.megatag2PoseEstimate != null && cam.megatag2Count > 0;
         var estimate = useMT2 ? cam.megatag2PoseEstimate : cam.megatagPoseEstimate;
 
+
+        
         if (!useMT2 && cam.megatagCount <= 0) {
             return Optional.empty();
         }

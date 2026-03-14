@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -97,13 +100,14 @@ import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.FuelSim;
 import frc.robot.util.MathHelpers;
+import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 2; // real, sim, replay
+    public final static int robotState = 1; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -1040,6 +1044,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public Map.Entry<Double, Pose2d> getLatestFieldToRobot() {
+        fieldToRobot.addSample(RobotTime.getTimestampSeconds(), drive.getPose());
         return fieldToRobot.getLatest();
     }
 

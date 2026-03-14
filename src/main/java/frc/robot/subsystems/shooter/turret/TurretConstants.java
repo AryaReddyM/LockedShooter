@@ -32,8 +32,8 @@ public class TurretConstants {
     public static final double kTurretV = 0;
     public static final double kTurretA = 0;
     public static final double kTurretG = 0;
-    public static final double kTurretMaxAccel = 800;
-    public static final double kTurretCruiseVel = 600;
+    public static final double kTurretMaxAccel = 1200;
+    public static final double kTurretCruiseVel = 800;
     public static final double kTurretDeviationErr = 1;
 
     public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);

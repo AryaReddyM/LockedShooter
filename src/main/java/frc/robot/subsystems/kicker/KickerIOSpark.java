@@ -60,14 +60,14 @@ public class KickerIOSpark implements KickerIO{
         .maxAcceleration(KickerConstants.kKickerMaxAccel)
         .cruiseVelocity(KickerConstants.kKickerCruiseVel)
         .allowedProfileError(KickerConstants.kKickerDeviationErr);
-    kickerConfig
-        .signals
-        .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderVelocityAlwaysOn(true)
-        .primaryEncoderVelocityPeriodMs(20)
-        .appliedOutputPeriodMs(20)
-        .busVoltagePeriodMs(20)
-        .outputCurrentPeriodMs(20);
+    // kickerConfig
+    //     .signals
+    //     .primaryEncoderPositionAlwaysOn(true)
+    //     .primaryEncoderVelocityAlwaysOn(true)
+    //     .primaryEncoderVelocityPeriodMs(20)
+    //     .appliedOutputPeriodMs(20)
+    //     .busVoltagePeriodMs(20)
+    //     .outputCurrentPeriodMs(20);
 
     kicker.configure(kickerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     kicker.clearFaults();

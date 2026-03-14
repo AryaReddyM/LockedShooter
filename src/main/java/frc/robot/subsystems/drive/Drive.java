@@ -243,9 +243,10 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
           }
 
           Pose2d target = robotState.getDriveAnglePos();
+          double turretPosRads = robotState.getShooter().getTurret().getTurretPosition();
 
           Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
-          Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(180)); // the offset is for the robot's
+          Rotation2d goal = drivingVector.getAngle().minus(Rotation2d.fromRadians(turretPosRads)); // the offset is for the robot's
                                                                                         // dir (cam look)
 
           driveInputs.driveAtAngleGoal = target;

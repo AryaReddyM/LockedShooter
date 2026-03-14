@@ -101,13 +101,13 @@ public class IntakeIOSpark implements IntakeIO {
                                 .maxAcceleration(IntakeConstants.kExtensionMaxAccel)
                                 .cruiseVelocity(IntakeConstants.kExtensionCruiseVel)
                                 .allowedProfileError(IntakeConstants.kExtensionDeviationErr);
-                extensionConfig.signals
-                                .primaryEncoderPositionAlwaysOn(true)
-                                .primaryEncoderVelocityAlwaysOn(true)
-                                .primaryEncoderVelocityPeriodMs(20)
-                                .appliedOutputPeriodMs(20)
-                                .busVoltagePeriodMs(20)
-                                .outputCurrentPeriodMs(20);
+                // extensionConfig.signals
+                //                 .primaryEncoderPositionAlwaysOn(true)
+                //                 .primaryEncoderVelocityAlwaysOn(true)
+                //                 .primaryEncoderVelocityPeriodMs(20)
+                //                 .appliedOutputPeriodMs(20)
+                //                 .busVoltagePeriodMs(20)
+                //                 .outputCurrentPeriodMs(20);
 
                 extensionConfig
                         .closedLoop
@@ -129,13 +129,13 @@ public class IntakeIOSpark implements IntakeIO {
                  extensionFollowerConfig.encoder
                                 .positionConversionFactor(IntakeConstants.kExtensionPositionConversionFactor)
                                 .velocityConversionFactor(IntakeConstants.kExtensionVelocityConversionFactor);
-                extensionFollowerConfig.signals
-                                .primaryEncoderPositionAlwaysOn(true)
-                                .primaryEncoderVelocityAlwaysOn(true)
-                                .primaryEncoderVelocityPeriodMs(20)
-                                .appliedOutputPeriodMs(20)
-                                .busVoltagePeriodMs(20)
-                                .outputCurrentPeriodMs(20);
+                // extensionFollowerConfig.signals
+                //                 .primaryEncoderPositionAlwaysOn(true)
+                //                 .primaryEncoderVelocityAlwaysOn(true)
+                //                 .primaryEncoderVelocityPeriodMs(20)
+                //                 .appliedOutputPeriodMs(20)
+                //                 .busVoltagePeriodMs(20)
+                //                 .outputCurrentPeriodMs(20);
 
                 extensionFollower.configure(extensionFollowerConfig, ResetMode.kResetSafeParameters,
                                 PersistMode.kPersistParameters);
