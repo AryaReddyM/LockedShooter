@@ -49,6 +49,7 @@ public class VisionConstants {
         // // Distance from turret center to camera lens in Y
         public static final double kTurretToCameraY = Units.inchesToMeters(4.270);
 
+        // TODO make sure u add half an inch to the turret limelight.
         // // CHASSIS LIMELIGHT
         public static final double kCameraBPitchDegrees = 45.0;
         public static final double kCameraBYawDegrees = 180; // this is added to robot orientation

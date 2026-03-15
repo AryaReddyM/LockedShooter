@@ -30,6 +30,10 @@
   ],
   "rotationTargets": [
     {
+      "waypointRelativePos": 0.13780918727915742,
+      "rotationDegrees": 0.0
+    },
+    {
       "waypointRelativePos": 0.5315497223624426,
       "rotationDegrees": 0.0
     },
@@ -56,7 +60,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.5,
+    "maxVelocity": 4.4,
     "maxAcceleration": 3.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -71,7 +75,7 @@
   "folder": "START PATHS",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 45.0
   },
   "useDefaultConstraints": true
 }

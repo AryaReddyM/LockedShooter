@@ -9,7 +9,7 @@ import frc.robot.RobotState;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
-public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
+public class Kicker extends StateMachine<Kicker.State> implements KickerIO {
 
     private final RobotState state;
     private final KickerIO kickerIO;
@@ -33,19 +33,19 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
 
         if (override != null) {
             override.accept(null);
-        }else if (getState() == State.SHOOT) {
-            // if (state.getShooter().getFlywheel().isReady() && state.getShooter().getTurret().isReady()) {
+        } else if (getState() == State.SHOOT) {
+            if (state.getShooter().getFlywheel().isReady()) { // && state.getShooter().getTurret().isReady()) {
                 shoot();
-            // } else {
-                // stop();
-            // }
+            } else {
+                stop();
+            }
         } else if (getState() == State.OUTAKE) {
             outtake();
         } else {
             stop();
         }
 
-        Logger.recordOutput("Kicker/Overriden", override!=null);
+        Logger.recordOutput("Kicker/Overriden", override != null);
     }
 
     public void shoot() {
@@ -68,7 +68,7 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     private void registerStateCommands() {
     }
 
-     @Override
+    @Override
     protected void determineSelf() {
         setState(State.IDLE);
     }
@@ -76,7 +76,7 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
     public void setOverride(Consumer<Object> override) {
         this.override = override;
     }
-    
+
     public enum State {
         UNDETERMINED,
 
@@ -87,5 +87,5 @@ public class Kicker extends StateMachine<Kicker.State> implements KickerIO{
         // flags
 
     }
-    
+
 }

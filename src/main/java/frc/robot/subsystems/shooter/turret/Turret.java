@@ -137,9 +137,9 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
             //     setPos(state.getCurrentPassSetpoint().getTurretRadiansFromCenter(),
             //             state.getCurrentPassSetpoint().getTurretFF());
             // } else if (getState() == State.TUNING) {
-            //     setPos(tunedSetpoint);
+                setPos(tunedSetpoint);
             // } else {
-                stop();
+                // stop();
             // }
         }
 

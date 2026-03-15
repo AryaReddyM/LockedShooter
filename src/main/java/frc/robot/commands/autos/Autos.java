@@ -656,8 +656,8 @@ public class Autos {
             this.name = "HP Side Quick Shoot Climb (GAME)";
             this.sequentialPathStrings = new String[] {
                     "Start HP Side to Mid Intake",
-                    "Mid Intake to Start HP Side",
-                    "Start HP Side to Mid Intake Second",
+                    "Mid Intake to Start HP Side"
+                    // "Start HP Side to Mid Intake Second",
             };
         }
 
@@ -685,46 +685,46 @@ public class Autos {
                             return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
                         }, Set.of(state.getDrive())),
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-                        ActionCommands.shakeIntake(state).withTimeout(5),
+                        ActionCommands.shakeIntake(state).withTimeout(15)
                         // new WaitCommand(5),
                         // new WaitCommand(4),
 
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake Second")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(0.6),
-                                        state.getIntake().transitionCommand(Intake.State.INTAKE))),
+                        // new ParallelCommandGroup(
+                        //         AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake Second")),
+                        //         new SequentialCommandGroup(
+                        //                 new WaitCommand(0.6),
+                        //                 state.getIntake().transitionCommand(Intake.State.INTAKE))),
 
-                        // allows us to go more inward to collect fuel
-                        new DeferredCommand(() -> {
-                            // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+                        // // allows us to go more inward to collect fuel
+                        // new DeferredCommand(() -> {
+                        //     // boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
 
-                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                            Translation2d extraTranslation = new Translation2d(1, 0); // from blue side, going more to right
-                            // if (!isBlue) {
-                            //     extraTranslation = extraTranslation.times(-1);
-                            // }
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     Translation2d extraTranslation = new Translation2d(1, 0); // from blue side, going more to right
+                        //     // if (!isBlue) {
+                        //     //     extraTranslation = extraTranslation.times(-1);
+                        //     // }
 
-                            return new AutoAlignToPoseCommand(state.getDrive(), state, currentPose.plus(new Transform2d(extraTranslation, new Rotation2d())), 1);
-                        }, Set.of(state.getDrive())),
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, currentPose.plus(new Transform2d(extraTranslation, new Rotation2d())), 1);
+                        // }, Set.of(state.getDrive())),
 
-                        new ParallelCommandGroup(
-                                AutoBuilder.followPath(pathMap.get("Mid Intake to Start HP Side")),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(0.2),
-                                        state.getIntake().transitionCommand(Intake.State.IDLE))),
-                        new DeferredCommand(() -> {
-                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
-                        }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
-                        ActionCommands.shakeIntake(state).withTimeout(8),
-                        // new WaitCommand(8),
+                        // new ParallelCommandGroup(
+                        //         AutoBuilder.followPath(pathMap.get("Mid Intake to Start HP Side")),
+                        //         new SequentialCommandGroup(
+                        //                 new WaitCommand(0.2),
+                        //                 state.getIntake().transitionCommand(Intake.State.IDLE))),
+                        // new DeferredCommand(() -> {
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
+                        // }, Set.of(state.getDrive())),
+                        // state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        // ActionCommands.shakeIntake(state).withTimeout(8),
+                        // // new WaitCommand(8),
 
-                        // new WaitCommand(3),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        // // new WaitCommand(3),
+                        // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
 
                         // AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP"))
