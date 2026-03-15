@@ -228,32 +228,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         () -> -robotState.getController().getLeftY(),
         () -> -robotState.getController().getLeftX(),
         () -> -robotState.getController().getRightX(),
-        () -> {
-          // This only runs if the state is TRAVERSING_AT_ANGLE
-
-          if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
-            Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
-            double degrees = currentPose.getRotation().getDegrees();
-
-            if (Math.abs(degrees) <= 90) {
-              return Rotation2d.fromDegrees(0);
-            } else {
-              return Rotation2d.fromDegrees(180);
-            }
-          }
-
-          Pose2d target = robotState.getDriveAnglePos();
-          double turretPosRads = robotState.getShooter().getTurret().getTurretPosition();
-
-          Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
-          Rotation2d goal = drivingVector.getAngle().minus(Rotation2d.fromRadians(turretPosRads)); // the offset is for the robot's
-                                                                                        // dir (cam look)
-
-          driveInputs.driveAtAngleGoal = target;
-          driveInputs.driveAtAngleDesired = new Pose2d(getPose().getX(), getPose().getY(), goal);
-
-          return goal;
-        },
+        this::getAimRotationForHub,
         () -> {
           State currentState = getState();
           if (currentState == State.SLOW) { // TrenchZone.driveRotationOverrideRequired(robotState) &&
@@ -289,6 +264,31 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         (targetPose) -> {
           Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });
+  }
+
+  public Rotation2d getAimRotationForHub() {
+    if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
+            Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
+            double degrees = currentPose.getRotation().getDegrees();
+
+            if (Math.abs(degrees) <= 90) {
+              return Rotation2d.fromDegrees(0);
+            } else {
+              return Rotation2d.fromDegrees(180);
+            }
+          }
+
+          Pose2d target = robotState.getDriveAnglePos();
+          // double turretPosRads = robotState.getShooter().getTurret().getTurretPosition();
+
+          Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
+          Rotation2d goal = drivingVector.getAngle(); // the offset is for the robot's
+                                                                                        // dir (cam look)
+
+          driveInputs.driveAtAngleGoal = target;
+          driveInputs.driveAtAngleDesired = new Pose2d(getPose().getX(), getPose().getY(), goal);
+
+          return goal;
   }
 
   @Override
