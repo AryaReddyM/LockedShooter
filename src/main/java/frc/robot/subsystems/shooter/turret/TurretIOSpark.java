@@ -79,12 +79,12 @@ public class TurretIOSpark implements TurretIO {
                 .busVoltagePeriodMs(20)
                 .outputCurrentPeriodMs(20);
 
-        turretConfig
-            .softLimit
-            .forwardSoftLimit(TurretConstants.kForwardSoftLimit)
-            .forwardSoftLimitEnabled(true)
-            .reverseSoftLimit(TurretConstants.kBackwardSoftLimit)
-            .reverseSoftLimitEnabled(true);
+        // turretConfig
+        //     .softLimit
+        //     .forwardSoftLimit(TurretConstants.kForwardSoftLimit)
+        //     .forwardSoftLimitEnabled(true)
+        //     .reverseSoftLimit(TurretConstants.kBackwardSoftLimit)
+        //     .reverseSoftLimitEnabled(true);
 
         turret.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         turret.clearFaults();
