@@ -113,7 +113,7 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
                     state.getFuelSim().launchFuel(
                             MetersPerSecond.of(currentSetpoint.getShooterRPS()),
                             Degrees.of(90).minus(Radians.of(currentSetpoint.getHoodRadians())),
-                            Radians.of(currentSetpoint.getTurretRadiansFromCenter()),
+                            Radians.of(inputs.desiredPos),
                             Meters.of(VisionConstants.kTurretToRobotCenter.getTranslation().getZ()));
                 }
             }
@@ -128,19 +128,19 @@ public class Turret extends StateMachine<Turret.State> implements TurretIO {
         Logger.processInputs("Turret", inputs);
 
         { // TURRET POS SETTER
-            if (override != null) {
-                override.accept(null);
-            } else if (getState() == State.HUB_TRACKING) {
-                setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(),
-                        state.getCurrentHubSetpoint().getTurretFF());
-            } else if (getState() == State.PASS_TRACKING) {
-                setPos(state.getCurrentPassSetpoint().getTurretRadiansFromCenter(),
-                        state.getCurrentPassSetpoint().getTurretFF());
-            } else if (getState() == State.TUNING) {
-                setPos(tunedSetpoint);
-            } else {
+            // if (override != null) {
+            //     override.accept(null);
+            // } else if (getState() == State.HUB_TRACKING) {
+            //     setPos(state.getCurrentHubSetpoint().getTurretRadiansFromCenter(),
+            //             state.getCurrentHubSetpoint().getTurretFF());
+            // } else if (getState() == State.PASS_TRACKING) {
+            //     setPos(state.getCurrentPassSetpoint().getTurretRadiansFromCenter(),
+            //             state.getCurrentPassSetpoint().getTurretFF());
+            // } else if (getState() == State.TUNING) {
+            //     setPos(tunedSetpoint);
+            // } else {
                 stop();
-            }
+            // }
         }
 
         state.addTurretUpdates(RobotTime.getTimestampSeconds(), inputs.turretRotation2d, // inputs.turretRotation2d

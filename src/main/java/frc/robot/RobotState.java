@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -44,12 +45,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.ActionCommands;
+import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.subsystems.climb.BeamBreakerIO;
 import frc.robot.subsystems.climb.BeamBreakerSim;
@@ -92,6 +95,7 @@ import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
 import frc.robot.subsystems.vision.VisionIOSimPhoton;
 import frc.robot.subsystems.vision.VisionSubsystem;
+import frc.robot.util.BallTargetFactory;
 import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
 import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.DynamicPathGenerator;
@@ -100,6 +104,7 @@ import frc.robot.util.Elastic.Notification;
 import frc.robot.util.Elastic.NotificationLevel;
 import frc.robot.util.FuelSim;
 import frc.robot.util.MathHelpers;
+import frc.robot.util.PassTargetFactory;
 import frc.robot.util.RobotTime;
 import frc.robot.util.ShooterSetpoint;
 import frc.robot.util.SimulatedRobotState;
@@ -107,12 +112,11 @@ import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
+    public final static int robotState = 2; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
 
-    private Pose2d lookAtPose;
     private final SimulatedRobotState simulatedRobotState = Robot.isSimulation() ? new SimulatedRobotState(this) : null;
 
     private Drive drive;
@@ -228,10 +232,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         // drive intialization
         {
-            lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)
-                    ? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero)
-                    : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
-
             switch (robotState) {
                 case 1:
                     drive = new Drive(
@@ -763,6 +763,20 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .b()
                     .whileTrue(ActionCommands.shakeIntake(this));
 
+            controller
+                    .povLeft()
+                    .onTrue(drive.transitionCommand(Drive.State.TRAVERSING_AT_ANGLE));
+            controller
+                    .povRight()
+                    .onTrue(drive.transitionCommand(Drive.State.TRAVERSING));
+
+            controller
+                .povUp()
+                .onTrue(new DeferredCommand(() -> {
+                            Pose2d currentPose = getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1);
+                        }, Set.of(drive)));
+
             { // flywheel multipliers
               // controller.back().onTrue(new InstantCommand(() -> {
               // shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() +
@@ -967,11 +981,22 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public Pose2d getDriveAnglePos() {
-        return lookAtPose;
-    }
+        boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
 
-    public void setDriveAngle(Pose2d newPose) {
-        lookAtPose = newPose;
+        Pose2d currentPose = getLatestFieldToRobot().getValue();
+
+            double blueHubX = VisionConstants.FieldConstants.HUB_BLUE.getX();
+            double redHubX = VisionConstants.FieldConstants.HUB_RED.getX();
+
+            boolean shouldShoot = isBlue
+                    ? currentPose.getX() <= blueHubX
+                    : currentPose.getX() >= redHubX;
+
+            if (shouldShoot && RobotState.hubActivated.get()) {
+                return new Pose2d(BallTargetFactory.generate(this).toTranslation2d(), new Rotation2d());
+            } else {
+                return new Pose2d(PassTargetFactory.generate(this).toTranslation2d(), new Rotation2d());
+            }
     }
 
     public void setAutoStartTime(double timestamp) {
