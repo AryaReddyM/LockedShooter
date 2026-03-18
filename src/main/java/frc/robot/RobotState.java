@@ -112,7 +112,7 @@ import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 2; // real, sim, replay
+    public final static int robotState = 1; // real, sim, replay
 
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
@@ -343,32 +343,32 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // climb
-            switch (robotState) {
-                case 1:
-                    climb = new Climb(
-                            new ClimbIOSpark(),
-                            new BeamBreakerTOF(1),
-                            new BeamBreakerTOF(2),
-                            this);
-                    break;
-                case 2:
+            // switch (robotState) {
+            //     case 1:
+            //         climb = new Climb(
+            //                 new ClimbIOSpark(),
+            //                 new BeamBreakerTOF(1),
+            //                 new BeamBreakerTOF(2),
+            //                 this);
+            //         break;
+            //     case 2:
                     climb = new Climb(
                             new ClimbIOSim(),
                             new BeamBreakerSim(1, this),
                             new BeamBreakerSim(2, this),
                             this);
-                    break;
-                default:
-                    climb = new Climb(
-                            new ClimbIO() {
-                            },
-                            new BeamBreakerIO() {
-                            },
-                            new BeamBreakerIO() {
-                            },
-                            this);
-                    break;
-            }
+            //         break;
+            //     default:
+            //         climb = new/**/ Climb(
+            //                 new ClimbIO() {
+            //                 },
+            //                 new BeamBreakerIO() {
+            //                 },
+            //                 new BeamBreakerIO() {
+            //                 },
+            //                 this);
+            //         break;
+            // }
         }
 
         { // hopper

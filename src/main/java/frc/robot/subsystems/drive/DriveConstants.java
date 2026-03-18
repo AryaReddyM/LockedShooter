@@ -135,7 +135,7 @@ public class DriveConstants {
   public static double kDriveToPointI = 0.0; // dont use
   public static double kDriveToPointD = 0; // dont use
 
-  public static double kMaxLinearAcceleration = 4.5;
+  public static double kMaxLinearAcceleration = 5.0;
 
   public static double kDriveToPointHeadingP = 3;
   public static double kDriveToPointHeadingI = 0.0;

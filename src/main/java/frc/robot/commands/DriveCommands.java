@@ -33,9 +33,12 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import dev.doglog.DogLog;
+
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double ANGLE_KP = 3;
+  private static final double ANGLE_KP = 8
+  ;
   private static final double ANGLE_KD = 0;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
@@ -233,6 +236,11 @@ public class DriveCommands {
         ANGLE_KP, 0, ANGLE_KD,
         new TrapezoidProfile.Constraints(DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+    
+    DogLog.tunable("Auto Turn", ANGLE_KP, (a) -> {
+      angleController.setP(a);
+    });
 
     return Commands.run(() -> {
       double omega;
