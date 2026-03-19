@@ -776,6 +776,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             Pose2d currentPose = getLatestFieldToRobot().getValue();
                             return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1);
                         }, Set.of(drive)));
+                        
 
             { // flywheel multipliers
               // controller.back().onTrue(new InstantCommand(() -> {
@@ -1278,6 +1279,10 @@ public class RobotState extends StateMachine<RobotState.State> {
     @Override
     public void update() {
 
+        if (Math.abs(controller.getRightX()) > 0.1) {
+            drive.requestTransition(Drive.State.TRAVERSING);
+        }
+        
         // LOGGING FOR TOF
         {
             Logger.recordOutput("Distance to Hub", TrenchZone.getDistanceToClosestShootingPose(this));

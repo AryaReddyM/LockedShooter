@@ -61,6 +61,7 @@ import frc.robot.util.RobotTime;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.TrenchZone;
 import frc.robot.util.Elastic.Notification;
+import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
 
 import java.util.List;
@@ -193,7 +194,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
             new Pose2d(this.getPose().getTranslation(), Rotation2d.kZero)),
         this)
         .ignoringDisable(true));
-        
+
     SmartDashboard.putData("Swerve Drive", new Sendable() {
       @Override
       public void initSendable(SendableBuilder builder) {
@@ -268,27 +269,32 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   public Rotation2d getAimRotationForHub() {
     if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
-            Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
-            double degrees = currentPose.getRotation().getDegrees();
+      Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
+      double degrees = currentPose.getRotation().getDegrees();
+      return (Math.abs(degrees) <= 90) ? Rotation2d.fromDegrees(0) : Rotation2d.fromDegrees(180);
+    }
 
-            if (Math.abs(degrees) <= 90) {
-              return Rotation2d.fromDegrees(0);
-            } else {
-              return Rotation2d.fromDegrees(180);
-            }
-          }
+    Pose2d currentPose = getPose();
+    Translation2d targetTrans = robotState.getDriveAnglePos().getTranslation();
 
-          Pose2d target = robotState.getDriveAnglePos();
-          // double turretPosRads = robotState.getShooter().getTurret().getTurretPosition();
+    ChassisSpeeds fieldRelativeSpeeds = getChassisSpeeds();
 
-          Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
-          Rotation2d goal = drivingVector.getAngle(); // the offset is for the robot's
-                                                                                        // dir (cam look)
+    double distance = currentPose.getTranslation().getDistance(targetTrans);
+    double shotExitVelocity = robotState.getCurrentHubSetpoint().getShooterRPS();
 
-          driveInputs.driveAtAngleGoal = target;
-          driveInputs.driveAtAngleDesired = new Pose2d(getPose().getX(), getPose().getY(), goal);
+    double timeOfFlight = distance / shotExitVelocity;
 
-          return goal;
+    double virtualX = targetTrans.getX() - (fieldRelativeSpeeds.vxMetersPerSecond * timeOfFlight);
+    double virtualY = targetTrans.getY() - (fieldRelativeSpeeds.vyMetersPerSecond * timeOfFlight);
+    Translation2d virtualTarget = new Translation2d(virtualX, virtualY);
+
+    Translation2d drivingVector = virtualTarget.minus(currentPose.getTranslation());
+    Rotation2d goal = drivingVector.getAngle();
+
+    driveInputs.driveAtAngleGoal = new Pose2d(virtualTarget, goal);
+    driveInputs.driveAtAngleDesired = new Pose2d(currentPose.getX(), currentPose.getY(), goal);
+
+    return goal;
   }
 
   @Override
