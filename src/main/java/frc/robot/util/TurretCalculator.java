@@ -198,7 +198,7 @@ public class TurretCalculator {
         ShotData shot = TurretConstants.SHOT_MAP.get(distance);
         shot = new ShotData(shot.exitVelocity, shot.hoodAngle, target);
 
-        Time timeOfFlight = calculateTimeOfFlight(shot.getExitVelocity(), shot.getHoodAngle(), Meters.of(distance));
+        Time timeOfFlight = Seconds.of(TurretConstants.TOF_MAP.get(distance));
         Translation3d predictedTarget = target;
 
         int iters = (int) GetTuned.getNumber("Turret/PredictionIterationsMap", iterations);
@@ -208,8 +208,7 @@ public class TurretCalculator {
             distance = getDistanceToTarget(state, robot, predictedTarget).in(Meters);
             shot = TurretConstants.SHOT_MAP.get(distance);
             shot = new ShotData(shot.exitVelocity, shot.hoodAngle, predictedTarget);
-            timeOfFlight = calculateTimeOfFlight(
-                    shot.getExitVelocity(), shot.getHoodAngle(), getDistanceToTarget(state, robot, predictedTarget));
+            timeOfFlight = Seconds.of(TurretConstants.TOF_MAP.get(distance));
         }
 
         return shot;
