@@ -527,6 +527,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("Depot Side Blair (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Side Blair (GAME)").get().getCommand(this));
 
+        autoChooser.addOption("HP Side Blair (GAME)",
+                AutoCommands.getAutoByName(this, "HP Side Blair (GAME)").get().getCommand(this));
+
         // Other autos
         // autoChooser.addOption("Valid Auto Template", new
         // InstantCommand().withName("Game <- this is a template"));
