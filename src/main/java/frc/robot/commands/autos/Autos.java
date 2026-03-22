@@ -810,6 +810,154 @@ public class Autos {
     }
 
     // Other Autos
+
+    public static class depotSideBlair extends AutoClass {
+        public depotSideBlair() {
+            this.name = "Depot Side Blair (GAME)";
+            this.sequentialPathStrings = new String[] {
+                    "Start Depot to Intake Blair",
+                    "Mid Depot to Intake Depot Side Blair",
+                    "Start Depot to Intake Second Blair",
+                    "Mid Depot to Intake Depot Side Second Blair"
+            };
+        }
+
+        public Command getCommand(RobotState state) {
+            try {
+                    Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
+                                    state)),
+                            state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                            state.getIntake().transitionCommand(Intake.State.IDLE),
+                            new WaitCommand(0.25),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot to Intake Blair")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Blair")),
+
+                    new ParallelCommandGroup(
+                        // new DeferredCommand(() -> {
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        // }, Set.of(state.getDrive())),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    ),
+
+                    new WaitCommand(4),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot to Intake Second Blair")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Second Blair")),
+
+                    new ParallelCommandGroup(
+                        // new DeferredCommand(() -> {
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        // }, Set.of(state.getDrive())),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    ),
+
+                    new WaitCommand(12),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                ).withName(this.name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " +
+                        e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    public static class hpSideBlair extends AutoClass {
+        public hpSideBlair() {
+            this.name = "HP Side Blair (GAME)";
+            this.sequentialPathStrings = new String[] {
+                    "Start HP to Intake Blair",
+                    "Mid HP to Intake HP Side Blair",
+                    "Start HP to Intake Second Blair",
+                    "Mid HP to Intake HP Side Second Blair"
+            };
+        }
+
+        public Command getCommand(RobotState state) {
+            try {
+                    Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
+                                    state)),
+                            state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                            state.getIntake().transitionCommand(Intake.State.IDLE),
+                            new WaitCommand(0.25),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start HP to Intake Blair")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Blair")),
+
+                    new ParallelCommandGroup(
+                        // new DeferredCommand(() -> {
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        // }, Set.of(state.getDrive())),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    ),
+
+                    new WaitCommand(4),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start HP to Intake Second Blair")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Second Blair")),
+
+                    new ParallelCommandGroup(
+                        // new DeferredCommand(() -> {
+                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        // }, Set.of(state.getDrive())),
+                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                    ),
+
+                    new WaitCommand(12),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                ).withName(this.name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " +
+                        e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
+
+    //Other Autos
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
             this.name = "Left Depot Climb (GAME)";
