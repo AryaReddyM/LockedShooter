@@ -91,6 +91,7 @@ import frc.robot.subsystems.shooter.turret.TurretIO;
 import frc.robot.subsystems.shooter.turret.TurretIOSim;
 import frc.robot.subsystems.shooter.turret.TurretIOSpark;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionConstants.Depot;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
 import frc.robot.subsystems.vision.VisionIOSimPhoton;
@@ -522,6 +523,9 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("Depot Side Circut Shoot (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Side Circut Shoot (GAME)").get().getCommand(this));
+        
+        autoChooser.addOption("Depot Side Blair (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side Blair (GAME)").get().getCommand(this));
 
         // Other autos
         // autoChooser.addOption("Valid Auto Template", new
