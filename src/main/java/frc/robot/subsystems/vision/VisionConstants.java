@@ -60,9 +60,9 @@ public class VisionConstants {
 
 
         // THIS IS SOMETHING WE NEED TO DO
-        public static final double kTurretToRobotCenterX = Units.inchesToMeters(-3.390);
+        public static final double kTurretToRobotCenterX = Units.inchesToMeters(-3.290);
         public static final double kTurretToRobotCenterY = Units.inchesToMeters(-4.750);
-        public static final double kTurretToRobotCenterZ = Units.inchesToMeters(13.935);
+        public static final double kTurretToRobotCenterZ = Units.inchesToMeters(13.735);
 
         // TODO
         public static final Transform3d kTurretToRobotCenter = new Transform3d(

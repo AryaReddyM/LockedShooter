@@ -87,30 +87,32 @@ public class TurretConstants {
         
         static {
             SHOT_MAP.put(1.409409, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(8.7, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0)));
-            TOF_MAP.put(1.409409, 0.162001034483);
+            TOF_MAP.put(1.409409, 0.162001034483+0.15);
 
             SHOT_MAP.put(1.822781, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(9.8, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0)));
-            TOF_MAP.put(1.822781, 0.185998061224);
+            TOF_MAP.put(1.822781, 0.185998061224+0.15);
 
             SHOT_MAP.put(2.088259, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(9.96, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0)));
-            TOF_MAP.put(2.088259, 0.209664558233);
+            TOF_MAP.put(2.088259, 0.209664558233+0.15);
 
 
             SHOT_MAP.put(2.338346, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.4, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0)));
-            TOF_MAP.put(2.338346, 0.224840961538);
+            TOF_MAP.put(2.338346, 0.224840961538+0.15);
 
             SHOT_MAP.put(2.527475, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.8, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0)));
-            TOF_MAP.put(2.527475, 0.234025462963);
+            TOF_MAP.put(2.527475, 0.234025462963+0.15);
 
             SHOT_MAP.put(2.787548, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.6, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.5)));
-            TOF_MAP.put(2.787548, 0.299659813031);
+            TOF_MAP.put(2.787548, 0.299659813031+0.15);
 
+            SHOT_MAP.put(2.943017, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.95, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.53)));
+            TOF_MAP.put(2.943017, 0.299659813031+0.15);
 
             SHOT_MAP.put(3.097655, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.6, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.54)));
-            TOF_MAP.put(3.097655, 0.340711957478);
+            TOF_MAP.put(3.097655, 0.340711957478+0.15);
 
             SHOT_MAP.put(3.59677, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.05, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.59)));
-            TOF_MAP.put(3.59677, 0.391724169605);
+            TOF_MAP.put(3.59677, 0.391724169605+0.15);
 
 
             // SHOT_MAP.put(3.59677, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.4, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.62)));
@@ -118,27 +120,27 @@ public class TurretConstants {
 
 
             SHOT_MAP.put(3.71836, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.85, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.6)));
-            TOF_MAP.put(3.71836, 0.415232281986);
+            TOF_MAP.put(3.71836, 0.415232281986+0.15);
 
             SHOT_MAP.put(4.033556, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.2, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.65)));
-            TOF_MAP.put(4.033556, 0.452388214944);
+            TOF_MAP.put(4.033556, 0.452388214944+0.15);
 
             SHOT_MAP.put(4.611542, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.7, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.64)));
-            TOF_MAP.put(4.611542, 0.491398794987);
+            TOF_MAP.put(4.611542, 0.491398794987+0.15);
 
             SHOT_MAP.put(5.050931, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(12, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.66)));
-            TOF_MAP.put(5.050931, 0.532803868044);
+            TOF_MAP.put(5.050931, 0.532803868044+0.15);
 
             SHOT_MAP.put(5.525151, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(12.35, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.68)));
-            TOF_MAP.put(5.525151, 0.575355380899);
+            TOF_MAP.put(5.525151, 0.575355380899+0.15);
 
             
             SHOT_MAP.put(5.944625, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(12.9, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.7)));
-            TOF_MAP.put(5.944625, 0.602508139682);
+            TOF_MAP.put(5.944625, 0.602508139682+0.15);
 
             
             SHOT_MAP.put(6.546274, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(13.55, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.78)));
-            TOF_MAP.put(6.546274, 0.679576103937);
+            TOF_MAP.put(6.546274, 0.679576103937+0.15);
         }
 
         public static final Distance kdistanceAboveFunnel = Inches.of(20);

@@ -28,6 +28,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -56,6 +57,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotState;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.RobotTime;
 import frc.robot.util.SimulatedRobotState;
@@ -274,7 +276,9 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       return (Math.abs(degrees) <= 90) ? Rotation2d.fromDegrees(0) : Rotation2d.fromDegrees(180);
     }
 
-    Pose2d currentPose = getPose();
+    Pose2d currentPose = getPose().plus(
+      new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
+    );
     Translation2d targetTrans = robotState.getDriveAnglePos().getTranslation();
 
     ChassisSpeeds fieldRelativeSpeeds = getChassisSpeeds();
@@ -282,14 +286,14 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     double distance = currentPose.getTranslation().getDistance(targetTrans);
     double shotExitVelocity = robotState.getCurrentHubSetpoint().getShooterRPS();
 
-    double timeOfFlight = distance / shotExitVelocity;
+    double timeOfFlight = ((distance) / shotExitVelocity);
 
     double virtualX = targetTrans.getX() - (fieldRelativeSpeeds.vxMetersPerSecond * timeOfFlight);
     double virtualY = targetTrans.getY() - (fieldRelativeSpeeds.vyMetersPerSecond * timeOfFlight);
     Translation2d virtualTarget = new Translation2d(virtualX, virtualY);
 
     Translation2d drivingVector = virtualTarget.minus(currentPose.getTranslation());
-    Rotation2d goal = drivingVector.getAngle();
+    Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(0.5));
 
     driveInputs.driveAtAngleGoal = new Pose2d(virtualTarget, goal);
     driveInputs.driveAtAngleDesired = new Pose2d(currentPose.getX(), currentPose.getY(), goal);

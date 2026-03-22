@@ -3,25 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.751,
-        "y": 5.915
+        "x": 8.101797432239657,
+        "y": 5.5811697574893016
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.843024251069899,
-        "y": 7.948944365192581
+        "x": 8.334693295292439,
+        "y": 7.7419258202567764
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.2725760286225403,
-        "y": 7.547799642218246
+        "x": 3.922610556348074,
+        "y": 7.35376604850214
       },
       "prevControl": {
-        "x": 7.961717352415023,
-        "y": 7.5153488372093005
+        "x": 5.488188302425107,
+        "y": 7.250256776034237
+      },
+      "nextControl": {
+        "x": 3.365063479683857,
+        "y": 7.390628665141097
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.6416833095577745,
+        "y": 6.771526390870186
+      },
+      "prevControl": {
+        "x": 3.09453637660485,
+        "y": 7.263195435092725
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,16 +46,27 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.3336698637051989,
+      "waypointRelativePos": 0.6229177183240688,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 1.1680969207470902,
       "rotationDegrees": 0.0
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "AimAtHub",
+      "waypointRelativePos": 1.1916771752837079,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 4.5,
-    "maxAcceleration": 5.0,
+    "maxVelocity": 4.3,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -47,7 +74,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -50.617580590126835
   },
   "reversed": false,
   "folder": "MID PATHS",

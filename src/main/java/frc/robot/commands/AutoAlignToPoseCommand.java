@@ -161,9 +161,7 @@ public class AutoAlignToPoseCommand extends Command {
                                 .getRadians();
 
                 // Calculate theta speed
-                double goalAngle = (autoAlignType == AlignType.ROTATION)
-                                ? angleToTarget
-                                : targetLocation.getRotation().getRadians();
+                double goalAngle = targetLocation.getRotation().getRadians();
 
                 // 3. Calculate velocity
                 double thetaVelocity = (thetaController.getSetpoint().velocity * ffScaler)
@@ -188,7 +186,7 @@ public class AutoAlignToPoseCommand extends Command {
                                 .getTranslation();
 
                 if (autoAlignType.equals(AlignType.ROTATION)) { // USELESS
-                        return;
+                        driveVelocity = new Translation2d();
                 }
 
                 if (autoAlignType.equals(AlignType.TRANSLATION)) {

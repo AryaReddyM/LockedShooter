@@ -156,11 +156,11 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 3.2;
+  public static double kABDriveP = 3.95;
   public static double kABDriveI = 0.0;
   public static double kABDriveD = 0.0;
 
-  public static double kABTurnP = 2.0;
+  public static double kABTurnP = 7.0;
   public static double kABTurnI = 0.0;
   public static double kABTurnD = 0.0;
 }

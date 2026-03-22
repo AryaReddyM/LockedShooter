@@ -21,6 +21,12 @@
           "data": {
             "pathName": "Start Depot Side to Mid Intake Second"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Mid Intake to Start Depot Side Second"
+          }
         }
       ]
     }
