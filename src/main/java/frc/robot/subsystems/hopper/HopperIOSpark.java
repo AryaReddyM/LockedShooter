@@ -108,6 +108,11 @@ public class HopperIOSpark implements HopperIO{
     }
 
     @Override
+    public double getHopperSpeed() {
+        return hopperEncoder.getVelocity();
+    }
+
+    @Override
     public void stopHopper() {
         hopper.stopMotor();
     }

@@ -69,6 +69,11 @@ public class HopperIOSim implements HopperIO {
   }
 
   @Override
+  public double getHopperSpeed() {
+    return HopperConstants.kHopperJamTol + 1;
+  }
+
+  @Override
   public void stopHopper() {
     setHopperSpeed(0);
   }

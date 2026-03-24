@@ -16,6 +16,7 @@ public interface HopperIO {
   public default void setHopperVoltage(double volts) {}
 
   public default void setHopperSpeed(double position) {}
+  public default double getHopperSpeed() {return 0.0;};
 
   public default void stopHopper() {}
 

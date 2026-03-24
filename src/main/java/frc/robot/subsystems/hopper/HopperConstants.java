@@ -34,6 +34,8 @@ public class HopperConstants {
     // setpoints
     public static final double kHopperShootSpeed = -15;
     public static final double kHopperOuttakeSpeed = 15;
+
+    public static final double kHopperJamTol = 0.5;
     
     public static final Transform3d hopperOrigin = new Transform3d(new Translation3d(
         Units.inchesToMeters(2.5), Units.inchesToMeters(0.4), Units.inchesToMeters(0)

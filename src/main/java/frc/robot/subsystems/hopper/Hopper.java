@@ -2,6 +2,7 @@ package frc.robot.subsystems.hopper;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Consumer;
@@ -17,6 +18,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
 import frc.robot.util.GetTuned;
@@ -29,6 +31,10 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
     private final HopperIOInputsAutoLogged inputs = new HopperIOInputsAutoLogged();
 
     private double spinRadians = 0.0;
+
+    private final Timer jammedTimer = new Timer();
+    private final Timer unJamTimer = new Timer();
+    private boolean jammed = false;
 
     private Consumer<Object> override;
 
@@ -53,13 +59,13 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
                         .plus(HopperConstants.hopperOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, 0, spinRadians)
-                        )));
-
-        if (override != null) {
+                                new Rotation3d(0, 0, spinRadians))));
+        if (jammed) {
+              outake();
+        } else if (override != null) {
             override.accept(null);
         } else if (getState() == State.SHOOT) {
-            if (state.getShooter().getFlywheel().isReady()) { //&& state.getShooter().getTurret().isReady()) {
+            if (state.getShooter().getFlywheel().isReady()) { // && state.getShooter().getTurret().isReady()) {
                 shoot();
             } else {
                 stop();
@@ -69,8 +75,9 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
         } else {
             stop();
         }
-        Logger.recordOutput("Hopper/Overriden", override!=null);
-     }
+        Logger.recordOutput("Hopper/Overriden", override != null);
+        updateJamDetection();
+    }
 
     public void shoot() {
         hopperIO.setHopperSpeed(GetTuned.getNumber("Hopper/Shoot Speed", HopperConstants.kHopperShootSpeed));
@@ -98,6 +105,28 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
 
     public void setOverride(Consumer<Object> override) {
         this.override = override;
+    }
+
+    private void updateJamDetection() {
+        if (jammedTimer.isRunning() && jammedTimer.hasElapsed(Seconds.of(0.2))) {
+            jammed = true;
+            unJamTimer.start();
+            jammedTimer.stop();
+            jammedTimer.reset();
+        }
+        if (jammed && unJamTimer.isRunning() && unJamTimer.hasElapsed(0.1)) {
+            jammed = false;
+            unJamTimer.stop();
+            unJamTimer.reset();
+        }
+        if (Math.abs(hopperIO.getHopperSpeed()) < (GetTuned.getNumber("Hopper/Jam Speed", HopperConstants.kHopperJamTol))
+                && getState() == State.SHOOT
+                && !jammed) {
+            jammedTimer.start();
+        } else if (jammedTimer.isRunning()) {
+            jammedTimer.stop();
+            jammedTimer.reset();
+        }
     }
 
     public enum State {
