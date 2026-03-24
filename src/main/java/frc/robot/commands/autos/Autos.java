@@ -823,10 +823,8 @@ public class Autos {
         public depotSideBlair() {
             this.name = "Depot Side Blair (GAME)";
             this.sequentialPathStrings = new String[] {
-                    "Start Depot to Intake Blair",
-                    "Mid Depot to Intake Depot Side Blair",
-                    "Start Depot to Intake Second Blair",
-                    "Mid Depot to Intake Depot Side Second Blair"
+                    "Depot to Intake Blair",
+                    "Depot to Intake Blair Second",
             };
         }
 
@@ -842,15 +840,15 @@ public class Autos {
                             // new WaitCommand(0.25),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start Depot to Intake Blair")),
+                        AutoBuilder.followPath(pathMap.get("Depot to Intake Blair")),
                         new SequentialCommandGroup(
-                            new WaitCommand(1.3),
+                            new WaitCommand(1),
                             state.getIntake().transitionCommand(Intake.State.INTAKE)
                         )
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
-                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Blair")),
+                    // AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Blair")),
 
                     new ParallelCommandGroup(
                         new DeferredCommand(() -> {
@@ -875,15 +873,15 @@ public class Autos {
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start Depot to Intake Second Blair")),
+                        AutoBuilder.followPath(pathMap.get("Depot to Intake Blair Second")),
                         new SequentialCommandGroup(
-                            new WaitCommand(1.3),
+                            new WaitCommand(1),
                             state.getIntake().transitionCommand(Intake.State.INTAKE)
                         )
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
-                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Second Blair")),
+                    // AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Second Blair")),
 
                     new ParallelCommandGroup(
                         new DeferredCommand(() -> {
@@ -918,10 +916,8 @@ public class Autos {
         public hpSideBlair() {
             this.name = "HP Side Blair (GAME)";
             this.sequentialPathStrings = new String[] {
-                    "Start HP to Intake Blair",
-                    "Mid HP to Intake HP Side Blair",
-                    "Start HP to Intake Second Blair",
-                    "Mid HP to Intake HP Side Second Blair"
+                    "HP to Intake Blair",
+                    "HP to Intake Blair Second"
             };
         }
 
@@ -937,7 +933,7 @@ public class Autos {
                             // new WaitCommand(0.25),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start HP to Intake Blair")),
+                        AutoBuilder.followPath(pathMap.get("HP to Intake Blair")),
                         new SequentialCommandGroup(
                             new WaitCommand(1.3),
                             state.getIntake().transitionCommand(Intake.State.INTAKE)
@@ -945,7 +941,7 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
-                    AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Blair")),
+                    // AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Blair")),
 
                     new ParallelCommandGroup(
                         new DeferredCommand(() -> {
@@ -970,7 +966,7 @@ public class Autos {
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                     new ParallelCommandGroup(
-                        AutoBuilder.followPath(pathMap.get("Start HP to Intake Second Blair")),
+                        AutoBuilder.followPath(pathMap.get("HP to Intake Blair Second")),
                         new SequentialCommandGroup(
                             new WaitCommand(1.3),
                             state.getIntake().transitionCommand(Intake.State.INTAKE)
@@ -978,7 +974,7 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
-                    AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Second Blair")),
+                    // AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Second Blair")),
 
                     new ParallelCommandGroup(
                         new DeferredCommand(() -> {

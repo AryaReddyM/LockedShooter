@@ -7,25 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start Depot Side to Mid Intake"
+            "pathName": "Start Depot to Intake Blair"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Mid Intake to Start Depot Side"
+            "pathName": "Mid Depot to Intake Depot Side Blair"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Start Depot Side to Mid Intake Second"
+            "pathName": "Start Depot to Intake Second Blair"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Mid Intake to Start Depot Side Second"
+            "pathName": "Mid Depot to Intake Depot Side Second Blair"
           }
         }
       ]
