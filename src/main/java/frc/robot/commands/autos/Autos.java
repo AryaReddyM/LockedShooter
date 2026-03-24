@@ -600,8 +600,7 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        new ParallelCommandGroup(
-                                new SequentialCommandGroup(
+                        new SequentialCommandGroup(
                                         new DeferredCommand(() -> {
                                             Pose2d currentPose = state.getLatestFieldToRobot().getValue();
                                             return new AutoAlignToPoseCommand(state.getDrive(), state,
@@ -609,9 +608,10 @@ public class Autos {
                                                             state.getDrive().getAimRotationForHub()),
                                                     1, AlignType.ROTATION);
                                         }, Set.of(state.getDrive()))),
-                                state.getShooter().transitionCommand(Shooter.State.SHOOTING)),
+                                state.getShooter().transitionCommand(Shooter.State.SHOOTING),
 
                         ActionCommands.shakeIntake(state).withTimeout(3),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
 
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
@@ -628,8 +628,7 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        new ParallelCommandGroup(
-                                new SequentialCommandGroup(
+                        new SequentialCommandGroup(
                                         new DeferredCommand(() -> {
                                             Pose2d currentPose = state.getLatestFieldToRobot().getValue();
                                             return new AutoAlignToPoseCommand(state.getDrive(), state,
@@ -637,8 +636,9 @@ public class Autos {
                                                             state.getDrive().getAimRotationForHub()),
                                                     1, AlignType.ROTATION);
                                         }, Set.of(state.getDrive()))),
-                                state.getShooter().transitionCommand(Shooter.State.SHOOTING)),
+                                state.getShooter().transitionCommand(Shooter.State.SHOOTING),
                         ActionCommands.shakeIntake(state).withTimeout(8),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
                         state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
 
                 // AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot"))
@@ -680,13 +680,17 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        new DeferredCommand(() -> {
-                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(),
-                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
-                        }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        new SequentialCommandGroup(
+                                        new DeferredCommand(() -> {
+                                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                                            return new AutoAlignToPoseCommand(state.getDrive(), state,
+                                                    new Pose2d(currentPose.getX(), currentPose.getY(),
+                                                            state.getDrive().getAimRotationForHub()),
+                                                    1, AlignType.ROTATION);
+                                        }, Set.of(state.getDrive()))),
+                                state.getShooter().transitionCommand(Shooter.State.SHOOTING),
                         ActionCommands.shakeIntake(state).withTimeout(5),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
                         // new WaitCommand(5),
                         // new WaitCommand(4),
 
@@ -719,13 +723,17 @@ public class Autos {
                                 new SequentialCommandGroup(
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
-                        new DeferredCommand(() -> {
-                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(),
-                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
-                        }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        new SequentialCommandGroup(
+                                        new DeferredCommand(() -> {
+                                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                                            return new AutoAlignToPoseCommand(state.getDrive(), state,
+                                                    new Pose2d(currentPose.getX(), currentPose.getY(),
+                                                            state.getDrive().getAimRotationForHub()),
+                                                    1, AlignType.ROTATION);
+                                        }, Set.of(state.getDrive()))),
+                                state.getShooter().transitionCommand(Shooter.State.SHOOTING),
                         ActionCommands.shakeIntake(state).withTimeout(8),
+                        state.getIntake().transitionCommand(Intake.State.IDLE),
                         // // new WaitCommand(8),
 
                         // // new WaitCommand(3),
@@ -831,7 +839,7 @@ public class Autos {
                                     state)),
                             state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                             state.getIntake().transitionCommand(Intake.State.IDLE),
-                            new WaitCommand(0.25),
+                            // new WaitCommand(0.25),
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot to Intake Blair")),
@@ -845,14 +853,25 @@ public class Autos {
                     AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Blair")),
 
                     new ParallelCommandGroup(
-                        // new DeferredCommand(() -> {
-                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
-                        // }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
                     ),
 
-                    new WaitCommand(4),
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
+                    ActionCommands.shakeIntake(state).withTimeout(3),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(1),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                     new ParallelCommandGroup(
@@ -867,14 +886,25 @@ public class Autos {
                     AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Second Blair")),
 
                     new ParallelCommandGroup(
-                        // new DeferredCommand(() -> {
-                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
-                        // }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
                     ),
 
-                    new WaitCommand(12),
+                    ActionCommands.shakeIntake(state).withTimeout(11),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(1),
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
                 ).withName(this.name);
             } catch (Exception e) {
@@ -904,7 +934,7 @@ public class Autos {
                                     state)),
                             state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                             state.getIntake().transitionCommand(Intake.State.IDLE),
-                            new WaitCommand(0.25),
+                            // new WaitCommand(0.25),
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP to Intake Blair")),
@@ -918,14 +948,25 @@ public class Autos {
                     AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Blair")),
 
                     new ParallelCommandGroup(
-                        // new DeferredCommand(() -> {
-                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
-                        // }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
                     ),
 
-                    new WaitCommand(4),
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
+                    ActionCommands.shakeIntake(state).withTimeout(3.5),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(0.5),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
 
                     new ParallelCommandGroup(
@@ -940,14 +981,25 @@ public class Autos {
                     AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Second Blair")),
 
                     new ParallelCommandGroup(
-                        // new DeferredCommand(() -> {
-                        //     Pose2d currentPose = state.getLatestFieldToRobot().getValue();
-                        //     return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
-                        // }, Set.of(state.getDrive())),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
                     ),
 
-                    new WaitCommand(12),
+                    ActionCommands.shakeIntake(state).withTimeout(11.5),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(0.5),
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
                     state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
                 ).withName(this.name);
             } catch (Exception e) {

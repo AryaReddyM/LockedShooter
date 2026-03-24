@@ -1247,6 +1247,7 @@ public class RobotState extends StateMachine<RobotState.State> {
         setState(State.TRAVERSING);
         drive.setFieldPoses("Auto Path", new ArrayList<>());
         drive.setFieldPoses();
+        shooter.getHood().setAutoOverride(false);
 
         if (!climbZeroed) {
             climbZeroed = true;

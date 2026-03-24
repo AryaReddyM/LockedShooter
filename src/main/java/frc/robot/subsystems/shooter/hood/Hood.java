@@ -23,6 +23,7 @@ public class Hood extends StateMachine<Hood.State> {
     private final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
     private double tunedSetpoint = 0.0;
     private Consumer<Object> override;
+    private boolean autoOverride = false;
 
 
 
@@ -77,7 +78,7 @@ public class Hood extends StateMachine<Hood.State> {
 
         { // HOOD POS SETTER
 
-            if (TrenchZone.hoodLowerRequired(state) && hoodIO.getHoodPosition() > HoodConstants.kHoodMaxSetpointUnderTrench) {
+            if (TrenchZone.hoodLowerRequired(state) && hoodIO.getHoodPosition() > HoodConstants.kHoodMaxSetpointUnderTrench && !autoOverride) {
                 setPos(HoodConstants.kHoodMaxSetpointUnderTrench, 0);
             }
 
@@ -114,6 +115,10 @@ public class Hood extends StateMachine<Hood.State> {
 
     public void setOverride(Consumer<Object> override) {
         this.override = override;
+    }
+
+    public void setAutoOverride(boolean newOverride) {
+        autoOverride = newOverride;
     }
 
     public enum State {

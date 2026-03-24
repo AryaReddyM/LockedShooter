@@ -12,7 +12,7 @@ import edu.wpi.first.math.util.Units;
 public class DriveConstants {
 
   public static final double maxSpeedMetersPerSec = 5.265648;
-  public static final double slowSpeedMetersPerSec = 2;
+  public static final double slowSpeedMetersPerSec = 0.5;
 
   public static final double odometryFrequency = 100.0; // Hz
   public static final double trackWidth = Units.inchesToMeters(28); // TODO CHANGE
@@ -156,7 +156,7 @@ public class DriveConstants {
 
   // path planner
 
-  public static double kABDriveP = 3.95;
+  public static double kABDriveP = 3.8;
   public static double kABDriveI = 0.0;
   public static double kABDriveD = 0.0;
 
