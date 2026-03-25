@@ -60,9 +60,10 @@ public class Hopper extends StateMachine<Hopper.State> implements HopperIO {
                         .plus(new Transform3d(
                                 new Translation3d(),
                                 new Rotation3d(0, 0, spinRadians))));
-        if (jammed) {
-              outake();
-        } else if (override != null) {
+        // if (jammed) {
+        //       outake();
+        // } else 
+        if (override != null) {
             override.accept(null);
         } else if (getState() == State.SHOOT) {
             if (state.getShooter().getFlywheel().isReady()) { // && state.getShooter().getTurret().isReady()) {

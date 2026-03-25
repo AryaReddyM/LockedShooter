@@ -28,6 +28,7 @@ import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
 import frc.robot.commands.AutoCommands.AutoClass;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.Shooter.State;
+import frc.robot.subsystems.shooter.flywheel.Flywheel;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -850,6 +851,7 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
                     AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Blair")),
 
                     new ParallelCommandGroup(
@@ -883,8 +885,9 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
                     AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Depot Side Second Blair")),
-
+                    
                     new ParallelCommandGroup(
                         new DeferredCommand(() -> {
                             Pose2d currentPose = state.getLatestFieldToRobot().getValue();
@@ -945,6 +948,7 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
                     AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Blair")),
 
                     new ParallelCommandGroup(
@@ -978,6 +982,7 @@ public class Autos {
                     ),
 
                     state.getIntake().transitionCommand(Intake.State.IDLE),
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
                     AutoBuilder.followPath(pathMap.get("Mid HP to Intake HP Side Second Blair")),
 
                     new ParallelCommandGroup(

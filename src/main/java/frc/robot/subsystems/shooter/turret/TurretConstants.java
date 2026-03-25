@@ -111,7 +111,7 @@ public class TurretConstants {
             SHOT_MAP.put(3.097655, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(10.6, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.54)));
             TOF_MAP.put(3.097655, 0.340711957478+0.15);
 
-            SHOT_MAP.put(3.59677, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.05, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.59)));
+            SHOT_MAP.put(3.59677, new ShotData(TurretCalculator.linearToAngularVelocity(LinearVelocity.ofBaseUnits(11.15, MetersPerSecond), FlywheelConstants.kFlywheelRadius), Radian.of(0.59)));
             TOF_MAP.put(3.59677, 0.391724169605+0.15);
 
 
