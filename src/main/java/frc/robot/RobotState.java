@@ -319,7 +319,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 case 1:
                     shooter = new Shooter(
                             this,
-                            new TurretIOSpark(),
+                            new TurretIOSim(), // TODO change
                             new HoodIOSpark(),
                             new FlywheelIOSpark());
                     break;
@@ -745,6 +745,11 @@ public class RobotState extends StateMachine<RobotState.State> {
                     .y()
                     .whileTrue(ActionCommands.autoClimb(this))
                     .onFalse(climb.transitionCommand(Climb.State.STOW));
+
+            // controller
+            //     .y()
+            //     .onTrue(climb.transitionCommand(Climb.State.UP))
+            //     .onFalse(climb.transitionCommand(Climb.State.STOW));
 
             controller
                     .a()
