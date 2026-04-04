@@ -30,6 +30,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -62,6 +63,7 @@ import frc.robot.util.Elastic;
 import frc.robot.util.RobotTime;
 import frc.robot.util.SimulatedRobotState;
 import frc.robot.util.TrenchZone;
+import frc.robot.util.TurretCalculator;
 import frc.robot.util.Elastic.Notification;
 import frc.robot.util.GetTuned;
 import frc.robot.util.state.StateMachine;
@@ -269,7 +271,8 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         });
   }
 
-  public Rotation2d getAimRotationForHub() {
+
+   public Rotation2d getAimRotationForHub() {
     if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
       Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
       double degrees = currentPose.getRotation().getDegrees();
@@ -280,22 +283,17 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       new Transform2d(VisionConstants.kTurretToRobotCenter.getTranslation().toTranslation2d(), Rotation2d.kZero)
     );
     Translation2d targetTrans = robotState.getDriveAnglePos().getTranslation();
-
-    ChassisSpeeds fieldRelativeSpeeds = getChassisSpeeds();
-
     double distance = currentPose.getTranslation().getDistance(targetTrans);
     double shotExitVelocity = robotState.getCurrentHubSetpoint().getShooterRPS();
 
-    double timeOfFlight = ((distance) / shotExitVelocity) * 3;
+    double timeOfFlight = ((distance) / shotExitVelocity);
 
-    double virtualX = targetTrans.getX() - (fieldRelativeSpeeds.vxMetersPerSecond * timeOfFlight);
-    double virtualY = targetTrans.getY() - (fieldRelativeSpeeds.vyMetersPerSecond * timeOfFlight);
-    Translation2d virtualTarget = new Translation2d(virtualX, virtualY);
+    targetTrans = TurretCalculator.predictTargetPos(new Translation3d(targetTrans), getChassisSpeeds(), Seconds.of(timeOfFlight)).toTranslation2d();
 
-    Translation2d drivingVector = virtualTarget.minus(currentPose.getTranslation());
+    Translation2d drivingVector = targetTrans.minus(currentPose.getTranslation());
     Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(0.5));
 
-    driveInputs.driveAtAngleGoal = new Pose2d(virtualTarget, goal);
+    driveInputs.driveAtAngleGoal = new Pose2d(targetTrans, goal);
     driveInputs.driveAtAngleDesired = new Pose2d(currentPose.getX(), currentPose.getY(), goal);
 
     return goal;
