@@ -288,10 +288,12 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     double timeOfFlight = ((distance) / shotExitVelocity);
 
-    targetTrans = TurretCalculator.predictTargetPos(new Translation3d(targetTrans), getChassisSpeeds(), Seconds.of(timeOfFlight)).toTranslation2d();
+    if (!DriverStation.isAutonomous()) {
+      targetTrans = TurretCalculator.predictTargetPos(new Translation3d(targetTrans), getChassisSpeeds(), Seconds.of(timeOfFlight)).toTranslation2d();
+    }
 
     Translation2d drivingVector = targetTrans.minus(currentPose.getTranslation());
-    Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(0.5));
+    Rotation2d goal = drivingVector.getAngle();//.plus(Rotation2d.fromDegrees(0.5));
 
     driveInputs.driveAtAngleGoal = new Pose2d(targetTrans, goal);
     driveInputs.driveAtAngleDesired = new Pose2d(currentPose.getX(), currentPose.getY(), goal);
