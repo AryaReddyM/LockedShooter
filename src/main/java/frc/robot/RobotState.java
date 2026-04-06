@@ -48,12 +48,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
+import frc.robot.commands.AutoAlignToPoseCommand.AlignType;
 import frc.robot.subsystems.climb.BeamBreakerIO;
 import frc.robot.subsystems.climb.BeamBreakerSim;
 import frc.robot.subsystems.climb.BeamBreakerTOF;
@@ -735,7 +737,14 @@ public class RobotState extends StateMachine<RobotState.State> {
 
             controller
                     .rightTrigger(0.5)
-                    .onTrue(ActionCommands.shootOrPassBasedOnPos(this))
+                    .onTrue(new SequentialCommandGroup(
+                        new InstantCommand(() -> drive.stopWithX()),
+                        ActionCommands.shootOrPassBasedOnPos(this)
+                    ))
+                    .whileTrue(new DeferredCommand(() -> {
+                            Pose2d currentPose = getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(drive)))
                     .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
@@ -788,7 +797,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .povUp()
                 .whileTrue(new DeferredCommand(() -> {
                             Pose2d currentPose = getLatestFieldToRobot().getValue();
-                            return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1);
+                            return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1, AlignType.ROTATION);
                         }, Set.of(drive)));
                         
 
@@ -1408,9 +1417,10 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
+        char myColor = (teamAlliance.get() == Alliance.Red) ? 'R' : 'B';
+
         if (teamAlliance.isPresent() && message.length() > 0 && !inTransitionShift && !inEndGame
                 && DriverStation.isTeleop()) {
-            char myColor = (teamAlliance.get() == Alliance.Red) ? 'R' : 'B';
             boolean isStageEven = (currentStage % 2 == 0);
 
             if (autoWinner == 'B') {
@@ -1425,6 +1435,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             hubActivated.set(true);
         }
 
+        SmartDashboard.putBoolean("Game/WonAuto", autoWinner == myColor);
         SmartDashboard.putBoolean("Game/HubActivated", hubActivated.get());
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));

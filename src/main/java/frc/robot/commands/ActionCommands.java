@@ -117,7 +117,7 @@ public class ActionCommands {
         }, Set.of(state.getShooter()));
     }
 
-    public static Command autoClimb(RobotState state) {
+    public static Command autoClimbArchive(RobotState state) {
         return new DeferredCommand(() -> {
 
             boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
@@ -218,6 +218,40 @@ public class ActionCommands {
 
         }, Set.of(state.getDrive(), state.getClimb(),
         state.getIntake(),
+        state.getShooter()
+        ));
+    }
+
+    public static Command autoClimb(RobotState state) {
+        return new DeferredCommand(() -> {
+
+            boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+
+            Translation2d center = VisionConstants.Tower.centerPoint;
+            double rotationDeg = 180.0;
+            double direction = 1.0;
+
+            if (!isBlue) {
+                rotationDeg = 0.0;
+                direction *= -1;
+                center = Util.flipRedBlueXY(new Translation3d(center)).toTranslation2d();
+            }
+
+            Translation2d preClimbTranslation = center.plus(new Translation2d(0.1 * direction, 0));
+            Translation2d climbTranslation = center.plus(new Translation2d(-0.15 * direction, 0));
+
+            Pose2d preClimbPose = new Pose2d(preClimbTranslation, Rotation2d.fromDegrees(rotationDeg));
+            Pose2d finalPose = new Pose2d(climbTranslation, Rotation2d.fromDegrees(rotationDeg));
+
+            return new SequentialCommandGroup(
+                    state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
+                    new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
+                    state.getClimb().transitionCommand(Climb.State.UP),
+                    new WaitCommand(0.35),
+                    new AutoAlignToPoseCommand(state.getDrive(), state, finalPose, 1).withTimeout(1),
+                    state.getClimb().transitionCommand(Climb.State.DOWN));
+
+        }, Set.of(state.getDrive(), state.getClimb(), state.getIntake(),
         state.getShooter()
         ));
     }
