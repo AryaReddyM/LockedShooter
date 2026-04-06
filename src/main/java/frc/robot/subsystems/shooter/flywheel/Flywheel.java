@@ -63,6 +63,7 @@ public class Flywheel extends StateMachine<Flywheel.State> implements FlywheelIO
             }
         }
 
+
         shoot(desiredRPS);
         Logger.recordOutput("Flywheel/Desired RPS", desiredRPS);
         inputs.isReady = flywheelIO.isAtSpeed(desiredRPS, GetTuned.getNumber("Flywheel/Speed Tolerance", FlywheelConstants.kFlywheelSpeedTolerance));

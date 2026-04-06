@@ -32,7 +32,7 @@ public class HopperConstants {
     public static final double kRollerRadiusMeters = 0.0254; // change
 
     // setpoints
-    public static final double kHopperShootSpeed = -15;
+    public static final double kHopperShootSpeed = -30;
     public static final double kHopperOuttakeSpeed = 15;
 
     public static final double kHopperJamTol = 0.5;

@@ -181,7 +181,7 @@ public class Autos {
                         new DeferredCommand(() -> {
                             Pose2d currentPose = state.getLatestFieldToRobot().getValue();
                             return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(),
-                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
+                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
                         }, Set.of(state.getDrive())),
                         state.getShooter().transitionCommand(Shooter.State.SHOOTING),
                         ActionCommands.shakeIntake(state).withTimeout(4),
@@ -198,7 +198,7 @@ public class Autos {
                         new DeferredCommand(() -> {
                             Pose2d currentPose = state.getLatestFieldToRobot().getValue();
                             return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(),
-                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1);
+                                    currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
                         }, Set.of(state.getDrive())),
                         new ParallelCommandGroup(
                                 state.getIntake().transitionCommand(Intake.State.IDLE),
