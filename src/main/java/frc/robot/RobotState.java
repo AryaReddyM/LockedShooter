@@ -532,6 +532,9 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("HP Side Blair (GAME)",
                 AutoCommands.getAutoByName(this, "HP Side Blair (GAME)").get().getCommand(this));
 
+        autoChooser.addOption("Depot Side Bump (GAME)",
+                AutoCommands.getAutoByName(this, "Depot Side Bump (GAME)").get().getCommand(this));
+
         // Other autos
         // autoChooser.addOption("Valid Auto Template", new
         // InstantCommand().withName("Game <- this is a template"));
@@ -1417,10 +1420,10 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        char myColor = (teamAlliance.get() == Alliance.Red) ? 'R' : 'B';
 
         if (teamAlliance.isPresent() && message.length() > 0 && !inTransitionShift && !inEndGame
                 && DriverStation.isTeleop()) {
+            char myColor = (teamAlliance.get() == Alliance.Red) ? 'R' : 'B';
             boolean isStageEven = (currentStage % 2 == 0);
 
             if (autoWinner == 'B') {
@@ -1430,12 +1433,11 @@ public class RobotState extends StateMachine<RobotState.State> {
             } else {
                 hubActivated.set(true);
             }
+            SmartDashboard.putBoolean("Game/WonAuto", autoWinner == myColor);
         } else {
             // UNKNOWN so have it activated to allow shooting
             hubActivated.set(true);
         }
-
-        SmartDashboard.putBoolean("Game/WonAuto", autoWinner == myColor);
         SmartDashboard.putBoolean("Game/HubActivated", hubActivated.get());
         SmartDashboard.putString("Game/GameState", gameState);
         SmartDashboard.putString("Game/ShiftCountdown", String.format("%.2f", secondsUntilAllianceShift));

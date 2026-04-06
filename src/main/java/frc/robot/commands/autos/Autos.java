@@ -1014,6 +1014,102 @@ public class Autos {
         }
     }
 
+    public static class depotSideBump extends AutoClass {
+        public depotSideBump() {
+            this.name = "Depot Side Bump (GAME)";
+            this.sequentialPathStrings = new String[] {
+                    "Start Depot to Intake Blair",
+                    "Mid Depot to Intake Bump",
+                    "Start Depot Side to Intake Bump Second",
+                    "Mid Depot to Intake Bump"
+            };
+        }
+
+        public Command getCommand(RobotState state) {
+            try {
+                    Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
+
+                return new SequentialCommandGroup(
+                    new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
+                                    state)),
+                            state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                            state.getIntake().transitionCommand(Intake.State.IDLE),
+                            // new WaitCommand(0.25),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot to Intake Blair")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
+                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Bump")),
+
+                    new ParallelCommandGroup(
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getIntake().transitionCommand(Intake.State.IDLE),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
+                    ),
+
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
+                    ActionCommands.shakeIntake(state).withTimeout(3),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(1),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+
+                    new ParallelCommandGroup(
+                        AutoBuilder.followPath(pathMap.get("Start Depot Side to Intake Bump Second")),
+                        new SequentialCommandGroup(
+                            new WaitCommand(1.3),
+                            state.getIntake().transitionCommand(Intake.State.INTAKE)
+                        )
+                    ),
+
+                    state.getShooter().getFlywheel().transitionCommand(Flywheel.State.SHOOT),
+                    AutoBuilder.followPath(pathMap.get("Mid Depot to Intake Bump")),
+                    
+                    new ParallelCommandGroup(
+                        new DeferredCommand(() -> {
+                            Pose2d currentPose = state.getLatestFieldToRobot().getValue();
+                            return new AutoAlignToPoseCommand(state.getDrive(), state, new Pose2d(currentPose.getX(), currentPose.getY(), state.getDrive().getAimRotationForHub()), 1, AlignType.ROTATION);
+                        }, Set.of(state.getDrive())),
+                        new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(true);
+                        }),
+                        new SequentialCommandGroup(
+                            // new WaitCommand(0.2),
+                            state.getIntake().transitionCommand(Intake.State.IDLE),
+                            state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        )
+                    ),
+
+                    ActionCommands.shakeIntake(state).withTimeout(11),
+                    state.getIntake().transitionCommand(Intake.State.IDLE),
+                    new WaitCommand(1),
+                    new InstantCommand(() -> {
+                            state.getShooter().getHood().setAutoOverride(false);
+                        }),
+                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                ).withName(this.name);
+            } catch (Exception e) {
+                return new PrintCommand("Failed to generate command: " +
+                        e.getMessage()).withName(name + " (FAILED)");
+            }
+        }
+    }
     //Other Autos
     public static class leftDepotClimb extends AutoClass {
         public leftDepotClimb() {
