@@ -286,7 +286,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     double distance = currentPose.getTranslation().getDistance(targetTrans);
     double shotExitVelocity = robotState.getCurrentHubSetpoint().getShooterRPS();
 
-    double timeOfFlight = ((distance) / shotExitVelocity);
+    double timeOfFlight = ((distance) / shotExitVelocity) * 3;
 
     if (!DriverStation.isAutonomous()) {
       targetTrans = TurretCalculator.predictTargetPos(new Translation3d(targetTrans), getChassisSpeeds(), Seconds.of(timeOfFlight)).toTranslation2d();

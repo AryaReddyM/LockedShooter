@@ -61,7 +61,7 @@ public class IntakeConstants {
     public static final double kExtensionMin = -96;
 
     public static final double kRollerOuttakeSpeed = 40;
-    public static final double kRollerIntakeSpeed = -50;
+    public static final double kRollerIntakeSpeed = -40;
 
     public static final Transform3d intakeOrigin = new Transform3d(new Translation3d(
         Units.inchesToMeters(5),Units.inchesToMeters(0), Units.inchesToMeters(6.7)

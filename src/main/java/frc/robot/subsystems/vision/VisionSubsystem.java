@@ -135,8 +135,16 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
             return Optional.empty();
         }
 
+        Pose2d finalEstimate = estimate.fieldToRobot();
+        try {
+            Rotation2d rawRot = cam.megatagPoseEstimate.fieldToRobot().getRotation();
+            finalEstimate = new Pose2d(finalEstimate.getX(), finalEstimate.getY(), rawRot);
+        } catch (Exception e) {
+            finalEstimate = estimate.fieldToRobot();
+        }
+
         // If Limelight offsets are 0, 'fieldToRobot()' is effectively 'fieldToCamera'
-        Pose2d fieldToRobot = estimate.fieldToRobot().plus(robotToCamera.get());
+        Pose2d fieldToRobot = finalEstimate.plus(robotToCamera.get());
 
         // 5. Standard Deviation Calculation
         Matrix<N3, N1> stdDevs = calculateStdDevs(cam, estimate, useMT2, isTurret);
@@ -211,7 +219,7 @@ public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {
         
         if (isMT2) {
           linearStdDev *= VisionConstants.linearStdDevMegatag2Factor;
-          angularStdDev *= VisionConstants.angularStdDevMegatag2Factor;
+        //   angularStdDev *= VisionConstants.angularStdDevMegatag2Factor;
         }
 
         int cameraIndex = isTurret ? 1 : 0;

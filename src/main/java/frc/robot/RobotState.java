@@ -744,10 +744,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                         new InstantCommand(() -> drive.stopWithX()),
                         ActionCommands.shootOrPassBasedOnPos(this)
                     ))
-                    .whileTrue(new DeferredCommand(() -> {
-                            Pose2d currentPose = getLatestFieldToRobot().getValue();
-                            return new AutoAlignToPoseCommand(drive, this, new Pose2d(currentPose.getX(), currentPose.getY(), drive.getAimRotationForHub()), 1, AlignType.ROTATION);
-                        }, Set.of(drive)))
                     .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
