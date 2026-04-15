@@ -86,6 +86,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
+import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.subsystems.shooter.hood.HoodIO;
 import frc.robot.subsystems.shooter.hood.HoodIOSim;
 import frc.robot.subsystems.shooter.hood.HoodIOSpark;
@@ -141,6 +142,9 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private boolean climbZeroed = false;
     private boolean visionDisabled = false;
+
+    private double hoodPercentage = 0.0;
+    private double flyWheelSpeed = 0.5;
 
     private CommandXboxController controller = new CommandXboxController(0);
     private CommandXboxController operatorController = new CommandXboxController(1);
@@ -741,10 +745,40 @@ public class RobotState extends StateMachine<RobotState.State> {
             controller
                     .rightTrigger(0.5)
                     .onTrue(new SequentialCommandGroup(
-                        new InstantCommand(() -> drive.stopWithX()),
-                        ActionCommands.shootOrPassBasedOnPos(this)
+                        new InstantCommand(() -> {
+                            shooter.getFlywheel().setOverride(() -> Math.min(8, Math.abs(flyWheelSpeed)));
+                        }),
+                        shooter.transitionCommand(Shooter.State.SHOOTING)
                     ))
-                    .onFalse(ActionCommands.trackBasedOnPos(this));
+                    .onFalse(new SequentialCommandGroup(
+                        new InstantCommand(() -> {
+                            shooter.getFlywheel().setOverride(null);
+                        }),
+                        ActionCommands.trackBasedOnPos(this)
+                    ));
+
+            operatorController
+                    .rightTrigger(0.5)
+                    .onTrue(new SequentialCommandGroup(
+                        new InstantCommand(() -> {
+                            shooter.getFlywheel().setOverride(() -> Math.min(8, Math.abs(flyWheelSpeed)));
+                        }),
+                        shooter.transitionCommand(Shooter.State.SHOOTING)
+                    ))
+                    .onFalse(new SequentialCommandGroup(
+                        new InstantCommand(() -> {
+                            shooter.getFlywheel().setOverride(null);
+                        }),
+                        ActionCommands.trackBasedOnPos(this)
+                    ));
+
+            operatorController.leftBumper().onTrue(new InstantCommand(() -> {
+                flyWheelSpeed = Math.max(0, flyWheelSpeed - 0.5);
+            }));
+
+            operatorController.rightBumper().onTrue(new InstantCommand(() -> {
+                flyWheelSpeed = Math.min(8, flyWheelSpeed + 0.5);
+            }));
 
             controller.rightBumper().onTrue(drive.transitionCommand(Drive.State.SLOW))
                     .onFalse(drive.transitionCommand(Drive.State.TRAVERSING));
@@ -813,154 +847,157 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
+        shooter.getHood().setOverride((a) -> shooter.getHood().setPos(HoodConstants.kHoodMinLimit + (HoodConstants.kHoodMaxLimit - HoodConstants.kHoodMinLimit) * hoodPercentage, 0));
+
         // driver two
 
-        {
-            operatorController
-                    .leftStick()
-                    .onTrue(new InstantCommand(() -> {
-                        if (climb != null)
-                            climb.setOverride(null);
-                        if (hopper != null)
-                            hopper.setOverride(null);
-                        if (kicker != null)
-                            kicker.setOverride(null);
-                        if (intake != null)
-                            intake.setOverride(null);
-                        if (shooter != null) {
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(null);
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride(null);
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride(null);
-                        }
-                    }));
+        // {
+        //     operatorController
+        //             .leftStick()
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (climb != null)
+        //                     climb.setOverride(null);
+        //                 if (hopper != null)
+        //                     hopper.setOverride(null);
+        //                 if (kicker != null)
+        //                     kicker.setOverride(null);
+        //                 if (intake != null)
+        //                     intake.setOverride(null);
+        //                 if (shooter != null) {
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(null);
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride(null);
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride(null);
+        //                 }
+        //             }));
 
-            operatorController
-                    .rightStick()
-                    .onTrue(new InstantCommand(() -> {
-                        if (operatorController.y().getAsBoolean() && climb != null) {
-                            climb.setOverride(null);
-                        } else if (operatorController.x().getAsBoolean()) {
-                            if (hopper != null)
-                                hopper.setOverride(null);
-                            if (kicker != null)
-                                kicker.setOverride(null);
-                        } else if (operatorController.b().getAsBoolean() && intake != null) {
-                            intake.setOverride(null);
-                        } else if (operatorController.a().getAsBoolean() && shooter != null) {
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(null);
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride(null);
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride(null);
-                        }
-                    }));
+        //     operatorController
+        //             .rightStick()
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (operatorController.y().getAsBoolean() && climb != null) {
+        //                     climb.setOverride(null);
+        //                 } else if (operatorController.x().getAsBoolean()) {
+        //                     if (hopper != null)
+        //                         hopper.setOverride(null);
+        //                     if (kicker != null)
+        //                         kicker.setOverride(null);
+        //                 } else if (operatorController.b().getAsBoolean() && intake != null) {
+        //                     intake.setOverride(null);
+        //                 } else if (operatorController.a().getAsBoolean() && shooter != null) {
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(null);
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride(null);
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride(null);
+        //                 }
+        //             }));
 
-            operatorController
-                    .leftTrigger(0.5)
-                    .onTrue(new InstantCommand(() -> {
-                        if (operatorController.y().getAsBoolean() && climb != null) {
-                            climb.zero();
-                            climb.setOverride((a) -> {
-                            });
-                        } else if (operatorController.x().getAsBoolean()) {
-                            if (hopper != null)
-                                hopper.setOverride((a) -> hopper.stop());
-                            if (kicker != null)
-                                kicker.setOverride((a) -> kicker.stop());
-                        } else if (operatorController.b().getAsBoolean() && intake != null) {
-                            intake.setOverride((a) -> intake.intakeRoll());
-                        } else if (operatorController.a().getAsBoolean() && shooter != null) {
-                            var setpoint = getCurrentHubSetpoint();
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(() -> setpoint.getShooterRPS());
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
-                                        setpoint.getHoodFF()));
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride((a) -> shooter.getTurret()
-                                        .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
-                        }
-                    }));
+        //     operatorController
+        //             .leftTrigger(0.5)
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (operatorController.y().getAsBoolean() && climb != null) {
+        //                     climb.zero();
+        //                     climb.setOverride((a) -> {
+        //                     });
+        //                 } else if (operatorController.x().getAsBoolean()) {
+        //                     if (hopper != null)
+        //                         hopper.setOverride((a) -> hopper.stop());
+        //                     if (kicker != null)
+        //                         kicker.setOverride((a) -> kicker.stop());
+        //                 } else if (operatorController.b().getAsBoolean() && intake != null) {
+        //                     intake.setOverride((a) -> intake.intakeRoll());
+        //                 } else if (operatorController.a().getAsBoolean() && shooter != null) {
+        //                     var setpoint = getCurrentHubSetpoint();
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(() -> setpoint.getShooterRPS());
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
+        //                                 setpoint.getHoodFF()));
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride((a) -> shooter.getTurret()
+        //                                 .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
+        //                 }
+        //             }));
 
-            operatorController
-                    .rightTrigger(0.5)
-                    .onTrue(new InstantCommand(() -> {
-                        if (operatorController.y().getAsBoolean() && climb != null) {
-                            climb.setOverride((a) -> climb.down());
-                        } else if (operatorController.x().getAsBoolean()) {
-                            if (hopper != null)
-                                hopper.setOverride((a) -> hopper.stop());
-                            if (kicker != null)
-                                kicker.setOverride((a) -> kicker.stop());
-                        } else if (operatorController.b().getAsBoolean() && intake != null) {
-                            intake.setOverride((a) -> intake.outakeRoll());
-                        } else if (operatorController.a().getAsBoolean() && shooter != null) {
-                            var setpoint = getCurrentPassSetpoint();
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(() -> setpoint.getShooterRPS());
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
-                                        setpoint.getHoodFF()));
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride((a) -> shooter.getTurret()
-                                        .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
-                        }
-                    }));
+        //     operatorController
+        //             .rightTrigger(0.5)
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (operatorController.y().getAsBoolean() && climb != null) {
+        //                     climb.setOverride((a) -> climb.down());
+        //                 } else if (operatorController.x().getAsBoolean()) {
+        //                     if (hopper != null)
+        //                         hopper.setOverride((a) -> hopper.stop());
+        //                     if (kicker != null)
+        //                         kicker.setOverride((a) -> kicker.stop());
+        //                 } else if (operatorController.b().getAsBoolean() && intake != null) {
+        //                     intake.setOverride((a) -> intake.outakeRoll());
+        //                 } else if (operatorController.a().getAsBoolean() && shooter != null) {
+        //                     var setpoint = getCurrentPassSetpoint();
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(() -> setpoint.getShooterRPS());
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
+        //                                 setpoint.getHoodFF()));
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride((a) -> shooter.getTurret()
+        //                                 .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
+        //                 }
+        //             }));
 
-            operatorController
-                    .leftBumper()
-                    .onTrue(new InstantCommand(() -> {
-                        if (operatorController.y().getAsBoolean() && climb != null) {
-                            climb.setOverride((a) -> climb.up());
-                        } else if (operatorController.x().getAsBoolean()) {
-                            if (hopper != null)
-                                hopper.setOverride((a) -> hopper.shoot());
-                            if (kicker != null)
-                                kicker.setOverride((a) -> kicker.shoot());
-                        } else if (operatorController.b().getAsBoolean() && intake != null) {
-                            intake.setOverride((a) -> intake.stow());
-                        } else if (operatorController.a().getAsBoolean() && shooter != null) {
-                            var setpoint = getCurrentHubSetpoint();
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(() -> 0.0);
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
-                                        setpoint.getHoodFF()));
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride((a) -> shooter.getTurret()
-                                        .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
-                        }
-                    }));
+        //     operatorController
+        //             .leftBumper()
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (operatorController.y().getAsBoolean() && climb != null) {
+        //                     climb.setOverride((a) -> climb.up());
+        //                 } else if (operatorController.x().getAsBoolean()) {
+        //                     if (hopper != null)
+        //                         hopper.setOverride((a) -> hopper.shoot());
+        //                     if (kicker != null)
+        //                         kicker.setOverride((a) -> kicker.shoot());
+        //                 } else if (operatorController.b().getAsBoolean() && intake != null) {
+        //                     intake.setOverride((a) -> intake.stow());
+        //                 } else if (operatorController.a().getAsBoolean() && shooter != null) {
+        //                     var setpoint = getCurrentHubSetpoint();
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(() -> 0.0);
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
+        //                                 setpoint.getHoodFF()));
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride((a) -> shooter.getTurret()
+        //                                 .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
+        //                 }
+        //             }));
 
-            operatorController
-                    .rightBumper()
-                    .onTrue(new InstantCommand(() -> {
-                        if (operatorController.y().getAsBoolean() && climb != null) {
-                            climb.setOverride((a) -> climb.stow());
-                        } else if (operatorController.x().getAsBoolean()) {
-                            if (hopper != null)
-                                hopper.setOverride((a) -> hopper.outake());
-                            if (kicker != null)
-                                kicker.setOverride((a) -> kicker.outtake());
-                        } else if (operatorController.b().getAsBoolean() && intake != null) {
-                            intake.setOverride((a) -> intake.intake());
-                        } else if (operatorController.a().getAsBoolean() && shooter != null) {
-                            var setpoint = getCurrentPassSetpoint();
-                            if (shooter.getFlywheel() != null)
-                                shooter.getFlywheel().setOverride(() -> 0.0);
-                            if (shooter.getHood() != null)
-                                shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
-                                        setpoint.getHoodFF()));
-                            if (shooter.getTurret() != null)
-                                shooter.getTurret().setOverride((a) -> shooter.getTurret()
-                                        .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
-                        }
-                    }));
-        }
+        //     operatorController
+        //             .rightBumper()
+        //             .onTrue(new InstantCommand(() -> {
+        //                 if (operatorController.y().getAsBoolean() && climb != null) {
+        //                     climb.setOverride((a) -> climb.stow());
+        //                 } else if (operatorController.x().getAsBoolean()) {
+        //                     if (hopper != null)
+        //                         hopper.setOverride((a) -> hopper.outake());
+        //                     if (kicker != null)
+        //                         kicker.setOverride((a) -> kicker.outtake());
+        //                 } else if (operatorController.b().getAsBoolean() && intake != null) {
+        //                     intake.setOverride((a) -> intake.intake());
+        //                 } else if (operatorController.a().getAsBoolean() && shooter != null) {
+        //                     var setpoint = getCurrentPassSetpoint();
+        //                     if (shooter.getFlywheel() != null)
+        //                         shooter.getFlywheel().setOverride(() -> 0.0);
+        //                     if (shooter.getHood() != null)
+        //                         shooter.getHood().setOverride((a) -> shooter.getHood().setPos(setpoint.getHoodRadians(),
+        //                                 setpoint.getHoodFF()));
+        //                     if (shooter.getTurret() != null)
+        //                         shooter.getTurret().setOverride((a) -> shooter.getTurret()
+        //                                 .setPos(setpoint.getTurretRadiansFromCenter(), setpoint.getTurretFF()));
+        //                 }
+        //             }));
+        // }
+    
     }
 
     public Drive getDrive() {
@@ -1305,6 +1342,10 @@ public class RobotState extends StateMachine<RobotState.State> {
         if (Math.abs(controller.getRightX()) > 0.1) {
             drive.requestTransition(Drive.State.TRAVERSING);
         }
+
+        Logger.recordOutput("Hood Percentage", hoodPercentage);
+        Logger.recordOutput("Flywheel Speed", flyWheelSpeed);
+        hoodPercentage = Math.abs(operatorController.getLeftX());
         
         // LOGGING FOR TOF
         {
