@@ -103,8 +103,6 @@ import frc.robot.util.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
-    public final static int robotState = 1; // real, sim, replay
-
     public final static double LOOKBACK_TIME = 1.0;
     public final static AtomicBoolean hubActivated = new AtomicBoolean();
 
@@ -147,11 +145,6 @@ public class RobotState extends StateMachine<RobotState.State> {
             VisionConstants.kTurretToCameraY,
             MathHelpers.kRotation2dZero);
 
-    // private static final Transform2d ROBOT_TO_CAMERA_B = new
-    // Transform2d(VisionConstants.kTurretToCameraBX,
-    // VisionConstants.kTurretToCameraBY,
-    // MathHelpers.kRotation2dZero);
-
     private static final Transform2d ROBOT_TO_CAMERA_B = new Transform2d();
     private final AtomicReference<ChassisSpeeds> measuredRobotRelativeChassisSpeeds = new AtomicReference<>(
             new ChassisSpeeds());
@@ -189,9 +182,8 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public RobotState() {
         super("RobotState", State.UNDETERMINED, State.class);
-        // drive intialization
 
-        // vision initialization TODO
+        // vision initialization
         {
             clearBuffers();
 
@@ -201,7 +193,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                     if (visionDisabled) {
                         return;
                     }
-                    if (robotState != 1) {
+                    if (Constants.currentMode != Constants.Mode.REAL) {
                         return;
                     }
                     drive.addVisionMeasurement(estimate.getVisionRobotPoseMeters(), estimate.getTimestampSeconds(),
@@ -209,8 +201,8 @@ public class RobotState extends StateMachine<RobotState.State> {
                 }
             };
 
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
                     break;
                 default:
@@ -222,14 +214,14 @@ public class RobotState extends StateMachine<RobotState.State> {
                     new Notification().withTitle("Vision Subsystem").withDescription("Vision Started"));
         }
 
-        // drive intialization
+        // drive initialization
         {
             lookAtPose = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue)
                     ? new Pose2d(VisionConstants.FieldConstants.HUB_BLUE.toTranslation2d(), Rotation2d.kZero)
                     : new Pose2d(VisionConstants.FieldConstants.HUB_RED.toTranslation2d(), Rotation2d.kZero);
 
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     drive = new Drive(
                             new GyroIOPigeon2(),
                             new ModuleIOSpark(0),
@@ -238,7 +230,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             new ModuleIOSpark(3),
                             this);
                     break;
-                case 2:
+                case SIM:
                     drive = new Drive(
                             new GyroIO() {
                             },
@@ -288,7 +280,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                                 simFuelCount++;
                             });
                     break;
-                default:
+                case REPLAY:
                     drive = new Drive(
                             new GyroIO() {
                             },
@@ -300,7 +292,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                             },
                             new ModuleIO() {
                             }, this);
-
+                    break;
             }
 
             Elastic.sendNotification(new Notification().withTitle("Drive Subsystem").withDescription("Drive Started"));
@@ -310,22 +302,22 @@ public class RobotState extends StateMachine<RobotState.State> {
             hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
             passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     shooter = new Shooter(
                             this,
                             new TurretIOSpark(),
                             new HoodIOSpark(),
                             new FlywheelIOSpark());
                     break;
-                case 2:
+                case SIM:
                     shooter = new Shooter(
                             this,
                             new TurretIOSim(),
                             new HoodIOSim(),
                             new FlywheelIOSim());
                     break;
-                default:
+                case REPLAY:
                     shooter = new Shooter(
                             this,
                             new TurretIO() {
@@ -339,22 +331,22 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // climb
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     climb = new Climb(
                             new ClimbIOSpark(),
                             new BeamBreakerTOF(1),
                             new BeamBreakerTOF(2),
                             this);
                     break;
-                case 2:
+                case SIM:
                     climb = new Climb(
                             new ClimbIOSim(),
                             new BeamBreakerSim(1, this),
                             new BeamBreakerSim(2, this),
                             this);
                     break;
-                default:
+                case REPLAY:
                     climb = new Climb(
                             new ClimbIO() {
                             },
@@ -368,18 +360,18 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // hopper
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     hopper = new Hopper(
                             new HopperIOSpark(),
                             this);
                     break;
-                case 2:
+                case SIM:
                     hopper = new Hopper(
                             new HopperIOSim(),
                             this);
                     break;
-                default:
+                case REPLAY:
                     hopper = new Hopper(
                             new HopperIO() {
                             },
@@ -389,18 +381,18 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // intake
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     intake = new Intake(
                             new IntakeIOSpark(),
                             this);
                     break;
-                case 2:
+                case SIM:
                     intake = new Intake(
                             new IntakeIOSim(),
                             this);
                     break;
-                default:
+                case REPLAY:
                     intake = new Intake(
                             new IntakeIO() {
                             },
@@ -410,18 +402,18 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // kicker
-            switch (robotState) {
-                case 1:
+            switch (Constants.currentMode) {
+                case REAL:
                     kicker = new Kicker(
                             new KickerIOSpark(),
                             this);
                     break;
-                case 2:
+                case SIM:
                     kicker = new Kicker(
                             new KickerIOSim(),
                             this);
                     break;
-                default:
+                case REPLAY:
                     kicker = new Kicker(
                             new KickerIO() {
                             },
@@ -430,7 +422,7 @@ public class RobotState extends StateMachine<RobotState.State> {
             }
         }
 
-        // // auto setup
+        // auto setup
         {
             customAutoBuilder = new CustomAutoBuilder(this);
             autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -466,7 +458,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void setupDriveDiagnosisAutos() {
 
-        // Simple autos
         autoChooser.addOption("Center Only Starting 8 (GAME)",
                 AutoCommands.getAutoByName(this, "Center Only Starting 8 (GAME)").get().getCommand(this));
 
@@ -503,11 +494,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         autoChooser.addOption("HP Side To HP End at Mid (GAME)",
                 AutoCommands.getAutoByName(this, "HP Side To HP End at Mid (GAME)").get().getCommand(this));
 
-        // Complex
-        // autoChooser.addOption("Pathfinding Auto",
-        // AutoCommands.getAutoByName(this, "Pathfinding
-        // (GAME)").get().getCommand(this));
-
         autoChooser.addOption("Custom Auto Builder", customAutoBuilder.getCommand(this));
 
         autoChooser.addOption("Depot Side Depot Mid Half Sweep (GAME)",
@@ -518,63 +504,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                 AutoCommands.getAutoByName(this, "HP Side Quick Shoot Climb (GAME)").get().getCommand(this));
         autoChooser.addOption("Depot Side Circut Shoot (GAME)",
                 AutoCommands.getAutoByName(this, "Depot Side Circut Shoot (GAME)").get().getCommand(this));
-
-        // Other autos
-        // autoChooser.addOption("Valid Auto Template", new
-        // InstantCommand().withName("Game <- this is a template"));
-        // autoChooser.addOption("Testing Auto", AutoCommands.getAutoByName(this, "Apple
-        // (GAME)").get().getCommand(this));
-
-        // autoChooser.addOption("Right Fuel Climb",
-        // AutoCommands.getAutoByName(this, "Right Fuel Climb
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Left Depot Climb",
-        // AutoCommands.getAutoByName(this, "Left Depot Climb
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Center HP Climb",
-        // AutoCommands.getAutoByName(this, "Center HP Climb
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Center Right HP Climb",
-        // AutoCommands.getAutoByName(this, "Center Right HP Climb
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Center Left Depot Climb",
-        // AutoCommands.getAutoByName(this, "Center Left Depot Climb
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Left Depot Fuel",
-        // AutoCommands.getAutoByName(this, "Left Depot Fuel
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Center HP Fuel",
-        // AutoCommands.getAutoByName(this, "Center HP Fuel
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Right HP Fuel",
-        // AutoCommands.getAutoByName(this, "Right HP Fuel
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Waypoint Auto",
-        // AutoCommands.getAutoByName(this, "WAYPOINT (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Depot Auto", AutoCommands.getAutoByName(this, "Depot
-        // (GAME)").get().getCommand(this));
-        // autoChooser.addOption("Outpost Auto",
-        // AutoCommands.getAutoByName(this, "Outpost (GAME)").get().getCommand(this));
-
-        // Drive tuning Autos
-        // autoChooser.addOption(
-        // "Drive Wheel Radius Characterization",
-        // DriveCommands.wheelRadiusCharacterization(drive));
-        // autoChooser.addOption(
-        // "Drive Simple FF Characterization",
-        // DriveCommands.feedforwardCharacterization(drive));
-        // autoChooser.addOption(
-        // "Drive SysId (Quasistatic Forward)",
-        // drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-        // autoChooser.addOption(
-        // "Drive SysId (Quasistatic Reverse)",
-        // drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-        // autoChooser.addOption(
-        // "Drive SysId (Dynamic Forward)",
-        // drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        // autoChooser.addOption(
-        // "Drive SysId (Dynamic Reverse)",
-        // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     }
 
     public void clearBuffers() {
@@ -619,80 +548,25 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     private void registerStateCommands() {
         registerStateCommand(State.SOFT_STOP, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.IDLE)
-        // shooter.transitionCommand(Shooter.State.IDLE),
-        // climb.transitionCommand(Climb.State.STOW),
-        // hopper.transitionCommand(Hopper.State.IDLE),
-        // intake.transitionCommand(Intake.State.STOW),
-        // kicker.transitionCommand(Kicker.State.IDLE)
-        ));
+                drive.transitionCommand(Drive.State.IDLE)));
 
         registerStateCommand(State.TRAVERSING, new ParallelCommandGroup(
-                drive.transitionCommand(Drive.State.TRAVERSING)
-        // shooter.transitionCommand(Shooter.State.IDLE),
-        // climb.transitionCommand(Climb.State.STOW),
-        // hopper.transitionCommand(Hopper.State.IDLE),
-        // intake.transitionCommand(Intake.State.STOW),
-        // kicker.transitionCommand(Kicker.State.IDLE)
-        ));
-
-        registerStateCommand(State.INTAKING, new ParallelCommandGroup(
-        // intake.transitionCommand(Intake.State.INTAKE),
-        // hopper.transitionCommand(Hopper.State.IDLE),
-        // kicker.transitionCommand(Kicker.State.IDLE),
-        // climb.transitionCommand(Climb.State.STOW),
-
-        // shooter.transitionCommand(Shooter.State.IDLE)
-        ));
-
-        registerStateCommand(State.SHOOTING, new ParallelCommandGroup(
-        // intake.transitionCommand(Intake.State.IDLE),
-        // hopper.transitionCommand(Hopper.State.SHOOT),
-        // kicker.transitionCommand(Kicker.State.SHOOT),
-        // climb.transitionCommand(Climb.State.STOW),
-
-        // shooter.transitionCommand(Shooter.State.SHOOTING)
-        ));
-
-        registerStateCommand(State.PASSING, new ParallelCommandGroup(
-        // intake.transitionCommand(Intake.State.IDLE),
-        // hopper.transitionCommand(Hopper.State.SHOOT),
-        // kicker.transitionCommand(Kicker.State.SHOOT),
-        // climb.transitionCommand(Climb.State.STOW),
-
-        // shooter.transitionCommand(Shooter.State.PASSING)
-        ));
-
-        registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup(
-        // intake.transitionCommand(Intake.State.INTAKE),
-        // hopper.transitionCommand(Hopper.State.SHOOT),
-        // kicker.transitionCommand(Kicker.State.SHOOT),
-        // climb.transitionCommand(Climb.State.STOW),
-
-        // shooter.transitionCommand(Shooter.State.SHOOTING)
-        ));
-
-        registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup(
-        // intake.transitionCommand(Intake.State.INTAKE),
-        // hopper.transitionCommand(Hopper.State.SHOOT),
-        // kicker.transitionCommand(Kicker.State.SHOOT),
-        // climb.transitionCommand(Climb.State.STOW),
-
-        // shooter.transitionCommand(Shooter.State.PASSING)
-        ));
-
-        registerStateCommand(State.CLIMBING, new ParallelCommandGroup(
-        // shooter.transitionCommand(Shooter.State.IDLE),
-        // climb.transitionCommand(Climb.State.CLIMB),
-        // hopper.transitionCommand(Hopper.State.IDLE),
-        // intake.transitionCommand(Intake.State.STOW),
-        // kicker.transitionCommand(Kicker.State.IDLE)
-        ));
-
-        // // change this to an auto state in the future?
-        registerStateCommand(State.AUTO, new ParallelCommandGroup(
                 drive.transitionCommand(Drive.State.TRAVERSING)));
 
+        registerStateCommand(State.INTAKING, new ParallelCommandGroup());
+
+        registerStateCommand(State.SHOOTING, new ParallelCommandGroup());
+
+        registerStateCommand(State.PASSING, new ParallelCommandGroup());
+
+        registerStateCommand(State.SHOOTING_INTAKING, new ParallelCommandGroup());
+
+        registerStateCommand(State.PASSING_INTAKING, new ParallelCommandGroup());
+
+        registerStateCommand(State.CLIMBING, new ParallelCommandGroup());
+
+        registerStateCommand(State.AUTO, new ParallelCommandGroup(
+                drive.transitionCommand(Drive.State.TRAVERSING)));
     }
 
     private void setupControllerBindings() {
@@ -740,7 +614,7 @@ public class RobotState extends StateMachine<RobotState.State> {
                         intake.requestTransition(Intake.State.OUTAKE);
                     }))
                     .onFalse(new InstantCommand(() -> {
-                        hopper.requestTransition(Hopper.State.IDLE); // this is already done thru trackBasedOnPos
+                        hopper.requestTransition(Hopper.State.IDLE);
                         kicker.requestTransition(Kicker.State.IDLE);
                         ActionCommands.trackBasedOnPos(this);
                         intake.requestTransition(Intake.State.IDLE);
@@ -758,22 +632,9 @@ public class RobotState extends StateMachine<RobotState.State> {
             controller
                     .b()
                     .whileTrue(ActionCommands.shakeIntake(this));
-
-            { // flywheel multipliers
-              // controller.back().onTrue(new InstantCommand(() -> {
-              // shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() +
-              // 0.05);
-              // }));
-
-                // controller.back().onTrue(new InstantCommand(() -> {
-                // shooter.getFlywheel().setMultiplier(shooter.getFlywheel().getMultiplier() -
-                // 0.05);
-                // }));
-            }
         }
 
         // driver two
-
         {
             operatorController
                     .leftStick()
@@ -1052,12 +913,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                 .exp(new Twist2d(delta.vxMetersPerSecond, delta.vyMetersPerSecond, delta.omegaRadiansPerSecond));
     }
 
-    // This has rotation and radians to allow for wrapping tracking.
     public void addTurretUpdates(double timestamp,
             Rotation2d turretRotation,
             double turretRadians,
             double angularYawRadsPerS) {
-        // turret frame 180 degrees off from robot frame
         robotToTurret.addSample(timestamp, turretRotation);
         this.turretAngularVelocity.addSample(timestamp, angularYawRadsPerS);
         this.turretPositionRadians.addSample(timestamp, turretRadians);
@@ -1131,7 +990,6 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public Optional<Double> getMaxAbsDriveYawAngularVelocityInRange(double minTime, double maxTime) {
-        // Gyro yaw rate not set in sim.
         if (Robot.isReal())
             return getMaxAbsValueInRange(driveYawAngularVelocity, minTime, maxTime);
         return Optional.of(measuredRobotRelativeChassisSpeeds.get().omegaRadiansPerSecond);
@@ -1195,11 +1053,6 @@ public class RobotState extends StateMachine<RobotState.State> {
         Logger.recordOutput("RobotState/DesiredChassisSpeedFieldFrame", getLatestDesiredFieldRelativeChassisSpeed());
         Logger.recordOutput("RobotState/MeasuredChassisSpeedFieldFrame", getLatestMeasuredFieldRelativeChassisSpeeds());
         Logger.recordOutput("RobotState/FusedChassisSpeedFieldFrame", getLatestFusedFieldRelativeChassisSpeed());
-
-        // Logger.processInputs("Setpoint/Pass",
-        // ShooterSetpoint.getLog(getCurrentPassSetpoint()));
-        // Logger.processInputs("Setpoint/Shoot",
-        // ShooterSetpoint.getLog(getCurrentHubSetpoint()));
     }
 
     @Override
@@ -1239,7 +1092,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     }
 
     public void updateSimulation() {
-        if (robotState != 2) {
+        if (Constants.currentMode != Constants.Mode.SIM) {
             return;
         }
         fuelSim.updateSim();
@@ -1263,7 +1116,6 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         boolean inTransitionShift = (matchTime >= 130);
         boolean inEndGame = (matchTime <= 30);
-        // ONLY refer to this if both booleans are false
         int currentStage = (4 - (int) ((matchTime - 30) / 25));
 
         if (DriverStation.isAutonomous()) {
@@ -1371,7 +1223,6 @@ public class RobotState extends StateMachine<RobotState.State> {
                 hubActivated.set(true);
             }
         } else {
-            // UNKNOWN so have it activated to allow shooting
             hubActivated.set(true);
         }
 
