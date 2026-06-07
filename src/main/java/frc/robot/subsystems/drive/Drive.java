@@ -54,13 +54,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.commands.DriveCommands;
-import frc.robot.util.Elastic;
-import frc.robot.util.RobotTime;
-import frc.robot.util.SimulatedRobotState;
-import frc.robot.util.TrenchZone;
-import frc.robot.util.Elastic.Notification;
+import frc.robot.util.logging.Elastic;
+import frc.robot.util.field.RobotTime;
+import frc.robot.util.sim.SimulatedRobotState;
+import frc.robot.util.field.TrenchZone;
+import frc.robot.util.logging.Elastic.Notification;
 import frc.robot.util.state.StateMachine;
 
 import java.util.List;
@@ -308,7 +309,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
     // robotState updating (some logic has been redone twice)
     {
-      if (RobotState.robotState == 1) {
+      if (Constants.currentMode == Constants.Mode.REAL) {
         StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
         StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
         StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
@@ -349,7 +350,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
               measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
               fusedFieldRelativeChassisSpeeds);
         }
-      } else if (RobotState.robotState == 2) {
+      } else if (Constants.currentMode == Constants.Mode.SIM) {
         robotState.getSimRobot().addFieldToRobot(getPose());
       }
     }

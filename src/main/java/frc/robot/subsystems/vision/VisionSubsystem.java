@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
-import frc.robot.util.MathHelpers;
+import frc.robot.util.math.MathHelpers;
 import frc.robot.util.state.StateMachine;
 
 public class VisionSubsystem extends StateMachine<VisionSubsystem.State> {

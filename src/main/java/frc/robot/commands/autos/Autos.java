@@ -25,10 +25,9 @@ import frc.robot.commands.ActionCommands;
 import frc.robot.commands.AutoAlignToPoseCommand;
 import frc.robot.commands.AutoCommands;
 import frc.robot.commands.AutoCommands.AutoClass;
-import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.Shooter.State;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.climb.Climb;
+import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.vision.VisionConstants;
 
 public class Autos {
@@ -55,18 +54,18 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Center to Home Center")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getSuperstructure().hubTrack()                       
                     ),
 
                     new WaitCommand(5),
 
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     // new WaitCommand(10),
                     ActionCommands.shakeIntake(state).withTimeout(10),
 
                     // new WaitCommand(10),
 
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getSuperstructure().hubTrack()
 
                 ).withName(name);
 
@@ -109,17 +108,17 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side To Home Depot")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getSuperstructure().hubTrack()                       
                     ),
 
                     new WaitCommand(5),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING), 
+                    state.getSuperstructure().shoot(), 
                     
                     ActionCommands.shakeIntake(state).withTimeout(10),
                     // new WaitCommand(10), 
                     // new WaitCommand(10),
 
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getSuperstructure().hubTrack()
 
                 ).withName(name);
 
@@ -163,14 +162,14 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Home Depot")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                        
+                        state.getSuperstructure().hubTrack()                        
                     ),
 
                     new WaitCommand(3),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     ActionCommands.shakeIntake(state).withTimeout(4),
                     // new WaitCommand(4),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                    state.getSuperstructure().hubTrack(),
 
                     // new WaitCommand(4),
 
@@ -182,14 +181,14 @@ public class Autos {
                     ),
                     new ParallelCommandGroup(
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING)
+                        state.getSuperstructure().shoot()
                     ),
 
                     ActionCommands.shakeIntake(state).withTimeout(6),
                     // new WaitCommand(6),
                     // new WaitCommand(6),
 
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getSuperstructure().hubTrack()
 
                 ).withName(name);
 
@@ -239,10 +238,10 @@ public class Autos {
                     ),
 
                     new WaitCommand(2),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     ActionCommands.shakeIntake(state).withTimeout(3.5),
                     // new WaitCommand(3.5),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),    
+                    state.getSuperstructure().hubTrack(),    
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Depot Intaking")),
@@ -260,7 +259,7 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Mid Depot Side Half Sweep")),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
-                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
+                        state.getSuperstructure().passTrack()
                     ),
                     
                     state.getIntake().transitionCommand(Intake.State.IDLE)
@@ -292,16 +291,16 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP Side To Home HP")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)                       
+                        state.getSuperstructure().hubTrack()                       
                     ),
 
                     new WaitCommand(5),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     ActionCommands.shakeIntake(state).withTimeout(10),
                     // new WaitCommand(10),
                     // new WaitCommand(10),
 
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getSuperstructure().hubTrack()
                     
                 ).withName(name);
 
@@ -344,27 +343,27 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Start HP Side to Home HP")),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getSuperstructure().hubTrack()
                     ),
 
                     new WaitCommand(3),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     ActionCommands.shakeIntake(state).withTimeout(4),
                     // new WaitCommand(4),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                    state.getSuperstructure().hubTrack(),
                     // new WaitCommand(4),
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Home HP to HP")),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getSuperstructure().hubTrack()
 
                     ),
 
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     new WaitCommand(8),
                     // new WaitCommand(8),
 
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                    state.getSuperstructure().hubTrack()
 
                 ).withName(name);
 
@@ -411,10 +410,10 @@ public class Autos {
                         state.getIntake().transitionCommand(Intake.State.IDLE)                
                     ),
                     new WaitCommand(3),
-                    state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                    state.getSuperstructure().shoot(),
                     ActionCommands.shakeIntake(state).withTimeout(4),
                     // new WaitCommand(4),
-                    state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                    state.getSuperstructure().hubTrack(),
 
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("HP to Mid"))
@@ -423,7 +422,7 @@ public class Autos {
                     new ParallelCommandGroup(
                         AutoBuilder.followPath(pathMap.get("Mid HP Side Half Sweep")),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
-                        state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING)
+                        state.getSuperstructure().passTrack()
                     ),
                     
                     state.getIntake().transitionCommand(Intake.State.IDLE)
@@ -463,7 +462,7 @@ public class Autos {
                                 state.getIntake().requestTransition(Intake.State.STOW); 
                             }),
                         new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                                state.getSuperstructure().setState(Superstructure.State.HUB_TRACKING); 
                             })                        
                     ),
                     // MAYBE SHOOT DEPENDING ON HOW LONG IT TAKES TO SPIN UP IF TOO LONG SHOOT AFTER INTAKING
@@ -482,13 +481,13 @@ public class Autos {
                         //need to test and figure out timings 
                         new SequentialCommandGroup(
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); 
                             }),
                             ActionCommands.shakeIntake(state).withTimeout(4),
                             // new WaitCommand(4),
                             // new WaitCommand(2), // need to figure out 
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                                state.getSuperstructure().setState(Superstructure.State.HUB_TRACKING); 
                             })
                         ),
                         new SequentialCommandGroup(
@@ -516,7 +515,7 @@ public class Autos {
                             state.getIntake().requestTransition(Intake.State.STOW); 
                         }),
                         new InstantCommand(() -> {
-                            state.getShooter().requestTransition(Shooter.State.SHOOTING); 
+                            state.getSuperstructure().setState(Superstructure.State.SHOOTING); 
                         }),
                         ActionCommands.shakeIntake(state).withTimeout(5.5)
                         // new WaitCommand(5.5)
@@ -524,7 +523,7 @@ public class Autos {
                     ),
                     
                     new InstantCommand(() -> {
-                            state.getShooter().requestTransition(Shooter.State.HUB_TRACKING); 
+                            state.getSuperstructure().setState(Superstructure.State.HUB_TRACKING); 
                         }),
                     ActionCommands.autoClimb(state)
 
@@ -554,7 +553,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
                         new WaitCommand(0.25),
                         AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake")),
@@ -565,12 +564,12 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(5),
                         // new WaitCommand(5),
                         // new WaitCommand(4),
 
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake Second")),
@@ -597,12 +596,12 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(8),
                         // new WaitCommand(8),
 
                         // new WaitCommand(),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getSuperstructure().hubTrack()
 
                         // AutoBuilder.followPath(pathMap.get("Home Depot Far to Ladder Depot"))
                         // ActionCommands.autoClimb(state)
@@ -632,7 +631,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
                         state.getIntake().transitionCommand(Intake.State.INTAKE),
                         new WaitCommand(0.25),
                         AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake")),
@@ -643,12 +642,12 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(5),
                         // new WaitCommand(5),
                         // new WaitCommand(4),
 
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Start HP Side to Mid Intake Second")),
@@ -675,12 +674,12 @@ public class Autos {
                                         new WaitCommand(0.2),
                                         state.getIntake().transitionCommand(Intake.State.IDLE))),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(8),
                         // new WaitCommand(8),
 
                         // new WaitCommand(3),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getSuperstructure().hubTrack()
 
 
                         // AutoBuilder.followPath(pathMap.get("Home HP Far to Ladder HP"))
@@ -712,7 +711,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                         new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]),
                                 state)),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
                         state.getIntake().transitionCommand(Intake.State.IDLE),
                         new WaitCommand(0.25),
 
@@ -727,11 +726,11 @@ public class Autos {
                                 )
                         ),
                             
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(5),
                         // new WaitCommand(5),
                         // new WaitCommand(4),
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
+                        state.getSuperstructure().hubTrack(),
 
                         new ParallelCommandGroup(
                                 AutoBuilder.followPath(pathMap.get("Start Depot Side to Mid Intake Circut Second")),
@@ -744,11 +743,11 @@ public class Autos {
                                 )
                         ),
 
-                        state.getShooter().transitionCommand(Shooter.State.SHOOTING),
+                        state.getSuperstructure().shoot(),
                         ActionCommands.shakeIntake(state).withTimeout(5),
                         // new WaitCommand(5),
 
-                        state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING)
+                        state.getSuperstructure().hubTrack()
                         ).withName(this.name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " +
@@ -795,7 +794,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -832,7 +831,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready//state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready//state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -850,7 +849,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -896,7 +895,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             // new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -927,7 +926,6 @@ public class Autos {
                 Map<String, PathPlannerPath> pathMap = AutoCommands.getMapPath(sequentialPathStrings);
                 return new SequentialCommandGroup(
                     // new ParallelCommandGroup(
-                    //     state.getShooter().requestTransition(Shooter.State.SHOOTING), // uncomment when shooter is ready
                     //     new WaitCommand(AutosConstants.shootingPause)
                     // ),
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
@@ -945,7 +943,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -987,7 +985,7 @@ public class Autos {
                 return new SequentialCommandGroup(
                     new InstantCommand(() -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                     // new ParallelCommandGroup(
-                    //     //state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                    //     //state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                     //     new WaitCommand(AutosConstants.shootingPause)
                     // ),
                     new ParallelCommandGroup(
@@ -1004,7 +1002,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.lFuelToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -1049,7 +1047,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.leftToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
 
                             })
                         )
@@ -1068,7 +1066,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.depotToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -1086,7 +1084,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.lFuelToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(Shooter.State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )).withName(name);
@@ -1125,7 +1123,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ),
@@ -1143,7 +1141,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rFuelToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )).withName(name);
@@ -1171,7 +1169,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
 
                             })
                         )
@@ -1190,7 +1188,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.rightToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     ), 
@@ -1209,7 +1207,7 @@ public class Autos {
                         new SequentialCommandGroup(
                             new WaitCommand(AutosConstants.hpToCenter),
                             new InstantCommand(() -> {
-                                state.getShooter().requestTransition(State.SHOOTING); // uncomment when shooter is ready
+                                state.getSuperstructure().setState(Superstructure.State.SHOOTING); // uncomment when shooter is ready
                             })
                         )
                     )
@@ -1304,11 +1302,11 @@ public class Autos {
                         AutoBuilder.followPath(pathMap.get("Depot to 1st Shooting - AR")),
                         new WaitCommand(1),
                         new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.IDLE);
+                            state.getSuperstructure().setState(Superstructure.State.IDLE);
                         }),
                         AutoBuilder.followPath(pathMap.get("1st Shooting to 2nd Shooting - AR")),
                         new InstantCommand(() -> {
-                            state.getShooter().requestTransition(State.SHOOTING);
+                            state.getSuperstructure().setState(Superstructure.State.SHOOTING);
                             state.getIntake().requestTransition(Intake.State.STOW);
                         }),
                         new WaitCommand(5),
@@ -1322,3 +1320,4 @@ public class Autos {
     }
 
 }
+

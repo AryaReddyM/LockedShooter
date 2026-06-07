@@ -32,11 +32,11 @@ import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.commands.autos.Autos;
 import frc.robot.commands.autos.AutosConstants;
-import frc.robot.util.CustomAutoBuilder;
-import frc.robot.util.DynamicPathGenerator;
-import frc.robot.util.Elastic;
-import frc.robot.util.Elastic.Notification;
-import frc.robot.util.Elastic.NotificationLevel;
+import frc.robot.util.path.CustomAutoBuilder;
+import frc.robot.util.path.DynamicPathGenerator;
+import frc.robot.util.logging.Elastic;
+import frc.robot.util.logging.Elastic.Notification;
+import frc.robot.util.logging.Elastic.NotificationLevel;
 import java.util.function.Supplier;
 
 
@@ -167,10 +167,7 @@ public class AutoCommands {
                                 () -> setRobotPoseToStartingPath(pathMap.get(sequentialPathStrings[0]), state)),
                         AutoBuilder.followPath(pathMap.get("TESTONE")),
                         new SequentialCommandGroup(
-                                new WaitCommand(1),
-                                new InstantCommand(() -> {
-                                    // state.getShooter().requestTransition(State.SHOOTING);
-                                })))
+                                new WaitCommand(1)))
                         .withName(name);
             } catch (Exception e) {
                 return new PrintCommand("Failed to generate command: " + e.getMessage()).withName(name + " (FAILED)");

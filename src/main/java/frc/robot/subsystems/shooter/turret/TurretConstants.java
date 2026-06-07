@@ -6,7 +6,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,9 +16,20 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
+import com.revrobotics.spark.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.math.system.plant.DCMotor;
+import frc.robot.Constants;
+import frc.robot.subsystems.base.MotorConfigs;
+import frc.robot.subsystems.base.MotorIO;
+import frc.robot.subsystems.base.MotorIOSim;
+import frc.robot.subsystems.base.MotorIOSpark;
+import frc.robot.subsystems.base.MotorIOTalonFX;
 import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
-import frc.robot.util.TurretCalculator;
-import frc.robot.util.TurretCalculator.ShotData;
+import frc.robot.util.shooting.TurretCalculator;
+import frc.robot.util.shooting.TurretCalculator.ShotData;
 
 // Turret PID
 public class TurretConstants {
@@ -144,5 +154,71 @@ public class TurretConstants {
         public static final Distance kdistanceAboveFunnel = Inches.of(20);
         public static final Angle kMinTurnAngle = Radians.of(kBackwardSoftLimit);
         public static final Angle kMaxTurnAngle = Radians.of(kForwardSoftLimit);
-    
+
+    public static MotorIO createIO() {
+        switch (Constants.currentMode) {
+            case REAL:
+                if (Constants.robot == Constants.RobotType.PRIMARY) {
+                    return new MotorIOTalonFX(kTurretCanId, Constants.kCANivoreBus, talonConfig());
+                }
+                return MotorIOSpark.max(kTurretCanId, sparkConfig());
+            case SIM:
+                return MotorIOSim.arm(
+                        DCMotor.getNeo550(1), 1.0, 0.1, 0.3, kBackwardSoftLimit, kForwardSoftLimit, false, 0.0,
+                        kTurretSimP);
+            default: // REPLAY
+                return new MotorIO() {};
+        }
+    }
+
+    private static SparkMaxConfig sparkConfig() {
+        SparkMaxConfig c = new SparkMaxConfig();
+        c.inverted(kTurretinverted)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(kTurretCurrentLimit)
+                .voltageCompensation(12.0);
+        c.encoder
+                .positionConversionFactor(kTurretPositionConversionFactor)
+                .velocityConversionFactor(kTurretVelocityConversionFactor)
+                .quadratureAverageDepth(10)
+                .quadratureMeasurementPeriod(2);
+        c.closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .positionWrappingInputRange(kBackwardSoftLimit, kForwardSoftLimit)
+                .positionWrappingEnabled(false)
+                .pid(kTurretP, kTurretI, kTurretD)
+                .maxMotion
+                .maxAcceleration(kTurretMaxAccel)
+                .cruiseVelocity(kTurretCruiseVel)
+                .allowedProfileError(kTurretDeviationErr);
+        c.signals
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs(10)
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
+        c.softLimit
+                .forwardSoftLimit(kForwardSoftLimit)
+                .forwardSoftLimitEnabled(true)
+                .reverseSoftLimit(kBackwardSoftLimit)
+                .reverseSoftLimitEnabled(true);
+        return c;
+    }
+
+    private static com.ctre.phoenix6.configs.TalonFXConfiguration talonConfig() {
+        return MotorConfigs.talon(
+                kTurretinverted,
+                true,
+                kTurretCurrentLimit,
+                2.0 * Math.PI / kTurretPositionConversionFactor,
+                kTurretP,
+                kTurretS,
+                kTurretV,
+                kTurretG,
+                kTurretCruiseVel,
+                kTurretMaxAccel);
+    }
+
 }

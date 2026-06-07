@@ -1,7 +1,7 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.util.struct.Struct;
-import frc.robot.util.LimelightHelpers;
+import frc.robot.util.hardware.LimelightHelpers;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

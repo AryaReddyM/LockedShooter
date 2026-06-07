@@ -10,7 +10,7 @@ package frc.robot.subsystems.drive;
 import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.subsystems.drive.DriveConstants.*;
-import static frc.robot.util.SparkUtil.*;
+import static frc.robot.util.hardware.SparkUtil.*;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -35,7 +35,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.util.SparkUtil;
+import frc.robot.util.hardware.SparkUtil;
 
 import java.util.Queue;
 import java.util.function.DoubleSupplier;

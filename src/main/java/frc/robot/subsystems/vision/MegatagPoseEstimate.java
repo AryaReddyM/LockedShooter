@@ -2,8 +2,8 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.util.struct.Struct;
-import frc.robot.util.LimelightHelpers;
-import frc.robot.util.MathHelpers;
+import frc.robot.util.hardware.LimelightHelpers;
+import frc.robot.util.math.MathHelpers;
 
 import java.nio.ByteBuffer;
 

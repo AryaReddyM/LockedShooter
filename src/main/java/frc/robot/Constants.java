@@ -14,4 +14,6 @@ public final class Constants {
 
     public static final RobotType robot = RobotType.PRIMARY;
     public static enum RobotType { PRIMARY, PRACTICE }
+
+    public static final String kCANivoreBus = "canivore";
 }

@@ -52,54 +52,43 @@ import frc.robot.subsystems.climb.BeamBreakerIO;
 import frc.robot.subsystems.climb.BeamBreakerSim;
 import frc.robot.subsystems.climb.BeamBreakerTOF;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.ClimbIO;
-import frc.robot.subsystems.climb.ClimbIOSim;
-import frc.robot.subsystems.climb.ClimbIOSpark;
+import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.hopper.Hopper;
-import frc.robot.subsystems.hopper.HopperIO;
-import frc.robot.subsystems.hopper.HopperIOSim;
-import frc.robot.subsystems.hopper.HopperIOSpark;
+import frc.robot.subsystems.hopper.HopperConstants;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIO;
-import frc.robot.subsystems.intake.IntakeIOSim;
-import frc.robot.subsystems.intake.IntakeIOSpark;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.kicker.Kicker;
-import frc.robot.subsystems.kicker.KickerIO;
-import frc.robot.subsystems.kicker.KickerIOSim;
-import frc.robot.subsystems.kicker.KickerIOSpark;
+import frc.robot.subsystems.kicker.KickerConstants;
+import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
-import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
-import frc.robot.subsystems.shooter.flywheel.FlywheelIOSpark;
-import frc.robot.subsystems.shooter.hood.HoodIO;
-import frc.robot.subsystems.shooter.hood.HoodIOSim;
-import frc.robot.subsystems.shooter.hood.HoodIOSpark;
-import frc.robot.subsystems.shooter.turret.TurretIO;
-import frc.robot.subsystems.shooter.turret.TurretIOSim;
-import frc.robot.subsystems.shooter.turret.TurretIOSpark;
+import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
+import frc.robot.subsystems.shooter.hood.HoodConstants;
+import frc.robot.subsystems.shooter.turret.TurretConstants;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionFieldPoseEstimate;
+import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOHardwareLimelight;
 import frc.robot.subsystems.vision.VisionIOSimPhoton;
 import frc.robot.subsystems.vision.VisionSubsystem;
-import frc.robot.util.ConcurrentTimeInterpolatableBuffer;
-import frc.robot.util.CustomAutoBuilder;
-import frc.robot.util.DynamicPathGenerator;
-import frc.robot.util.Elastic;
-import frc.robot.util.Elastic.Notification;
-import frc.robot.util.Elastic.NotificationLevel;
-import frc.robot.util.FuelSim;
-import frc.robot.util.MathHelpers;
-import frc.robot.util.ShooterSetpoint;
-import frc.robot.util.SimulatedRobotState;
-import frc.robot.util.TrenchZone;
+import frc.robot.util.math.ConcurrentTimeInterpolatableBuffer;
+import frc.robot.util.path.CustomAutoBuilder;
+import frc.robot.util.path.DynamicPathGenerator;
+import frc.robot.util.logging.Elastic;
+import frc.robot.util.logging.Elastic.Notification;
+import frc.robot.util.logging.Elastic.NotificationLevel;
+import frc.robot.util.sim.FuelSim;
+import frc.robot.util.math.MathHelpers;
+import frc.robot.util.shooting.ShooterSetpoint;
+import frc.robot.util.sim.SimulatedRobotState;
+import frc.robot.util.field.TrenchZone;
 import frc.robot.util.state.StateMachine;
 
 public class RobotState extends StateMachine<RobotState.State> {
@@ -116,6 +105,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     private Intake intake;
     private Hopper hopper;
     private Kicker kicker;
+    private Superstructure superstructure;
 
     private Command autoCommand = null;
     CustomAutoBuilder customAutoBuilder;
@@ -183,7 +173,7 @@ public class RobotState extends StateMachine<RobotState.State> {
     public RobotState() {
         super("RobotState", State.UNDETERMINED, State.class);
 
-        // vision initialization
+        // vision initialization 
         {
             clearBuffers();
 
@@ -201,13 +191,20 @@ public class RobotState extends StateMachine<RobotState.State> {
                 }
             };
 
-            switch (Constants.currentMode) {
-                case REAL:
-                    vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
-                    break;
-                default:
-                    vision = new VisionSubsystem(new VisionIOSimPhoton(this, simulatedRobotState), this);
-                    break;
+            try {
+                switch (Constants.currentMode) {
+                    case REAL:
+                        vision = new VisionSubsystem(new VisionIOHardwareLimelight(this), this);
+                        break;
+                    default:
+                        vision = new VisionSubsystem(new VisionIOSimPhoton(this, simulatedRobotState), this);
+                        break;
+                }
+            } catch (Throwable t) {
+                System.err.println("Vision init failed, falling back to no-op VisionIO: " + t);
+                t.printStackTrace();
+                vision = new VisionSubsystem(new VisionIO() {
+                }, this);
             }
 
             Elastic.sendNotification(
@@ -224,10 +221,10 @@ public class RobotState extends StateMachine<RobotState.State> {
                 case REAL:
                     drive = new Drive(
                             new GyroIOPigeon2(),
-                            new ModuleIOSpark(0),
-                            new ModuleIOSpark(1),
-                            new ModuleIOSpark(2),
-                            new ModuleIOSpark(3),
+                            Constants.robot == Constants.RobotType.PRIMARY ? new ModuleIOTalonFX(0) : new ModuleIOSpark(0),
+                            Constants.robot == Constants.RobotType.PRIMARY ? new ModuleIOTalonFX(1) : new ModuleIOSpark(1),
+                            Constants.robot == Constants.RobotType.PRIMARY ? new ModuleIOTalonFX(2) : new ModuleIOSpark(2),
+                            Constants.robot == Constants.RobotType.PRIMARY ? new ModuleIOTalonFX(3) : new ModuleIOSpark(3),
                             this);
                     break;
                 case SIM:
@@ -302,54 +299,32 @@ public class RobotState extends StateMachine<RobotState.State> {
             hubSupplier = ShooterSetpoint.speakerSetpointSupplier(this);
             passSupplier = ShooterSetpoint.passSetpointSupplier(this);
 
-            switch (Constants.currentMode) {
-                case REAL:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIOSpark(),
-                            new HoodIOSpark(),
-                            new FlywheelIOSpark());
-                    break;
-                case SIM:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIOSim(),
-                            new HoodIOSim(),
-                            new FlywheelIOSim());
-                    break;
-                case REPLAY:
-                    shooter = new Shooter(
-                            this,
-                            new TurretIO() {
-                            },
-                            new HoodIO() {
-                            },
-                            new FlywheelIO() {
-                            });
-                    break;
-            }
+            shooter = new Shooter(
+                    this,
+                    TurretConstants.createIO(),
+                    HoodConstants.createIO(),
+                    FlywheelConstants.createIO());
         }
 
-        { // climb
+        { // climb }
             switch (Constants.currentMode) {
                 case REAL:
                     climb = new Climb(
-                            new ClimbIOSpark(),
+                            ClimbConstants.createIO(),
                             new BeamBreakerTOF(1),
                             new BeamBreakerTOF(2),
                             this);
                     break;
                 case SIM:
                     climb = new Climb(
-                            new ClimbIOSim(),
+                            ClimbConstants.createIO(),
                             new BeamBreakerSim(1, this),
                             new BeamBreakerSim(2, this),
                             this);
                     break;
                 case REPLAY:
                     climb = new Climb(
-                            new ClimbIO() {
-                            },
+                            ClimbConstants.createIO(),
                             new BeamBreakerIO() {
                             },
                             new BeamBreakerIO() {
@@ -360,66 +335,15 @@ public class RobotState extends StateMachine<RobotState.State> {
         }
 
         { // hopper
-            switch (Constants.currentMode) {
-                case REAL:
-                    hopper = new Hopper(
-                            new HopperIOSpark(),
-                            this);
-                    break;
-                case SIM:
-                    hopper = new Hopper(
-                            new HopperIOSim(),
-                            this);
-                    break;
-                case REPLAY:
-                    hopper = new Hopper(
-                            new HopperIO() {
-                            },
-                            this);
-                    break;
-            }
+            hopper = new Hopper(HopperConstants.createIO());
         }
 
-        { // intake
-            switch (Constants.currentMode) {
-                case REAL:
-                    intake = new Intake(
-                            new IntakeIOSpark(),
-                            this);
-                    break;
-                case SIM:
-                    intake = new Intake(
-                            new IntakeIOSim(),
-                            this);
-                    break;
-                case REPLAY:
-                    intake = new Intake(
-                            new IntakeIO() {
-                            },
-                            this);
-                    break;
-            }
+        { // intake }
+            intake = new Intake(IntakeConstants.createExtensionIO(), IntakeConstants.createRollersIO(), this);
         }
 
         { // kicker
-            switch (Constants.currentMode) {
-                case REAL:
-                    kicker = new Kicker(
-                            new KickerIOSpark(),
-                            this);
-                    break;
-                case SIM:
-                    kicker = new Kicker(
-                            new KickerIOSim(),
-                            this);
-                    break;
-                case REPLAY:
-                    kicker = new Kicker(
-                            new KickerIO() {
-                            },
-                            this);
-                    break;
-            }
+            kicker = new Kicker(KickerConstants.createIO());
         }
 
         // auto setup
@@ -437,13 +361,11 @@ public class RobotState extends StateMachine<RobotState.State> {
         registerStateTransitions();
         registerStateCommands();
 
+        superstructure = new Superstructure(intake, shooter, climb, hopper, kicker);
+        setupSuperstructureDashboard();
+
         addChildSubsystem(vision);
         addChildSubsystem(drive);
-        addChildSubsystem(shooter);
-        addChildSubsystem(climb);
-        addChildSubsystem(hopper);
-        addChildSubsystem(intake);
-        addChildSubsystem(kicker);
         enable();
 
         Logger.recordOutput("Bumper/Pose", new Pose3d());
@@ -609,16 +531,8 @@ public class RobotState extends StateMachine<RobotState.State> {
 
             controller
                     .a()
-                    .onTrue(new InstantCommand(() -> {
-                        shooter.requestTransition(Shooter.State.OUTTAKE);
-                        intake.requestTransition(Intake.State.OUTAKE);
-                    }))
-                    .onFalse(new InstantCommand(() -> {
-                        hopper.requestTransition(Hopper.State.IDLE);
-                        kicker.requestTransition(Kicker.State.IDLE);
-                        ActionCommands.trackBasedOnPos(this);
-                        intake.requestTransition(Intake.State.IDLE);
-                    }));
+                    .onTrue(superstructure.outtake())
+                    .onFalse(ActionCommands.trackBasedOnPos(this));
 
             controller
                     .x()
@@ -809,6 +723,31 @@ public class RobotState extends StateMachine<RobotState.State> {
 
     public Kicker getKicker() {
         return kicker;
+    }
+
+    public Superstructure getSuperstructure() {
+        return superstructure;
+    }
+
+    public double getTurretDesiredPositionRad() {
+        return shooter != null && shooter.getTurret() != null ? shooter.getTurret().getDesiredPos() : 0.0;
+    }
+
+    private void setupSuperstructureDashboard() {
+        SmartDashboard.putData("Superstructure/Idle",
+                superstructure.idle().withName("SS Idle").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Intake",
+                superstructure.intake().withName("SS Intake").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Shoot",
+                superstructure.shoot().withName("SS Shoot").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Shoot While Intaking",
+                superstructure.shootWhileIntaking().withName("SS Shoot+Intake").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Pass",
+                superstructure.pass().withName("SS Pass").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Outtake",
+                superstructure.outtake().withName("SS Outtake").ignoringDisable(true));
+        SmartDashboard.putData("Superstructure/Climb",
+                superstructure.climb().withName("SS Climb").ignoringDisable(true));
     }
 
     public CommandXboxController getController() {

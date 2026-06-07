@@ -13,44 +13,48 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
-import frc.robot.subsystems.climb.ClimbConstants;
-import frc.robot.util.GetTuned;
-import frc.robot.util.TrenchZone;
-import frc.robot.util.state.StateMachine;
+import frc.robot.subsystems.base.MotorIO;
+import frc.robot.subsystems.base.MotorIOInputsAutoLogged;
+import frc.robot.subsystems.base.ServoMotorSubsystem;
+import frc.robot.subsystems.base.Setpoint;
+import frc.robot.util.logging.GetTuned;
+import frc.robot.util.field.TrenchZone;
 
-public class Intake extends StateMachine<Intake.State> implements IntakeIO {
+public class Intake extends ServoMotorSubsystem {
 
     private final RobotState state;
-    private final IntakeIO intakeIO;
-    private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+
+    // Two independent motors: the deploy arm (position) and the rollers (velocity).
+    private final MotorIO rollersIo;
+    private final MotorIOInputsAutoLogged rollerInputs = new MotorIOInputsAutoLogged();
+
     private final LoggedMechanism2d intakeMechanism = new LoggedMechanism2d(3, 3);
     private final LoggedMechanismLigament2d intakeLigament;
 
+    private double desiredExtensionPos = 0.0;
     private Consumer<Object> override;
+    private State stateValue = State.IDLE;
 
-    public Intake(IntakeIO intakeIO, RobotState state) {
-        super("Intake", State.UNDETERMINED, State.class);
-        this.intakeIO = intakeIO;
+    public Intake(MotorIO extensionIo, MotorIO rollersIo, RobotState state) {
+        super(extensionIo, "Intake/Extension", IntakeConstants.kExtensionDeviationErr);
+        this.rollersIo = rollersIo;
         this.state = state;
 
         LoggedMechanismRoot2d root = intakeMechanism.getRoot("intake", 1.85, 0);
         LoggedMechanismLigament2d holder = root.append(new LoggedMechanismLigament2d("core", 0.05, 90));
         intakeLigament = holder.append(new LoggedMechanismLigament2d("bar", 0.3, 0, 10, new Color8Bit(255, 0, 0)));
-
-        registerStateTransitions();
-        registerStateCommands();
-        enable();
     }
 
     @Override
-    public void update() {
-        intakeIO.updateInputs(inputs);
-        Logger.processInputs("Intake", inputs);
+    public void periodic() {
+        super.periodic();
 
-        intakeLigament.setAngle(Rotation2d.fromRadians(inputs.desiredExtensionPos));
+        rollersIo.updateInputs(rollerInputs);
+        Logger.processInputs("Intake/Rollers", rollerInputs);
+
         Logger.recordOutput("Intake/Mechanism", intakeMechanism);
 
         Logger.recordOutput("Intake/Pose",
@@ -58,102 +62,102 @@ public class Intake extends StateMachine<Intake.State> implements IntakeIO {
                         .plus(IntakeConstants.intakeOrigin)
                         .plus(new Transform3d(
                                 new Translation3d(),
-                                new Rotation3d(0, -(inputs.desiredExtensionPos + 90), 0))));
+                                new Rotation3d(0, -(desiredExtensionPos + 90), 0))));
         Logger.recordOutput("Intake/ExtensionPose",
                 new Pose3d()
                         .plus(new Transform3d()).plus(new Transform3d(new Translation3d(
-                            (getState() != State.STOW) ? Units.inchesToMeters(11) : Units.inchesToMeters(0) ,0,Units.inchesToMeters(-2.7)
-                        ), new Rotation3d())));
+                                (stateValue != State.STOW) ? Units.inchesToMeters(11) : Units.inchesToMeters(0), 0,
+                                Units.inchesToMeters(-2.7)), new Rotation3d())));
 
         if (TrenchZone.intakeLowerRequired(state)) {
-            intakeIO.setExtensionPosition(
-                GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
+            setExtension(GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
         } else if (override != null) {
             override.accept(null);
-        }else if (getState() == State.INTAKE) {
+        } else if (stateValue == State.INTAKE) {
             intake();
-        } else if (getState() == State.OUTAKE) {
+        } else if (stateValue == State.OUTAKE) {
             outake();
-        } else if (getState() == State.STOW) {
+        } else if (stateValue == State.STOW) {
             stow();
-        } else if (getState() == State.IDLE) {
+        } else if (stateValue == State.IDLE) {
             intakeidle();
-        } else if (getState() == State.CLIMB_TOW) {
+        } else if (stateValue == State.CLIMB_TOW) {
             climbTow();
-        } else if (getState() == State.SHAKE) {
+        } else if (stateValue == State.SHAKE) {
             shake();
-        } else if (getState() == State.STOP) {
+        } else if (stateValue == State.STOP) {
             stop();
         }
-        Logger.recordOutput("Intake/Overriden", override!=null);
+        Logger.recordOutput("Intake/Overriden", override != null);
+        Logger.recordOutput("Intake/State", stateValue.toString());
+    }
+
+    private void setExtension(double position) {
+        desiredExtensionPos = position;
+        applySetpoint(Setpoint.motionMagicPosition(position));
     }
 
     public void stow() {
-        intakeIO.setExtensionPosition(
-                GetTuned.getNumber("Intake/Extension Stow Setpoint", IntakeConstants.kExtensionStowSetpoint));
-        intakeIO.stopRollers();
+        setExtension(GetTuned.getNumber("Intake/Extension Stow Setpoint", IntakeConstants.kExtensionStowSetpoint));
+        rollersIo.setVelocity(0);
     }
 
     public void intakeidle() {
-        intakeIO.setExtensionPosition(
-                GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
-        intakeIO.stopRollers();
+        setExtension(GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
+        rollersIo.setVelocity(0);
     }
 
     public void intake() {
-        intakeIO.setExtensionPosition(
-                GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
-        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
+        setExtension(GetTuned.getNumber("Intake/Extension Intake Setpoint", IntakeConstants.kExtensionIntakeSetpoint));
+        rollersIo.setVelocity(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
 
     public void outake() {
-        intakeIO.setExtensionPosition(
-                GetTuned.getNumber("Intake/Extension Outtake Setpoint", IntakeConstants.kExtensionOuttakeSetpoint));
-        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
+        setExtension(GetTuned.getNumber("Intake/Extension Outtake Setpoint", IntakeConstants.kExtensionOuttakeSetpoint));
+        rollersIo.setVelocity(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
     }
 
     public void climbTow() {
-        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Tow Setpoint", IntakeConstants.kExtensionClimbTowSetpoint));
-        intakeIO.setRollerSpeed(0);
+        setExtension(GetTuned.getNumber("Intake/Extension Tow Setpoint", IntakeConstants.kExtensionClimbTowSetpoint));
+        rollersIo.setVelocity(0);
     }
 
     public void shake() {
-        intakeIO.setExtensionPosition(GetTuned.getNumber("Intake/Extension Shake Setpoint", IntakeConstants.kExtensionShakeSetpoint));
-        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
+        setExtension(GetTuned.getNumber("Intake/Extension Shake Setpoint", IntakeConstants.kExtensionShakeSetpoint));
+        rollersIo.setVelocity(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
 
     public void intakeRoll() {
-        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
+        rollersIo.setVelocity(GetTuned.getNumber("Intake/Roller Intake Speed", IntakeConstants.kRollerIntakeSpeed));
     }
 
     public void outakeRoll() {
-        intakeIO.setRollerSpeed(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
+        rollersIo.setVelocity(GetTuned.getNumber("Intake/Roller Outtake Speed", IntakeConstants.kRollerOuttakeSpeed));
     }
 
     public void stopRoll() {
-        intakeIO.stopRollers();
+        rollersIo.setVelocity(0);
     }
 
     public void stop() {
-        intakeIO.stopExtension();
-        intakeIO.stopRollers();
-    }
-
-    private void registerStateTransitions() {
-        addOmniTransitions(State.STOW, State.IDLE, State.INTAKE, State.OUTAKE,State.CLIMB_TOW, State.SHAKE);
-    }
-
-    private void registerStateCommands() {
-
-    }
-
-    @Override
-    protected void determineSelf() {
-        setState(State.IDLE);
+        super.stop();
+        rollersIo.setVelocity(0);
     }
 
     public void setOverride(Consumer<Object> override) {
         this.override = override;
+    }
+
+    public State getState() {
+        return stateValue;
+    }
+
+    public void requestTransition(State state) {
+        stateValue = state == State.UNDETERMINED ? State.IDLE : state;
+    }
+
+    public Command transitionCommand(State state) {
+        return runOnce(() -> requestTransition(state));
     }
 
     public enum State {

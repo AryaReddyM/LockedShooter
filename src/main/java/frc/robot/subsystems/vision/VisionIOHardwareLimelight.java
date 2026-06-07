@@ -8,7 +8,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.RobotState;
-import frc.robot.util.LimelightHelpers;
+import frc.robot.util.hardware.LimelightHelpers;
 
 public class VisionIOHardwareLimelight implements VisionIO {
 

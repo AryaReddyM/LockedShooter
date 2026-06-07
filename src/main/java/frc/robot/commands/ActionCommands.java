@@ -27,14 +27,14 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
+import frc.robot.subsystems.superstructure.Superstructure;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionConstants.FieldConstants;
-import frc.robot.util.DynamicPathGenerator;
-import frc.robot.util.GetTuned;
-import frc.robot.util.Util;
+import frc.robot.util.path.DynamicPathGenerator;
+import frc.robot.util.logging.GetTuned;
+import frc.robot.util.math.Util;
 
 public class ActionCommands {
     /*
@@ -72,9 +72,9 @@ public class ActionCommands {
 
     public static Command aimAndShoot(RobotState state) {
         return new SequentialCommandGroup(
-                new InstantCommand(() -> state.getShooter().requestTransition(Shooter.State.HUB_TRACKING)),
+                state.getSuperstructure().hubTrack(),
                 // state.getShooter().getTurret().waitForShootReady(0.1),
-                new InstantCommand(() -> state.getShooter().requestTransition(Shooter.State.SHOOTING)));
+                state.getSuperstructure().shoot());
     }
 
     public static Command shootOrPassBasedOnPos(RobotState state) {
@@ -90,11 +90,11 @@ public class ActionCommands {
                     : currentPose.getX() >= redHubX;
 
             if (shouldShoot && RobotState.hubActivated.get()) {
-                return state.getShooter().transitionCommand(Shooter.State.SHOOTING);
+                return state.getSuperstructure().shoot();
             } else {
-                return state.getShooter().transitionCommand(Shooter.State.PASSING);
+                return state.getSuperstructure().pass();
             }
-        }, Set.of(state.getShooter()));
+        }, Set.of(state.getSuperstructure()));
     }
 
     public static Command trackBasedOnPos(RobotState state) {
@@ -110,11 +110,11 @@ public class ActionCommands {
                     : currentPose.getX() >= redHubX;
 
             if (shouldShoot) {
-                return state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING);
+                return state.getSuperstructure().hubTrack();
             } else {
-                return state.getShooter().transitionCommand(Shooter.State.PASS_TRACKING);
+                return state.getSuperstructure().passTrack();
             }
-        }, Set.of(state.getShooter()));
+        }, Set.of(state.getSuperstructure()));
     }
 
     public static Command autoClimb(RobotState state) {
@@ -148,7 +148,6 @@ public class ActionCommands {
 
             return new SequentialCommandGroup(
                     state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),
@@ -201,7 +200,6 @@ public class ActionCommands {
 
             return new SequentialCommandGroup(
                     state.getIntake().transitionCommand(Intake.State.CLIMB_TOW),
-                    // state.getShooter().transitionCommand(Shooter.State.HUB_TRACKING),
                     new AutoAlignToPoseCommand(state.getDrive(), state, preClimbPose, 1),
                     state.getClimb().transitionCommand(Climb.State.UP),
                     new WaitCommand(0.35),

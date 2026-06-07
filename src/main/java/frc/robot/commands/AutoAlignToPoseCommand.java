@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.MathHelpers;
+import frc.robot.util.math.MathHelpers;
 import org.littletonrobotics.junction.Logger;
 import dev.doglog.DogLog;
 
