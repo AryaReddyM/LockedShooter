@@ -15,30 +15,25 @@ import frc.robot.subsystems.base.MotorIOSpark;
 import frc.robot.subsystems.base.MotorIOTalonFX;
 
 public class ElevatorConstants {
-    // --- Hardware identity ---
     public static final int kElevatorCanID = 20;
     public static final String kCanBus = "rio";
 
-    // --- Physical geometry ---
-    public static final double kGearRatio = 9.0;                          // motor rotations : drum rotations
+    public static final double kGearRatio = 9.0;
     public static final double kDrumRadiusMeters = Units.inchesToMeters(1.0);
     public static final double kCarriageMassKg = 4.5;
     public static final double kMinHeightMeters = 0.0;
     public static final double kMaxHeightMeters = Units.inchesToMeters(40.0);
 
-    // --- Control gains ---
-    public static final double kP = 24.0;          // real: volts per mechanism-position error
-    public static final double kSimP = 60.0;       // sim: volts per meter error
-    public static final double kG = 0.35;          // gravity feedforward, VOLTS (holds the carriage)
+    public static final double kP = 24.0;
+    public static final double kSimP = 60.0;
+    public static final double kG = 0.35;
 
-    // MotionMagic limits for the real controller (Phoenix mechanism-rotation units).
-    public static final double kMMCruise = 0.16;   // ~1.0 m/s  (= m/s / 2pi)
-    public static final double kMMAccel = 0.32;    // ~2.0 m/s^2
+    public static final double kMMCruise = 0.16;
+    public static final double kMMAccel = 0.32;
 
     public static final double kCurrentLimit = 60.0;
     public static final double kToleranceMeters = Units.inchesToMeters(0.5);
 
-    // --- Named heights (meters) ---
     public static final double kStowMeters = 0.0;
     public static final double kLowMeters = Units.inchesToMeters(10.0);
     public static final double kMidMeters = Units.inchesToMeters(24.0);
@@ -60,7 +55,7 @@ public class ElevatorConstants {
                         kMinHeightMeters,
                         kMaxHeightMeters,
                         kSimP);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

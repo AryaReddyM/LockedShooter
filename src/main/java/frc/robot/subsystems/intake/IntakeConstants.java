@@ -94,7 +94,7 @@ public class IntakeConstants {
             case SIM:
                 return MotorIOSim.arm(
                         DCMotor.getNeo550(1), 1.0, 0.5, 0.3, -1000.0, 1000.0, false, 0.0, kExtensionSimP);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }
@@ -108,7 +108,7 @@ public class IntakeConstants {
                 return MotorIOSpark.flex(kRollersCanID, rollerConfig());
             case SIM:
                 return MotorIOSim.flywheel(DCMotor.getNeoVortex(1), 0.025, 1.0, kRollerSimP, 0.0, 0.0789);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

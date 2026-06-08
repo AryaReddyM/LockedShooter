@@ -71,7 +71,7 @@ public class FlywheelConstants {
                 return MotorIOSpark.flex(kFlywheelCanID, flexConfig());
             case SIM:
                 return MotorIOSim.flywheel(DCMotor.getNeoVortex(1), 0.025, 1.0, kFlywheelP, 0.0, 0.0789);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

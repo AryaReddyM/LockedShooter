@@ -190,7 +190,7 @@ public class MotorIOSim implements MotorIO {
 
     appliedVolts = MathUtil.clamp(appliedVolts, -12.0, 12.0);
     sim.setInputVoltage(appliedVolts);
-    sim.update(0.02); // 20 ms loop
+    sim.update(0.02);
 
     inputs.positionRad = sim.getPositionRad();
     inputs.velocityRadPerSec = sim.getVelocityRadPerSec();
@@ -203,8 +203,6 @@ public class MotorIOSim implements MotorIO {
     mode = ControlMode.OPEN_LOOP;
     appliedVolts = volts;
   }
-
-  // collapse to the same PID. The only real distinction here is the runtime feedforward voltage.
 
   @Override
   public void setPosition(double positionRad) {

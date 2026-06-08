@@ -59,7 +59,7 @@ public class HopperConstants {
                 return MotorIOSpark.flex(kHopperCanID, flexConfig());
             case SIM:
                 return MotorIOSim.flywheel(DCMotor.getNeo550(1), 0.025, 1.0, kHopperP, 0.0, 0.0789);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

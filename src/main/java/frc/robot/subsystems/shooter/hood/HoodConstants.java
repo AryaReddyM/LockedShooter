@@ -63,7 +63,7 @@ public class HoodConstants {
                 return MotorIOSim.arm(
                         DCMotor.getNeo550(1), 1.0, 0.5, 0.3, kHoodMinLimit, kHoodMaxLimit, false, kHoodMinLimit,
                         kHoodSimP);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

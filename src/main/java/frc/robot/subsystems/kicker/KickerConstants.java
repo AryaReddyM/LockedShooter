@@ -49,7 +49,7 @@ public class KickerConstants {
                 return MotorIOSpark.max(kKickerCanID, sparkConfig());
             case SIM:
                 return MotorIOSim.flywheel(DCMotor.getNeo550(1), 0.025, 1.0, kKickerP, 0.0, 0.0789);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

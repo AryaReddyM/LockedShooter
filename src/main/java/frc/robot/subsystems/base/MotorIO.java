@@ -44,8 +44,6 @@ public interface MotorIO {
     setMotionMagicPosition(positionRad);
   }
 
-  // ----- Misc / specialty ------------------------------------------------------------------------
-
   default void setDutyCycle(double fraction) {}
 
   default void setCurrentLimit(double amps) {}

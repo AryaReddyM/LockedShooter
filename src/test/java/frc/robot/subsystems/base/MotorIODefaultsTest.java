@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-/** Verifies the feedforward overloads fall back to the plain methods (the replay/partial contract). */
 class MotorIODefaultsTest {
 
   @Test
@@ -18,7 +17,6 @@ class MotorIODefaultsTest {
           }
         };
 
-    // An impl that doesn't override the (value, ff) overload should still receive the value.
     io.setVelocity(7.0, 99.0);
 
     assertEquals(7.0, got[0]);

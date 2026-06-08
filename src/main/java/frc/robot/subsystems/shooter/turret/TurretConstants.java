@@ -166,7 +166,7 @@ public class TurretConstants {
                 return MotorIOSim.arm(
                         DCMotor.getNeo550(1), 1.0, 0.1, 0.3, kBackwardSoftLimit, kForwardSoftLimit, false, 0.0,
                         kTurretSimP);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }

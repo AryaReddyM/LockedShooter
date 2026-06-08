@@ -77,7 +77,7 @@ public class ClimbConstants {
                 // limits keep the sim from clamping. estimateMOI(0.5, 0.3) ~= 0.025 kg*m^2.
                 return MotorIOSim.arm(
                         DCMotor.getNeoVortex(1), 1.0, 0.5, 0.3, -1000.0, 1000.0, false, 0.0, kClimbSimP);
-            default: // REPLAY
+            default:
                 return new MotorIO() {};
         }
     }
