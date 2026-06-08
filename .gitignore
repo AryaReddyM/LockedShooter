@@ -33,3 +33,9 @@ logs/
 networktables.json
 simgui-window.json
 simgui.json
+simgui-ds.json
+
+# JVM crash/heap dumps (generated during local runs)
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
