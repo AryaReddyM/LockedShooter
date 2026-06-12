@@ -16,24 +16,20 @@ public class Setpoint {
     this.ffAction = ffAction;
   }
 
-  public static Setpoint motionMagicPosition(double positionRad) {
-    return new Setpoint(
-        "MotionMagic",
-        positionRad,
-        io -> io.setMotionMagicPosition(positionRad),
-        (io, ff) -> io.setMotionMagicPosition(positionRad, ff));
-  }
-
-  public static Setpoint motionMagic(double positionRad) {
-    return motionMagicPosition(positionRad);
-  }
-
   public static Setpoint position(double positionRad) {
     return new Setpoint(
         "Position",
         positionRad,
         io -> io.setPosition(positionRad),
         (io, ff) -> io.setPosition(positionRad, ff));
+  }
+
+  public static Setpoint motionMagicPosition(double positionRad) {
+    return new Setpoint(
+        "MotionMagic",
+        positionRad,
+        io -> io.setMotionMagicPosition(positionRad),
+        (io, ff) -> io.setMotionMagicPosition(positionRad, ff));
   }
 
   public static Setpoint velocity(double velocityRadPerSec) {

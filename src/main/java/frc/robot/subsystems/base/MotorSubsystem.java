@@ -37,7 +37,7 @@ public class MotorSubsystem extends SubsystemBase {
   
   public void applySetpoint(Setpoint setpoint, double feedforwardVolts) {
     currSetpoint = setpoint;
-    setpoint.applyWithFeedforward(io, feedforwardVolts);
+    currSetpoint.applyWithFeedforward(io, feedforwardVolts);
     Logger.recordOutput(name + "/Setpoint", setpoint.getName());
     Logger.recordOutput(name + "/SetpointValue", setpoint.getValue());
     Logger.recordOutput(name + "/Feedforward", feedforwardVolts);
@@ -61,10 +61,6 @@ public class MotorSubsystem extends SubsystemBase {
 
   public Command setSetpoint(Setpoint setpoint) {
     return runOnce(() -> applySetpoint(setpoint));
-  }
-
-  public Command setpointCommand(Setpoint setpoint) {
-    return setSetpoint(setpoint);
   }
 
   public Command holdSetpoint(Setpoint setpoint) {

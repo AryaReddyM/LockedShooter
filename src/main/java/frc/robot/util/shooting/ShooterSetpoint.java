@@ -7,7 +7,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.shooter.hood.HoodConstants;
-import frc.robot.subsystems.shooter.turret.SetpointLogAutoLogged;
+import frc.robot.subsystems.shooter.turret.ShooterSetpointLogAutoLogged;
 import edu.wpi.first.math.MathUtil;
 
 import static edu.wpi.first.units.Units.Meter;
@@ -147,8 +147,8 @@ public class ShooterSetpoint {
         return height;
     }
 
-    public static SetpointLogAutoLogged getLog(ShooterSetpoint setpoint) {
-        SetpointLogAutoLogged log = new SetpointLogAutoLogged();
+    public static ShooterSetpointLogAutoLogged getLog(ShooterSetpoint setpoint) {
+        ShooterSetpointLogAutoLogged log = new ShooterSetpointLogAutoLogged();
         log.height = setpoint.getHeight();
         log.shooterRPS = setpoint.getShooterRPS();
         log.turretRadiansFromCenter = setpoint.getTurretRadiansFromCenter();

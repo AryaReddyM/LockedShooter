@@ -28,6 +28,10 @@ public interface MotorIO {
     setMotionMagicPosition(positionRad);
   }
 
+  default void setMotionMagicPosition(double positionRad, int slot) {
+    setMotionMagicPosition(positionRad);
+  }
+
   default void setVelocity(double velocityRadPerSec) {}
 
   default void setVelocity(double velocityRadPerSec, double feedforwardVolts) {
@@ -38,10 +42,6 @@ public interface MotorIO {
 
   default void setMotionMagicVelocity(double velocityRadPerSec, double feedforwardVolts) {
     setMotionMagicVelocity(velocityRadPerSec);
-  }
-
-  default void setMotionMagicPosition(double positionRad, int slot) {
-    setMotionMagicPosition(positionRad);
   }
 
   default void setDutyCycle(double fraction) {}

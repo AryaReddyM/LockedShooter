@@ -355,14 +355,14 @@ public class RobotState extends StateMachine<RobotState.State> {
 
         CameraServer.startAutomaticCapture();
 
+        superstructure = new Superstructure(intake, shooter, climb, hopper, kicker);
+        setupSuperstructureDashboard();
+
         setupControllerBindings();
         setupNotis();
 
         registerStateTransitions();
         registerStateCommands();
-
-        superstructure = new Superstructure(intake, shooter, climb, hopper, kicker);
-        setupSuperstructureDashboard();
 
         addChildSubsystem(vision);
         addChildSubsystem(drive);
