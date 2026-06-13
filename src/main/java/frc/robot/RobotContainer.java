@@ -4,13 +4,13 @@
 
 package frc.robot;
 
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.ActionCommands;
+import frc.robot.commands.AutoCommands;
+import frc.robot.commands.DriveCommands;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -19,8 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final RobotState robotState = new RobotState();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -30,6 +29,10 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+  }
+
+  public RobotState getRobotState() {
+    return robotState;
   }
 
   /**
@@ -42,13 +45,27 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    robotState
+        .getDrive()
+        .setDefaultCommand(
+            DriveCommands.joystickDrive(
+                robotState.getDrive(),
+                () -> -m_driverController.getLeftY(),
+                () -> -m_driverController.getLeftX(),
+                () -> -m_driverController.getRightX()));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+    m_driverController
+        .a()
+        .whileTrue(ActionCommands.intake(robotState))
+        .onFalse(ActionCommands.idle(robotState));
+
+    m_driverController
+        .b()
+        .whileTrue(ActionCommands.shoot(robotState))
+        .onFalse(ActionCommands.idle(robotState));
+
+    m_driverController.x().onTrue(ActionCommands.pass(robotState));
+    m_driverController.y().onTrue(ActionCommands.climb(robotState));
   }
 
   /**
@@ -57,7 +74,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    return AutoCommands.shootPreload(robotState);
   }
 }
