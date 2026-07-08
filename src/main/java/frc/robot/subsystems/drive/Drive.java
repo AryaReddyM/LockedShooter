@@ -54,13 +54,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
-import frc.robot.RobotState;
-import frc.robot.commands.DriveCommands;
 import frc.robot.util.logging.Elastic;
-import frc.robot.util.field.RobotTime;
-import frc.robot.util.sim.SimulatedRobotState;
-import frc.robot.util.field.TrenchZone;
 import frc.robot.util.logging.Elastic.Notification;
 import frc.robot.util.state.StateMachine;
 
@@ -98,8 +92,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
       lastModulePositions, Pose2d.kZero);
 
-  private RobotState robotState;
-
   public static double kABDriveP = DriveConstants.kABDriveP;
   public static double kABDriveI = DriveConstants.kABDriveI;
   public static double kABDriveD = DriveConstants.kABDriveD;
@@ -113,12 +105,10 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       ModuleIO flModuleIO,
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
-      ModuleIO brModuleIO,
-      RobotState robotState) {
+      ModuleIO brModuleIO) {
 
     super("Drive", State.UNDETERMINED, State.class);
     this.gyroIO = gyroIO;
-    this.robotState = robotState;
 
     modules[0] = new Module(flModuleIO, 0);
     modules[1] = new Module(frModuleIO, 1);
@@ -133,49 +123,8 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       SparkOdometryThread.getInstance().start();
     }
 
-    // Configure AutoBuilder for PathPlanner
-
-    // {
-    // DogLog.tunable("Drive/AutoBuilder/Drive P", kABDriveP, newP -> {
-    // kABDriveP = newP;
-    // configureAutobuilder();
-    // ;
-    // });
-
-    // DogLog.tunable("Drive/AutoBuilder/Drive I", kABDriveI, newI -> {
-    // kABDriveI = newI;
-    // configureAutobuilder();
-    // ;
-    // });
-
-    // DogLog.tunable("Drive/AutoBuilder/Drive D", kABDriveD, newD -> {
-    // kABDriveD = newD;
-    // configureAutobuilder();
-    // ;
-    // });
-
-    // DogLog.tunable("Drive/AutoBuilder/Turn P", kABTurnP, newP -> {
-    // kABTurnP = newP;
-    // configureAutobuilder();
-    // ;
-    // });
-
-    // DogLog.tunable("Drive/AutoBuilder/Turn I", kABTurnI, newI -> {
-    // kABTurnI = newI;
-    // configureAutobuilder();
-    // ;
-    // });
-
-    // DogLog.tunable("Drive/AutoBuilder/Turn D", kABTurnD, newD -> {
-    // kABTurnD = newD;
-    // configureAutobuilder();
-    // ;
-    // });
-    // }
-
     configureAutobuilder();
 
-    // Configure SysId
     sysId = new SysIdRoutine(
         new SysIdRoutine.Config(
             null,
@@ -223,50 +172,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   private void registerStateCommands() {
     registerStateCommand(State.IDLE, new InstantCommand(() -> stop()));
-
-    setDefaultCommand(DriveCommands.smartDrive(
-        this,
-        () -> -robotState.getController().getLeftY(),
-        () -> -robotState.getController().getLeftX(),
-        () -> -robotState.getController().getRightX(),
-        () -> {
-          // This only runs if the state is TRAVERSING_AT_ANGLE
-
-          if (TrenchZone.driveRotationOverrideRequired(robotState) && getState() == State.SLOW) {
-            Pose2d currentPose = robotState.getLatestFieldToRobot().getValue();
-            double degrees = currentPose.getRotation().getDegrees();
-
-            if (Math.abs(degrees) <= 90) {
-              return Rotation2d.fromDegrees(0);
-            } else {
-              return Rotation2d.fromDegrees(180);
-            }
-          }
-
-          Pose2d target = robotState.getDriveAnglePos();
-
-          Translation2d drivingVector = target.getTranslation().minus(getPose().getTranslation());
-          Rotation2d goal = drivingVector.getAngle().plus(Rotation2d.fromDegrees(180)); // the offset is for the robot's
-                                                                                        // dir (cam look)
-
-          driveInputs.driveAtAngleGoal = target;
-          driveInputs.driveAtAngleDesired = new Pose2d(getPose().getX(), getPose().getY(), goal);
-
-          return goal;
-        },
-        () -> {
-          State currentState = getState();
-          if (currentState == State.SLOW) { // TrenchZone.driveRotationOverrideRequired(robotState) &&
-            return State.TRAVERSING_AT_ANGLE;
-          }
-
-          return currentState;
-        } // Pass the state supplier
-    ));
-
     registerStateCommand(State.CROSSED, new InstantCommand(() -> stopWithX()));
-    // Setup Commands for Pathfinding as needed
-
   }
 
   private void configureAutobuilder() {
@@ -302,57 +208,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
       driveInputs.currentPose3d = new Pose3d(driveInputs.currentPose);
 
       fieldPose.setRobotPose(driveInputs.currentPose);
-    }
-
-    double timestamp = RobotTime.getTimestampSeconds();
-    robotState.addOdometryMeasurement(timestamp, getPose()); // test wihtout this too
-
-    // robotState updating (some logic has been redone twice)
-    {
-      if (Constants.currentMode == Constants.Mode.REAL) {
-        StatusSignal<AngularVelocity> angularPitchVelocity = gyroIO.getPiegon().getAngularVelocityYDevice();
-        StatusSignal<AngularVelocity> angularRollVelocity = gyroIO.getPiegon().getAngularVelocityXDevice();
-        StatusSignal<AngularVelocity> angularYawVelocity = gyroIO.getPiegon().getAngularVelocityZDevice();
-
-        StatusSignal<Angle> roll = gyroIO.getPiegon().getRoll();
-        StatusSignal<Angle> pitch = gyroIO.getPiegon().getPitch();
-
-        StatusSignal<LinearAcceleration> accelerationX = gyroIO.getPiegon().getAccelerationX();
-        StatusSignal<LinearAcceleration> accelerationY = gyroIO.getPiegon().getAccelerationY();
-
-        BaseStatusSignal.refreshAll(angularRollVelocity, angularPitchVelocity, angularYawVelocity, pitch, roll,
-            accelerationX, accelerationY);
-
-        double rollRadsPerS = Units.degreesToRadians(angularRollVelocity.getValueAsDouble());
-        double pitchRadsPerS = Units.degreesToRadians(angularPitchVelocity.getValueAsDouble());
-        double yawRadsPerS = Units.degreesToRadians(angularYawVelocity.getValueAsDouble());
-
-        double pitchRads = Units.degreesToRadians(pitch.getValueAsDouble());
-        double rollRads = Units.degreesToRadians(roll.getValueAsDouble());
-        double accelX = accelerationX.getValueAsDouble();
-        double accelY = accelerationY.getValueAsDouble();
-
-        if (driveInputs.optimizedModStates.length == 4) {
-          var measuredRobotRelativeChassisSpeeds = kinematics.toChassisSpeeds(driveInputs.optimizedModStates);
-          var measuredFieldRelativeChassisSpeeds = ChassisSpeeds
-              .fromRobotRelativeSpeeds(measuredRobotRelativeChassisSpeeds,
-                  getPose().getRotation());
-          var desiredFieldRelativeChassisSpeeds = ChassisSpeeds
-              .fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(driveInputs.modStates),
-                  getPose().getRotation());
-          var fusedFieldRelativeChassisSpeeds = new ChassisSpeeds(measuredFieldRelativeChassisSpeeds.vxMetersPerSecond,
-              measuredFieldRelativeChassisSpeeds.vyMetersPerSecond,
-              yawRadsPerS);
-
-          robotState.addDriveMotionMeasurements(timestamp, rollRadsPerS, pitchRadsPerS,
-              yawRadsPerS,
-              pitchRads, rollRads, accelX, accelY, desiredFieldRelativeChassisSpeeds,
-              measuredRobotRelativeChassisSpeeds, measuredFieldRelativeChassisSpeeds,
-              fusedFieldRelativeChassisSpeeds);
-        }
-      } else if (Constants.currentMode == Constants.Mode.SIM) {
-        robotState.getSimRobot().addFieldToRobot(getPose());
-      }
     }
 
     Logger.processInputs("Drive/Gyro", gyroInputs);
@@ -504,7 +359,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   /** Returns the measured chassis speeds of the robot. */
   @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
-  private ChassisSpeeds getChassisSpeeds() {
+  public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
@@ -540,7 +395,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-    robotState.resetBuffersToPose(pose);
     Elastic.sendNotification(
         new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
   }

@@ -1,83 +1,58 @@
 package frc.robot.subsystems.kicker;
 
-import java.util.function.Consumer;
-
+import frc.robot.subsystems.base.MotorIO;
+import frc.robot.subsystems.base.MotorIOInputsAutoLogged;
+import frc.robot.subsystems.base.Setpoint;
+import frc.robot.util.state.StateMachine;
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.base.FlywheelMotorSubsystem;
-import frc.robot.subsystems.base.MotorIO;
-import frc.robot.subsystems.base.Setpoint;
-import frc.robot.util.logging.GetTuned;
+public class Kicker extends StateMachine<Kicker.State> {
+  private final MotorIO io;
+  private final MotorIOInputsAutoLogged inputs = new MotorIOInputsAutoLogged();
 
-public class Kicker extends FlywheelMotorSubsystem {
+  public static final Setpoint SHOOT_SPEED =
+      Setpoint.motionMagicVelocity(KickerConstants.kKickerShootSpeed);
+  public static final Setpoint OUTTAKE_SPEED =
+      Setpoint.motionMagicVelocity(KickerConstants.kKickerOutakeSpeed);
 
-    private State stateValue = State.IDLE;
+  public Kicker(MotorIO io) {
+    super("Kicker", State.UNDETERMINED, State.class);
+    this.io = io;
 
-    private Consumer<Object> override;
+    addOmniTransitions(State.IDLE, State.SHOOT, State.OUTTAKE);
 
-    public Kicker(MotorIO io) {
-        super(io, "Kicker", KickerConstants.kKickerDeviationErr);
-    }
+    registerStateCommand(State.IDLE, () -> io.stop());
+    registerStateCommand(State.SHOOT, () -> SHOOT_SPEED.apply(io));
+    registerStateCommand(State.OUTTAKE, () -> OUTTAKE_SPEED.apply(io));
+  }
 
-    @Override
-    public void periodic() {
-        super.periodic();
+  @Override
+  protected void update() {
+    io.updateInputs(inputs);
+    Logger.processInputs("Kicker", inputs);
+  }
 
-        if (override != null) {
-            override.accept(null);
-        } else if (stateValue == State.SHOOT) {
-            shoot();
-        } else if (stateValue == State.OUTAKE) {
-            outtake();
-        } else {
-            stop();
-        }
+  @Override
+  protected void determineSelf() {
+    setState(State.IDLE);
+  }
 
-        Logger.recordOutput("Kicker/Overriden", override != null);
-        Logger.recordOutput("Kicker/State", stateValue.toString());
-    }
+  public boolean atSpeed(double toleranceRadPerSec) {
+    return Math.abs(inputs.velocityRadPerSec - getSetpoint().getValue()) < toleranceRadPerSec;
+  }
 
-    public void shoot() {
-        applySetpoint(Setpoint.motionMagicVelocity(
-                GetTuned.getNumber("Kicker/Shot Speed", KickerConstants.kKickerShootSpeed)));
-    }
+  private Setpoint getSetpoint() {
+    return switch (getState()) {
+      case SHOOT -> SHOOT_SPEED;
+      case OUTTAKE -> OUTTAKE_SPEED;
+      default -> Setpoint.idle();
+    };
+  }
 
-    public void outtake() {
-        applySetpoint(Setpoint.motionMagicVelocity(
-                GetTuned.getNumber("Kicker/Outtake Speed", KickerConstants.kKickerOutakeSpeed)));
-    }
-
-    @Override
-    public void stop() {
-        applySetpoint(Setpoint.motionMagicVelocity(0.0));
-    }
-
-    public void setOverride(Consumer<Object> override) {
-        this.override = override;
-    }
-
-    public State getState() {
-        return stateValue;
-    }
-
-    public void requestTransition(State state) {
-        stateValue = state == State.UNDETERMINED ? State.IDLE : state;
-    }
-
-    public Command transitionCommand(State state) {
-        return runOnce(() -> requestTransition(state));
-    }
-
-    public enum State {
-        UNDETERMINED,
-
-        IDLE,
-        SHOOT,
-        OUTAKE
-
-        // flags
-
-    }
-
+  public enum State {
+    UNDETERMINED,
+    IDLE,
+    SHOOT,
+    OUTTAKE
+  }
 }

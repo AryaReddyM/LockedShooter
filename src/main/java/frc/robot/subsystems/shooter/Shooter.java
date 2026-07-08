@@ -1,110 +1,98 @@
 package frc.robot.subsystems.shooter;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.base.MotorIO;
 import frc.robot.subsystems.shooter.flywheel.Flywheel;
 import frc.robot.subsystems.shooter.hood.Hood;
 import frc.robot.subsystems.shooter.turret.Turret;
+import frc.robot.util.state.StateMachine;
 
-public class Shooter extends SubsystemBase {
-    
-    private final Turret turret;
-    private final Hood hood;
-    private final Flywheel flywheel;
-    private final RobotState state;
-    private State stateValue = State.IDLE;
+public class Shooter extends StateMachine<Shooter.State> {
+  private final Turret turret;
+  private final Hood hood;
+  private final Flywheel flywheel;
 
-    public Shooter(RobotState state, MotorIO turretIO, MotorIO hoodIO, MotorIO flywheelIO) {
-        turret = new Turret(turretIO, state);
-        hood = new Hood(hoodIO, state);
-        flywheel = new Flywheel(flywheelIO, state);
-        this.state = state;
-    }
+  public Shooter(RobotState state, MotorIO turretIO, MotorIO hoodIO, MotorIO flywheelIO) {
+    super("Shooter", State.UNDETERMINED, State.class);
 
-    @Override
-    public void periodic() {
-        Logger.recordOutput("Shooter/State", stateValue.toString());
-    }
+    turret = new Turret(turretIO, state);
+    hood = new Hood(hoodIO, state);
+    flywheel = new Flywheel(flywheelIO, state);
 
-    public void requestTransition(State newState) {
-        stateValue = newState == State.UNDETERMINED ? State.IDLE : newState;
-        switch (stateValue) {
-            case IDLE:
-                turret.requestTransition(Turret.State.IDLE);
-                flywheel.requestTransition(Flywheel.State.IDLE);
-                hood.requestTransition(Hood.State.IDLE);
-                break;
-            case HUB_TRACKING:
-                turret.requestTransition(Turret.State.HUB_TRACKING);
-                flywheel.requestTransition(Flywheel.State.TRACKING);
-                hood.requestTransition(Hood.State.HUB_TRACKING);
-                break;
-            case PASS_TRACKING:
-                turret.requestTransition(Turret.State.PASS_TRACKING);
-                flywheel.requestTransition(Flywheel.State.TRACKING);
-                hood.requestTransition(Hood.State.PASS_TRACKING);
-                break;
-            case SHOOTING:
-                turret.requestTransition(Turret.State.HUB_TRACKING);
-                flywheel.requestTransition(Flywheel.State.SHOOT);
-                hood.requestTransition(Hood.State.HUB_TRACKING);
-                break;
-            case PASSING:
-                turret.requestTransition(Turret.State.PASS_TRACKING);
-                flywheel.requestTransition(Flywheel.State.PASS);
-                hood.requestTransition(Hood.State.PASS_TRACKING);
-                break;
-            case OUTTAKE:
-                turret.requestTransition(Turret.State.IDLE);
-                flywheel.requestTransition(Flywheel.State.IDLE);
-                hood.requestTransition(Hood.State.IDLE);
-                break;
-            case TUNING:
-                turret.requestTransition(Turret.State.TUNING);
-                flywheel.requestTransition(Flywheel.State.TUNING);
-                hood.requestTransition(Hood.State.TUNING);
-                break;
-            case UNDETERMINED:
-                break;
-        }
-    }
+    addChildSubsystem(turret);
+    addChildSubsystem(hood);
+    addChildSubsystem(flywheel);
 
-    public Command transitionCommand(State state) {
-        return runOnce(() -> requestTransition(state));
-    }
+    addOmniTransitions(
+        State.IDLE,
+        State.HUB_TRACKING,
+        State.PASS_TRACKING,
+        State.SHOOTING,
+        State.PASSING,
+        State.OUTTAKE,
+        State.TUNING);
 
-    public State getState() {
-        return stateValue;
-    }
+    registerStateCommand(State.IDLE, cascade(Turret.State.IDLE, Hood.State.IDLE, Flywheel.State.IDLE));
+    registerStateCommand(
+        State.HUB_TRACKING,
+        cascade(Turret.State.HUB_TRACKING, Hood.State.HUB_TRACKING, Flywheel.State.TRACKING));
+    registerStateCommand(
+        State.PASS_TRACKING,
+        cascade(Turret.State.PASS_TRACKING, Hood.State.PASS_TRACKING, Flywheel.State.TRACKING));
+    registerStateCommand(
+        State.SHOOTING,
+        cascade(Turret.State.HUB_TRACKING, Hood.State.HUB_TRACKING, Flywheel.State.SHOOT));
+    registerStateCommand(
+        State.PASSING,
+        cascade(Turret.State.PASS_TRACKING, Hood.State.PASS_TRACKING, Flywheel.State.PASS));
+    registerStateCommand(
+        State.OUTTAKE, cascade(Turret.State.IDLE, Hood.State.IDLE, Flywheel.State.IDLE));
+    registerStateCommand(
+        State.TUNING, cascade(Turret.State.TUNING, Hood.State.TUNING, Flywheel.State.TUNING));
+  }
 
-    public Turret getTurret() {
-        return turret;
-    }
+  private InstantCommand cascade(
+      Turret.State turretState, Hood.State hoodState, Flywheel.State flywheelState) {
+    return new InstantCommand(
+        () -> {
+          turret.requestTransition(turretState);
+          hood.requestTransition(hoodState);
+          flywheel.requestTransition(flywheelState);
+        });
+  }
 
-    public Hood getHood() {
-        return hood;
-    }
+  @Override
+  protected void determineSelf() {
+    setState(State.IDLE);
+  }
 
-    public Flywheel getFlywheel() {
-        return flywheel;
-    }
+  public boolean readyToShoot(double turretTolRad, double hoodTolRad) {
+    return flywheel.isReady()
+        && turret.atSetpoint(turretTolRad)
+        && hood.atSetpoint(hoodTolRad);
+  }
 
-    public enum State {
-        UNDETERMINED,
+  public Turret getTurret() {
+    return turret;
+  }
 
-        IDLE,
-        HUB_TRACKING,
-        PASS_TRACKING,
-        SHOOTING,
-        PASSING,
-        OUTTAKE,
-        TUNING,
+  public Hood getHood() {
+    return hood;
+  }
 
-        // flags
+  public Flywheel getFlywheel() {
+    return flywheel;
+  }
 
-    }
+  public enum State {
+    UNDETERMINED,
+    IDLE,
+    HUB_TRACKING,
+    PASS_TRACKING,
+    SHOOTING,
+    PASSING,
+    OUTTAKE,
+    TUNING
+  }
 }

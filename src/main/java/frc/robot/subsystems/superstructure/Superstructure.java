@@ -1,162 +1,124 @@
 package frc.robot.subsystems.superstructure;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.kicker.Kicker;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.util.state.StateMachine;
 
-public class Superstructure extends SubsystemBase {
+public class Superstructure extends StateMachine<Superstructure.State> {
+  private final Shooter shooter;
+  private final Intake intake;
+  private final Hopper hopper;
+  private final Kicker kicker;
+  private final Climb climb;
 
-    public enum State {
-        IDLE,
-        TRAVERSING,
-        HUB_TRACKING,
-        PASS_TRACKING,
-        INTAKING,
-        OUTTAKING,
-        SHOOTING,
-        SHOOTING_INTAKING,
-        PASSING,
-        PASSING_INTAKING,
-        CLIMBING
-    }
+  public Superstructure(
+      Shooter shooter, Intake intake, Hopper hopper, Kicker kicker, Climb climb) {
+    super("Superstructure", State.UNDETERMINED, State.class);
+    this.shooter = shooter;
+    this.intake = intake;
+    this.hopper = hopper;
+    this.kicker = kicker;
+    this.climb = climb;
 
-    private final Intake intake;
-    private final Shooter shooter;
-    private final Climb climb;
-    private final Hopper hopper;
-    private final Kicker kicker;
+    addOmniTransitions(
+        State.IDLE,
+        State.TRAVERSING,
+        State.INTAKING,
+        State.HUB_TRACKING,
+        State.SHOOTING,
+        State.PASSING,
+        State.CLIMBING);
 
-    private State state = State.IDLE;
+    registerStateCommand(State.IDLE, () -> applyIdle());
+    registerStateCommand(State.TRAVERSING, () -> applyIdle());
 
-    public Superstructure(Intake intake, Shooter shooter, Climb climb, Hopper hopper, Kicker kicker) {
-        this.intake = intake;
-        this.shooter = shooter;
-        this.climb = climb;
-        this.hopper = hopper;
-        this.kicker = kicker;
-    }
+    registerStateCommand(
+        State.INTAKING,
+        cascade(
+            Shooter.State.IDLE,
+            Intake.State.INTAKE,
+            Hopper.State.IDLE,
+            Kicker.State.IDLE,
+            Climb.State.STOW));
 
-    public void setState(State newState) {
-        state = newState;
-        switch (newState) {
-            case IDLE:
-                shooter.requestTransition(Shooter.State.IDLE);
-                intake.requestTransition(Intake.State.IDLE);
-                climb.requestTransition(Climb.State.STOW);
-                hopper.requestTransition(Hopper.State.IDLE);
-                kicker.requestTransition(Kicker.State.IDLE);
-                break;
-            case TRAVERSING:
-            case HUB_TRACKING:
-                shooter.requestTransition(Shooter.State.HUB_TRACKING);
-                intake.requestTransition(Intake.State.STOW);
-                hopper.requestTransition(Hopper.State.IDLE);
-                kicker.requestTransition(Kicker.State.IDLE);
-                break;
-            case PASS_TRACKING:
-                shooter.requestTransition(Shooter.State.PASS_TRACKING);
-                intake.requestTransition(Intake.State.STOW);
-                hopper.requestTransition(Hopper.State.IDLE);
-                kicker.requestTransition(Kicker.State.IDLE);
-                break;
-            case INTAKING:
-                shooter.requestTransition(Shooter.State.HUB_TRACKING);
-                intake.requestTransition(Intake.State.INTAKE);
-                hopper.requestTransition(Hopper.State.IDLE);
-                kicker.requestTransition(Kicker.State.IDLE);
-                break;
-            case OUTTAKING:
-                shooter.requestTransition(Shooter.State.OUTTAKE);
-                intake.requestTransition(Intake.State.OUTAKE);
-                hopper.requestTransition(Hopper.State.OUTAKE);
-                kicker.requestTransition(Kicker.State.OUTAKE);
-                break;
-            case SHOOTING:
-                shooter.requestTransition(Shooter.State.SHOOTING);
-                intake.requestTransition(Intake.State.STOW);
-                hopper.requestTransition(Hopper.State.SHOOT);
-                kicker.requestTransition(Kicker.State.SHOOT);
-                break;
-            case SHOOTING_INTAKING:
-                shooter.requestTransition(Shooter.State.SHOOTING);
-                intake.requestTransition(Intake.State.INTAKE);
-                hopper.requestTransition(Hopper.State.SHOOT);
-                kicker.requestTransition(Kicker.State.SHOOT);
-                break;
-            case PASSING:
-                shooter.requestTransition(Shooter.State.PASSING);
-                intake.requestTransition(Intake.State.STOW);
-                hopper.requestTransition(Hopper.State.SHOOT);
-                kicker.requestTransition(Kicker.State.SHOOT);
-                break;
-            case PASSING_INTAKING:
-                shooter.requestTransition(Shooter.State.PASSING);
-                intake.requestTransition(Intake.State.INTAKE);
-                hopper.requestTransition(Hopper.State.SHOOT);
-                kicker.requestTransition(Kicker.State.SHOOT);
-                break;
-            case CLIMBING:
-                shooter.requestTransition(Shooter.State.IDLE);
-                intake.requestTransition(Intake.State.CLIMB_TOW);
-                climb.requestTransition(Climb.State.UP);
-                hopper.requestTransition(Hopper.State.IDLE);
-                kicker.requestTransition(Kicker.State.IDLE);
-                break;
-        }
-    }
+    registerStateCommand(
+        State.HUB_TRACKING,
+        cascade(
+            Shooter.State.HUB_TRACKING,
+            Intake.State.STOW,
+            Hopper.State.IDLE,
+            Kicker.State.IDLE,
+            Climb.State.STOW));
 
-    @Override
-    public void periodic() {
-        Logger.recordOutput("Superstructure/State", state.toString());
-    }
+    registerStateCommand(
+        State.SHOOTING,
+        cascade(
+            Shooter.State.SHOOTING,
+            Intake.State.STOW,
+            Hopper.State.SHOOT,
+            Kicker.State.SHOOT,
+            Climb.State.STOW));
 
-    public State getState() {
-        return state;
-    }
+    registerStateCommand(
+        State.PASSING,
+        cascade(
+            Shooter.State.PASSING,
+            Intake.State.STOW,
+            Hopper.State.SHOOT,
+            Kicker.State.SHOOT,
+            Climb.State.STOW));
 
-    public Command toState(State requested) {
-        return runOnce(() -> setState(requested));
-    }
+    registerStateCommand(
+        State.CLIMBING,
+        cascade(
+            Shooter.State.IDLE,
+            Intake.State.CLIMB_TOW,
+            Hopper.State.IDLE,
+            Kicker.State.IDLE,
+            Climb.State.UP));
+  }
 
-    public Command idle() {
-        return toState(State.IDLE);
-    }
+  private void applyIdle() {
+    shooter.requestTransition(Shooter.State.IDLE);
+    intake.requestTransition(Intake.State.STOW);
+    hopper.requestTransition(Hopper.State.IDLE);
+    kicker.requestTransition(Kicker.State.IDLE);
+    climb.requestTransition(Climb.State.STOW);
+  }
 
-    public Command intake() {
-        return toState(State.INTAKING);
-    }
+  private InstantCommand cascade(
+      Shooter.State shooterState,
+      Intake.State intakeState,
+      Hopper.State hopperState,
+      Kicker.State kickerState,
+      Climb.State climbState) {
+    return new InstantCommand(
+        () -> {
+          shooter.requestTransition(shooterState);
+          intake.requestTransition(intakeState);
+          hopper.requestTransition(hopperState);
+          kicker.requestTransition(kickerState);
+          climb.requestTransition(climbState);
+        });
+  }
 
-    public Command hubTrack() {
-        return toState(State.HUB_TRACKING);
-    }
+  @Override
+  protected void determineSelf() {
+    setState(State.IDLE);
+  }
 
-    public Command passTrack() {
-        return toState(State.PASS_TRACKING);
-    }
-
-    public Command outtake() {
-        return toState(State.OUTTAKING);
-    }
-
-    public Command shoot() {
-        return toState(State.SHOOTING);
-    }
-
-    public Command shootWhileIntaking() {
-        return toState(State.SHOOTING_INTAKING);
-    }
-
-    public Command pass() {
-        return toState(State.PASSING);
-    }
-
-    public Command climb() {
-        return toState(State.CLIMBING);
-    }
+  public enum State {
+    UNDETERMINED,
+    IDLE,
+    TRAVERSING,
+    INTAKING,
+    HUB_TRACKING,
+    SHOOTING,
+    PASSING,
+    CLIMBING
+  }
 }

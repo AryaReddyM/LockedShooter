@@ -1,128 +1,72 @@
 package frc.robot.subsystems.shooter.hood;
 
-import java.util.function.Consumer;
-
-import org.littletonrobotics.junction.Logger;
-
-import dev.doglog.DogLog;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.base.MotorIO;
-import frc.robot.subsystems.base.ServoMotorSubsystem;
+import frc.robot.subsystems.base.MotorIOInputsAutoLogged;
 import frc.robot.subsystems.base.Setpoint;
-import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.util.field.TrenchZone;
+import frc.robot.util.state.StateMachine;
+import org.littletonrobotics.junction.Logger;
 
-public class Hood extends ServoMotorSubsystem {
-    private final RobotState state;
-    private double tunedSetpoint = 0.0;
-    private double desiredPos = 0.0;
-    private Consumer<Object> override;
-    private State stateValue = State.IDLE;
+public class Hood extends StateMachine<Hood.State> {
+  private final MotorIO io;
+  private final MotorIOInputsAutoLogged inputs = new MotorIOInputsAutoLogged();
+  private final RobotState state;
 
-    public Hood(MotorIO io, RobotState state) {
-        super(io, "Hood", HoodConstants.kHoodDeviationErr);
+  private double tunedSetpoint = HoodConstants.kHoodMinLimit;
+  private double desiredPos = 0.0;
 
-        DogLog.tunable("Hood/Custom Setpoint", tunedSetpoint, newSetpoint -> tunedSetpoint = newSetpoint);
+  public Hood(MotorIO io, RobotState state) {
+    super("Hood", State.UNDETERMINED, State.class);
+    this.io = io;
+    this.state = state;
 
-        this.state = state;
+    addOmniTransitions(State.IDLE, State.HUB_TRACKING, State.PASS_TRACKING, State.TUNING);
+  }
+
+  @Override
+  protected void update() {
+    io.updateInputs(inputs);
+    Logger.processInputs("Hood", inputs);
+
+    switch (getState()) {
+      case HUB_TRACKING ->
+          setPos(state.getCurrentHubSetpoint().getHoodRadians(), state.getCurrentHubSetpoint().getHoodFF());
+      case PASS_TRACKING ->
+          setPos(state.getCurrentPassSetpoint().getHoodRadians(), state.getCurrentPassSetpoint().getHoodFF());
+      case TUNING -> setPos(tunedSetpoint, 0.0);
+      default -> io.stop();
     }
 
-    public void setPos(double position, double ff) {
-        if (TrenchZone.hoodLowerRequired(state) && position > HoodConstants.kHoodMaxSetpointUnderTrench) {
-            position = HoodConstants.kHoodMaxSetpointUnderTrench;
-        }
-        desiredPos = position;
-        applySetpoint(Setpoint.motionMagicPosition(position), ff);
-    }
+    Logger.recordOutput("Hood/Desired", desiredPos);
+  }
 
-    @Override
-    public void stop() {
-        super.stop();
-    }
+  private void setPos(double positionRad, double feedforwardVolts) {
+    desiredPos = positionRad;
+    Setpoint.motionMagicPosition(positionRad).applyWithFeedforward(io, feedforwardVolts);
+  }
 
-    public double getHoodPosition() {
-        return desiredPos;
-    }
+  @Override
+  protected void determineSelf() {
+    setState(State.IDLE);
+  }
 
-    public Command waitForShootReady(double tolerance) {
-        return new WaitUntilCommand(() -> {
-            return Math.abs(state.getCurrentHubSetpoint().getHoodRadians() - getPositionRad()) < tolerance;
-        });
-    }
+  public double getHoodPosition() {
+    return desiredPos;
+  }
 
-    public Command waitForPassReady(double tolerance) {
-        return new WaitUntilCommand(() -> {
-            return Math.abs(state.getCurrentPassSetpoint().getHoodRadians() - getPositionRad()) < tolerance;
-        });
-    }
+  public boolean atSetpoint(double toleranceRad) {
+    return Math.abs(inputs.positionRad - desiredPos) < toleranceRad;
+  }
 
-    @Override
-    public void periodic() {
-        super.periodic();
+  public void setTuningSetpoint(double radians) {
+    tunedSetpoint = radians;
+  }
 
-        { // HOOD POS SETTER
-
-            if (TrenchZone.hoodLowerRequired(state) && desiredPos > HoodConstants.kHoodMaxSetpointUnderTrench) {
-                setPos(HoodConstants.kHoodMaxSetpointUnderTrench, 0);
-            }
-
-            if (override != null) {
-                override.accept(null);
-            } else if (stateValue == State.HUB_TRACKING) {
-                setPos(state.getCurrentHubSetpoint().getHoodRadians(), state.getCurrentHubSetpoint().getHoodFF());
-            } else if (stateValue == State.PASS_TRACKING) {
-                setPos(state.getCurrentPassSetpoint().getHoodRadians(), state.getCurrentPassSetpoint().getHoodFF());
-            } else if (stateValue == State.TUNING) {
-                setPos(tunedSetpoint, 0);
-            } else {
-                stop();
-            }
-        }
-
-        Logger.recordOutput("Hood/Desired", desiredPos);
-        Logger.recordOutput("Hood/Pose",
-                new Pose3d()
-                        .plus(VisionConstants.kTurretToRobotCenter)
-                        .plus(new Transform3d(
-                                new Translation3d(),
-                                new Rotation3d(0, 0, state.getTurretDesiredPositionRad())))
-                        .plus(HoodConstants.turretToHood)
-                        .plus(new Transform3d(
-                                new Translation3d(),
-                                new Rotation3d(0, Units.degreesToRadians(-120) + desiredPos, 0))));
-        Logger.recordOutput("Hood/Overriden", override != null);
-        Logger.recordOutput("Hood/State", stateValue.toString());
-    }
-
-    public void setOverride(Consumer<Object> override) {
-        this.override = override;
-    }
-
-    public State getState() {
-        return stateValue;
-    }
-
-    public void requestTransition(State state) {
-        stateValue = state == State.UNDETERMINED ? State.IDLE : state;
-    }
-
-    public Command transitionCommand(State state) {
-        return runOnce(() -> requestTransition(state));
-    }
-
-    public enum State {
-        UNDETERMINED,
-
-        IDLE,
-        PASS_TRACKING,
-        HUB_TRACKING,
-        TUNING
-    }
+  public enum State {
+    UNDETERMINED,
+    IDLE,
+    PASS_TRACKING,
+    HUB_TRACKING,
+    TUNING
+  }
 }

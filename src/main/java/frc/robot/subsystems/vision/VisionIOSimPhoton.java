@@ -2,12 +2,10 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
-import frc.robot.RobotState;
-import frc.robot.util.sim.SimulatedRobotState;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.*;
-import org.photonvision.targeting.PhotonPipelineResult;
 
 public class VisionIOSimPhoton implements VisionIO {
 
@@ -19,12 +17,13 @@ public class VisionIOSimPhoton implements VisionIO {
         private final PhotonCameraSim turretSim;
         private final PhotonCameraSim chassisSim;
 
-        private final SimulatedRobotState simState;
-        private final RobotState robotState;
+        private final Supplier<Pose2d> groundTruthPose;
+        private final Supplier<Rotation2d> robotToTurret;
 
-        public VisionIOSimPhoton(RobotState state, SimulatedRobotState simState) {
-                this.robotState = state;
-                this.simState = simState;
+        public VisionIOSimPhoton(
+                        Supplier<Pose2d> groundTruthPose, Supplier<Rotation2d> robotToTurret) {
+                this.groundTruthPose = groundTruthPose;
+                this.robotToTurret = robotToTurret;
 
                 if (visionSim == null) {
                         visionSim = new VisionSystemSim("main");
@@ -58,14 +57,13 @@ public class VisionIOSimPhoton implements VisionIO {
                         CameraInputsAutoLogged chassisInputs) {
 
                 // --- 1. Update robot pose ---
-                Pose2d pose = simState.getLatestFieldToRobot();
+                Pose2d pose = groundTruthPose.get();
                 if (pose != null) {
                         visionSim.update(pose);
                 }
                 // --- 2. Update turret transform dynamically ---
-                var turretRotEntry = robotState.getLatestRobotToTurret();
-                if (turretRotEntry != null) {
-                        Rotation2d turretRot = turretRotEntry.getValue();
+                Rotation2d turretRot = robotToTurret.get();
+                if (turretRot != null) {
 
                         Transform3d robotToTurretCam = new Transform3d(
                                         new Translation3d(

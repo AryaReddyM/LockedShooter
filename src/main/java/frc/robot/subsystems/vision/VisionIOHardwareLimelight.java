@@ -1,27 +1,38 @@
 package frc.robot.subsystems.vision;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.RobotState;
 import frc.robot.util.hardware.LimelightHelpers;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class VisionIOHardwareLimelight implements VisionIO {
 
     NetworkTable tableA = NetworkTableInstance.getDefault().getTable(VisionConstants.kLimelightTableName);
     NetworkTable tableB = NetworkTableInstance.getDefault().getTable(VisionConstants.kLimelightBTableName);
-    RobotState robotState;
     int imuMode = 1;
+
+    private final Supplier<Rotation2d> robotHeading;
+    private final DoubleSupplier robotYawRateRadPerSec;
+    private final Supplier<Rotation2d> robotToTurret;
+    private final DoubleSupplier turretYawRateRadPerSec;
 
     private static final double[] DEFAULT_STDDEVS = new double[VisionConstants.kExpectedStdDevArrayLength];
 
     /** Creates a new Limelight vision IO instance. */
-    public VisionIOHardwareLimelight(RobotState robotState) {
-        this.robotState = robotState;
+    public VisionIOHardwareLimelight(
+            Supplier<Rotation2d> robotHeading,
+            DoubleSupplier robotYawRateRadPerSec,
+            Supplier<Rotation2d> robotToTurret,
+            DoubleSupplier turretYawRateRadPerSec) {
+        this.robotHeading = robotHeading;
+        this.robotYawRateRadPerSec = robotYawRateRadPerSec;
+        this.robotToTurret = robotToTurret;
+        this.turretYawRateRadPerSec = turretYawRateRadPerSec;
         setLLSettings();
     }
 
@@ -68,13 +79,12 @@ public class VisionIOHardwareLimelight implements VisionIO {
     public void readInputs(CameraInputsAutoLogged turretCamera, CameraInputsAutoLogged chassisCamera) {
         setLLSettings();
 
-        var gyroAngle = robotState.getLatestFieldToRobot().getValue().getRotation();
-        var gyroAngularVelocity = Units.radiansToDegrees(robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
-        
-        var fieldToTurretRotation = robotState.getLatestFieldToRobot().getValue().getRotation()
-                .plus(robotState.getLatestRobotToTurret().getValue());
-        var fieldToTurretVelocity = Units.radiansToDegrees(robotState.getLatestTurretAngularVelocity()
-                + robotState.getLatestRobotRelativeChassisSpeed().omegaRadiansPerSecond);
+        var gyroAngle = robotHeading.get();
+        var gyroAngularVelocity = Units.radiansToDegrees(robotYawRateRadPerSec.getAsDouble());
+
+        var fieldToTurretRotation = robotHeading.get().plus(robotToTurret.get());
+        var fieldToTurretVelocity = Units.radiansToDegrees(
+                turretYawRateRadPerSec.getAsDouble() + robotYawRateRadPerSec.getAsDouble());
 
         LimelightHelpers.SetRobotOrientation(VisionConstants.kLimelightTableName, fieldToTurretRotation.getDegrees(),
                 fieldToTurretVelocity, 0, 0, 0, 0);
