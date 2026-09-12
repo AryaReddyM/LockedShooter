@@ -22,9 +22,34 @@ class ComponentPoseTest {
 
   @Test
   void thereIsOnePoseForEveryModelInTheAsset() {
-    assertEquals(7, ComponentVisualizer.kComponentNames.length);
-    assertEquals(7, ComponentVisualizer.home().length);
-    assertEquals(7, ComponentVisualizer.identify().length);
+    // The asset ships model_0.glb through model_6.glb, so exactly seven poses may be
+    // published. Turret and hood have slots reserved but no models yet.
+    assertEquals(7, ComponentVisualizer.kPublishedComponents);
+    assertEquals(
+        ComponentVisualizer.kPublishedComponents,
+        ComponentVisualizer.home().length,
+        "home() must not hand AdvantageScope more poses than the asset has models");
+    assertEquals(
+        ComponentVisualizer.kPublishedComponents,
+        ComponentVisualizer.identify().length,
+        "identify() must match the published component count too");
+    assertTrue(
+        ComponentVisualizer.kComponentNames.length >= ComponentVisualizer.kPublishedComponents,
+        "every published index needs a name");
+  }
+
+  @Test
+  void turretAndHoodHaveSlotsReservedButAreNotPublishedYet() {
+    assertEquals(7, ComponentVisualizer.kTurret);
+    assertEquals(8, ComponentVisualizer.kHood);
+    assertEquals("Turret", ComponentVisualizer.kComponentNames[ComponentVisualizer.kTurret]);
+    assertEquals("Hood", ComponentVisualizer.kComponentNames[ComponentVisualizer.kHood]);
+    assertTrue(
+        ComponentVisualizer.kTurret >= ComponentVisualizer.kPublishedComponents,
+        "turret must stay unpublished until model_7.glb exists");
+    assertTrue(
+        ComponentVisualizer.kHood >= ComponentVisualizer.kPublishedComponents,
+        "hood must stay unpublished until model_8.glb exists");
   }
 
   @Test

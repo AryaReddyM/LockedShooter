@@ -49,6 +49,35 @@ public class FuelSim {
 
     /** Below this speed a fuel on the floor is parked outright, instead of creeping forever. */
     protected static final double REST_SPEED = 0.05; // m/s
+
+    // --- How much fuel spawnStartingFuel() puts on the field -------------------------------
+    //
+    // The pile is built as a grid: a row/column count, mirrored into all four quadrants around
+    // a centre point. So the totals are (rows * cols * 4) for the centre pile and
+    // (rows * cols * 4) again for the depots, four depots being one per corner area.
+    //
+    // These used to be written straight into the loops as 15/6 and 3/4, which put 408 fuel on
+    // the field. That is far more than the real game and it makes the 3D view unreadable: once
+    // a robot drives through the middle the screen is a wall of balls. Raising them costs
+    // physics time (every fuel is stepped and collision checked five times per robot loop) and
+    // clutters the view; lowering them makes the field emptier but changes nothing else.
+
+    /** Rows of fuel either side of the centre line, per quadrant, in the middle pile. */
+    protected static final int CENTER_PILE_ROWS = 6;
+
+    /** Columns of fuel either side of the centre line, per quadrant, in the middle pile. */
+    protected static final int CENTER_PILE_COLS = 3;
+
+    /** Rows of fuel in each of the four depots. */
+    protected static final int DEPOT_ROWS = 2;
+
+    /** Columns of fuel in each of the four depots. */
+    protected static final int DEPOT_COLS = 3;
+
+    /** Total fuel {@link #spawnStartingFuel()} will place. Handy for tests and sanity checks. */
+    public static int startingFuelCount() {
+        return CENTER_PILE_ROWS * CENTER_PILE_COLS * 4 + DEPOT_ROWS * DEPOT_COLS * 4;
+    }
     public static final double FUEL_MASS = 0.448 * 0.45392; // kgs
     protected static final double FUEL_CROSS_AREA = Math.PI * FUEL_RADIUS * FUEL_RADIUS;
     // Drag coefficient of smooth sphere: https://en.wikipedia.org/wiki/Drag_coefficient#/media/File:14ilf1l.svg
@@ -376,8 +405,8 @@ public class FuelSim {
     public void spawnStartingFuel() {
         // Center fuel
         Translation3d center = new Translation3d(FIELD_LENGTH / 2, FIELD_WIDTH / 2, FUEL_RADIUS);
-        for (int i = 0; i < 15; i++) {
-            for (int j = 0; j < 6; j++) {
+        for (int i = 0; i < CENTER_PILE_ROWS; i++) {
+            for (int j = 0; j < CENTER_PILE_COLS; j++) {
                 fuels.add(new Fuel(center.plus(new Translation3d(0.076 + 0.152 * j, 0.0254 + 0.076 + 0.152 * i, 0))));
                 fuels.add(new Fuel(center.plus(new Translation3d(-0.076 - 0.152 * j, 0.0254 + 0.076 + 0.152 * i, 0))));
                 fuels.add(new Fuel(center.plus(new Translation3d(0.076 + 0.152 * j, -0.0254 - 0.076 - 0.152 * i, 0))));
@@ -386,8 +415,8 @@ public class FuelSim {
         }
 
         // Depots
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < DEPOT_ROWS; i++) {
+            for (int j = 0; j < DEPOT_COLS; j++) {
                 fuels.add(new Fuel(new Translation3d(0.076 + 0.152 * j, 5.95 + 0.076 + 0.152 * i, FUEL_RADIUS)));
                 fuels.add(new Fuel(new Translation3d(0.076 + 0.152 * j, 5.95 - 0.076 - 0.152 * i, FUEL_RADIUS)));
                 fuels.add(new Fuel(

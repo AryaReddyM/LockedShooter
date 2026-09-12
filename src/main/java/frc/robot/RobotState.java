@@ -290,12 +290,25 @@ public class RobotState extends StateMachine<RobotState.State> {
     boolean passing = ssState == Superstructure.State.PASSING;
     ShooterSetpoint active = shooting ? hubSetpoint : passSetpoint;
 
+    // Every condition that has to hold before a ball leaves the shooter, kept as separate
+    // named values so each one can be logged. When nothing comes out of the shooter, the
+    // question is always "which of these is false", and a single combined boolean cannot
+    // answer it.
+    boolean inShootingState = shooting || passing;
+    boolean hasFuel = simFuelCount > 0;
+    boolean shotAchievable = active.isAchievable();
+    boolean mechanismsReady = shooter.readyToShoot();
+    boolean feedIntervalElapsed = fuelLaunchTimer.hasElapsed(kLaunchPeriodSeconds);
+
     boolean canLaunch =
-        (shooting || passing)
-            && simFuelCount > 0
-            && active.isAchievable()
-            && shooter.readyToShoot()
-            && fuelLaunchTimer.hasElapsed(kLaunchPeriodSeconds);
+        inShootingState && hasFuel && shotAchievable && mechanismsReady && feedIntervalElapsed;
+
+    Logger.recordOutput("RobotState/Sim/InShootingState", inShootingState);
+    Logger.recordOutput("RobotState/Sim/HasFuel", hasFuel);
+    Logger.recordOutput("RobotState/Sim/ShotAchievable", shotAchievable);
+    Logger.recordOutput("RobotState/Sim/MechanismsReady", mechanismsReady);
+    Logger.recordOutput("RobotState/Sim/FeedIntervalElapsed", feedIntervalElapsed);
+    Logger.recordOutput("RobotState/Sim/CanLaunch", canLaunch);
 
     if (canLaunch) {
       // FuelSim wants the launch angle measured up from horizontal, which is exactly how
@@ -317,7 +330,11 @@ public class RobotState extends StateMachine<RobotState.State> {
     // Worth watching: once this latches true the intake stops collecting, and without it
     // the sim just looks broken.
     Logger.recordOutput("RobotState/FuelAtCapacity", simFuelCount >= kFuelCapacity);
-    Logger.recordOutput("RobotState/ReadyToShoot", shooter.readyToShoot());
+    // Balls loose on the field, as opposed to SimFuelCount which is what the robot carries.
+    // Watching the two side by side shows whether the intake is collecting, the shooter is
+    // firing, or neither.
+    Logger.recordOutput("RobotState/Sim/FuelOnField", fuelSim.getFuelCount());
+    Logger.recordOutput("RobotState/ReadyToShoot", mechanismsReady);
     Logger.recordOutput("RobotState/BlueHubScore", FuelSim.Hub.BLUE_HUB.getScore());
     Logger.recordOutput("RobotState/RedHubScore", FuelSim.Hub.RED_HUB.getScore());
   }
