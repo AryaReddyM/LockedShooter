@@ -54,7 +54,42 @@ public class FlywheelConstants {
     public static final boolean kFlywheelinverted = false;
     public static final int kFlywheelCurrentLimit = 60;
 
-    public static final double kFlywheelSpeedTolerance = 2;
+    /**
+     * The flywheel's position conversion factor is the wheel circumference, so this mechanism
+     * reports <b>surface meters</b> and surface meters per second, not rotations. Every flywheel
+     * setpoint in the codebase is a surface speed in m/s.
+     */
+    public static final double kSurfaceMetersPerRadian = kFlywheelRadius.in(Meters);
+
+    /**
+     * Fraction of the flywheel's surface speed that ends up as fuel exit speed. A ball squeezed
+     * between a spinning wheel and a fixed hood leaves at roughly half the surface speed, since the
+     * contact point has to average the wheel's speed and the stationary hood's zero.
+     */
+    public static final double kExitVelocityEfficiency = 0.5;
+
+    /** Ball exit speed (m/s) for a given flywheel surface speed (m/s). */
+    public static double surfaceSpeedToExitVelocity(double surfaceMetersPerSec) {
+        return surfaceMetersPerSec * kExitVelocityEfficiency;
+    }
+
+    /** Flywheel surface speed (m/s) needed for a desired ball exit speed (m/s). */
+    public static double exitVelocityToSurfaceSpeed(double exitMetersPerSec) {
+        return exitMetersPerSec / kExitVelocityEfficiency;
+    }
+
+    /** Surface speed tolerance, in m/s, for calling the flywheel ready to shoot. */
+    public static final double kFlywheelSpeedTolerance = 0.75;
+
+    /** Highest surface speed the shooter is allowed to command. */
+    public static final double kMaxSurfaceSpeed =
+            DCMotor.getNeoVortex(1).freeSpeedRadPerSec * kSurfaceMetersPerRadian * 0.95;
+
+    // Sim
+    public static final double kFlywheelSimMoiKgM2 = 0.0075;
+    public static final double kFlywheelSimReduction = 1.0;
+    public static final double kFlywheelSimP = 6.0;
+    public static final double kFlywheelSimD = 0.0;
 
     // setpoints
     public static final double kSlowSpeed = 0.0;
@@ -70,7 +105,13 @@ public class FlywheelConstants {
                 configureFollower();
                 return MotorIOSpark.flex(kFlywheelCanID, flexConfig());
             case SIM:
-                return MotorIOSim.flywheel(DCMotor.getNeoVortex(1), 0.025, 1.0, kFlywheelP, 0.0, 0.0789);
+                return MotorIOSim.flywheel(
+                        DCMotor.getNeoVortex(1),
+                        kFlywheelSimMoiKgM2,
+                        kFlywheelSimReduction,
+                        kSurfaceMetersPerRadian,
+                        kFlywheelSimP,
+                        kFlywheelSimD);
             default:
                 return new MotorIO() {};
         }

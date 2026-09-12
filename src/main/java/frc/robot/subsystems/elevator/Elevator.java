@@ -40,6 +40,11 @@ public class Elevator extends StateMachine<Elevator.State> {
     setState(State.STOW);
   }
 
+  /** Measured carriage height in meters. */
+  public double getHeightMeters() {
+    return inputs.positionRad;
+  }
+
   public boolean atSetpoint() {
     return Math.abs(inputs.positionRad - targetHeight()) < ElevatorConstants.kEpsilon;
   }

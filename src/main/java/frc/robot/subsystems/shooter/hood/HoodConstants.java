@@ -32,8 +32,12 @@ public class HoodConstants {
     public static final double kHoodCruiseVel = 3000;
     public static final double kHoodDeviationErr = 0;
 
-    public static final double kHoodSimP = 0.7;
-    public static final double kHoodSimD = 0.2;
+    // Sim. The hood reports radians natively, so no unit scaling is needed; the reduction
+    // is read back out of the position conversion factor so the two cannot drift.
+    public static final double kHoodSimP = 40.0;
+    public static final double kHoodSimD = 1.5;
+    public static final double kHoodSimArmLengthMeters = 0.2;
+    public static final double kHoodSimMassKg = 1.5;
 
     // factors
     public static final double kHoodPositionConversionFactor = 2.0 * Math.PI / 3.0 / (367.0 / 32.0);
@@ -43,9 +47,19 @@ public class HoodConstants {
     public static final boolean kHoodinverted = false;
     public static final int kHoodCurrentLimit = 40;
 
+    /**
+     * Hood angle is the launch angle of the fuel measured up from horizontal: the minimum limit is
+     * the flattest shot the hood can make and the maximum limit is the steepest.
+     */
     public static final double kHoodMaxSetpointUnderTrench = Units.degreesToRadians(25.0);
+
     public static final double kHoodMinLimit = Units.degreesToRadians(25.0);
-    public static final double kHoodMaxLimit = Units.degreesToRadians(25.0) + kHoodMinLimit;
+    public static final double kHoodMaxLimit = Units.degreesToRadians(50.0);
+
+    public static final double kReadyToleranceRadians = Units.degreesToRadians(1.5);
+
+    /** Motor rotations per hood radian, implied by the position conversion factor. */
+    public static final double kHoodReduction = 2.0 * Math.PI / kHoodPositionConversionFactor;
 
     // setpoints
     public static final Transform3d turretToHood = new Transform3d(new Translation3d(
@@ -61,8 +75,17 @@ public class HoodConstants {
                 return MotorIOSpark.max(kHoodCanID, sparkConfig());
             case SIM:
                 return MotorIOSim.arm(
-                        DCMotor.getNeo550(1), 1.0, 0.5, 0.3, kHoodMinLimit, kHoodMaxLimit, false, kHoodMinLimit,
-                        kHoodSimP);
+                        DCMotor.getNeo550(1),
+                        kHoodReduction,
+                        kHoodSimArmLengthMeters,
+                        kHoodSimMassKg,
+                        kHoodMinLimit,
+                        kHoodMaxLimit,
+                        false,
+                        kHoodMinLimit,
+                        1.0, // already radians
+                        kHoodSimP,
+                        kHoodSimD);
             default:
                 return new MotorIO() {};
         }

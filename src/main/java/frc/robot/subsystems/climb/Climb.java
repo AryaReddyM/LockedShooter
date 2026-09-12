@@ -72,6 +72,11 @@ public class Climb extends StateMachine<Climb.State> {
         .withName("Climb Zero");
   }
 
+  /** Measured climb position in output rotations. */
+  public double getPositionRotations() {
+    return inputs.positionRad;
+  }
+
   public double getLeftSensorDistance() {
     return leftSensor.getDistance();
   }

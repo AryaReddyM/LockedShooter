@@ -32,6 +32,11 @@ public class Hopper extends StateMachine<Hopper.State> {
     Logger.processInputs("Hopper", inputs);
   }
 
+  /** Measured hopper position in output rotations. */
+  public double getPositionRotations() {
+    return inputs.positionRad;
+  }
+
   @Override
   protected void determineSelf() {
     setState(State.IDLE);

@@ -37,6 +37,11 @@ public class Kicker extends StateMachine<Kicker.State> {
     setState(State.IDLE);
   }
 
+  /** Measured kicker position in output rotations. */
+  public double getPositionRotations() {
+    return inputs.positionRad;
+  }
+
   public boolean atSpeed(double toleranceRadPerSec) {
     return Math.abs(inputs.velocityRadPerSec - getSetpoint().getValue()) < toleranceRadPerSec;
   }

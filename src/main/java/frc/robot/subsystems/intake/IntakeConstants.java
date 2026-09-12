@@ -33,7 +33,7 @@ public class IntakeConstants {
     public static final double kRollerI = 0;
     public static final double kRollerD = 0;
 
-    public static final double kRollerSimP = 0;
+    public static final double kRollerSimP = 0.2;
     public static final double kRollerSimD = 0;
 
     // Extension PID
@@ -49,8 +49,18 @@ public class IntakeConstants {
     public static final double kExtensionA = 0;
     public static final double kExtensionCos = 0.24;
 
+    // Sim. The extension reports degrees natively (see the position conversion factor
+    // below), so sim gains are volts per degree and the sim is told degrees-per-radian.
     public static final double kExtensionSimP = 0.3;
-    public static final double kExtensionSimD = 0;
+    public static final double kExtensionSimD = 0.05;
+    public static final double kExtensionSimArmLengthMeters = 0.5;
+    public static final double kExtensionSimMassKg = 3.0;
+    public static final double kExtensionDegreesPerRadian = 180.0 / Math.PI;
+
+    public static final double kRollerSimMoiKgM2 = 0.004;
+    public static final double kRollerSimReduction = 1.0;
+    /** The rollers report motor rotations, so one native unit is 1/2pi radians. */
+    public static final double kRollerRotationsPerRadian = 1.0 / (2.0 * Math.PI);
 
 
     // factors
@@ -74,6 +84,9 @@ public class IntakeConstants {
     public static final double kExtensionMax = 0;
     public static final double kExtensionMin = -96;
 
+    /** Motor rotations per extension revolution, implied by the position conversion factor. */
+    public static final double kExtensionReduction = 360.0 / kExtensionPositionConversionFactor;
+
     public static final double kRollerOuttakeSpeed = 40;
     public static final double kRollerIntakeSpeed = -40;
 
@@ -93,7 +106,17 @@ public class IntakeConstants {
                 return MotorIOSpark.max(kExtensionCanID, extensionConfig());
             case SIM:
                 return MotorIOSim.arm(
-                        DCMotor.getNeo550(1), 1.0, 0.5, 0.3, -1000.0, 1000.0, false, 0.0, kExtensionSimP);
+                        DCMotor.getNeo550(1),
+                        kExtensionReduction,
+                        kExtensionSimArmLengthMeters,
+                        kExtensionSimMassKg,
+                        kExtensionMin,
+                        kExtensionMax,
+                        false,
+                        kExtensionStowSetpoint,
+                        kExtensionDegreesPerRadian,
+                        kExtensionSimP,
+                        kExtensionSimD);
             default:
                 return new MotorIO() {};
         }
@@ -107,7 +130,13 @@ public class IntakeConstants {
                 }
                 return MotorIOSpark.flex(kRollersCanID, rollerConfig());
             case SIM:
-                return MotorIOSim.flywheel(DCMotor.getNeoVortex(1), 0.025, 1.0, kRollerSimP, 0.0, 0.0789);
+                return MotorIOSim.flywheel(
+                        DCMotor.getNeoVortex(1),
+                        kRollerSimMoiKgM2,
+                        kRollerSimReduction,
+                        kRollerRotationsPerRadian,
+                        kRollerSimP,
+                        kRollerSimD);
             default:
                 return new MotorIO() {};
         }

@@ -36,14 +36,21 @@ public class ClimbConstants {
     public static final double kClimbActionMaxAccel = 600;
     public static final double kClimbActionCruiseVel = 600;
 
-    public static final double kClimbSimP = 0.002;
-    public static final double kClimbSimD = 0;
+    // Sim. The climb reports output rotations, so gains are volts per rotation.
+    public static final double kClimbSimP = 6.0;
+    public static final double kClimbSimD = 0.4;
+    public static final double kClimbSimArmLengthMeters = 0.5;
+    public static final double kClimbSimMassKg = 3.0;
+    public static final double kClimbRotationsPerRadian = 1.0 / (2.0 * Math.PI);
 
     public static final double kClimberBaseHeight = 0.4;
 
     // factors
     public static final double kClimbPositionConversionFactor = 1.0 / 16.0;
-    public static final double kClimbVelocityConversionFactor = (1.0 / 16.0) / 60.0;
+    public static final double kClimbVelocityConversionFactor = kClimbPositionConversionFactor / 60.0;
+
+    /** Motor rotations per output rotation, implied by the position conversion factor. */
+    public static final double kClimbReduction = 1.0 / kClimbPositionConversionFactor;
 
     // Configuration
     public static final boolean kClimbinverted = false;
@@ -74,9 +81,20 @@ public class ClimbConstants {
                 }
                 return MotorIOSpark.flex(kClimbCanID, flexConfig());
             case SIM:
-                // limits keep the sim from clamping. estimateMOI(0.5, 0.3) ~= 0.025 kg*m^2.
+                // A winch, so no gravity term and generous travel limits either side of the
+                // stow and deploy positions.
                 return MotorIOSim.arm(
-                        DCMotor.getNeoVortex(1), 1.0, 0.5, 0.3, -1000.0, 1000.0, false, 0.0, kClimbSimP);
+                        DCMotor.getNeoVortex(1),
+                        kClimbReduction,
+                        kClimbSimArmLengthMeters,
+                        kClimbSimMassKg,
+                        -1.0,
+                        kClimbUpPos + 1.0,
+                        false,
+                        kClimbStowPos,
+                        kClimbRotationsPerRadian,
+                        kClimbSimP,
+                        kClimbSimD);
             default:
                 return new MotorIO() {};
         }

@@ -28,7 +28,20 @@ public class KickerConstants {
 
     // factors
     public static final double kKickerPositionConversionFactor = 1.0/3.0;
-    public static final double kKickerVelocityConversionFactor = (1.0/3.0)/60.0;
+    public static final double kKickerVelocityConversionFactor = kKickerPositionConversionFactor/60.0;
+
+    /** The kicker reports output rotations, so one native unit is 1/2pi radians. */
+    public static final double kKickerRotationsPerRadian = 1.0 / (2.0 * Math.PI);
+
+    // Sim. The real reduction is not recoverable from these constants, so pick one that keeps
+    // the configured setpoints inside the motor's range with headroom.
+    public static final double kKickerSimMoiKgM2 = 0.004;
+    public static final double kKickerSimReduction = 1.5;
+    public static final double kKickerSimP = 0.25;
+    public static final double kKickerSimD = 0.0;
+
+    /** Speed tolerance, in output rotations per second, for calling the kicker up to speed. */
+    public static final double kKickerSpeedTolerance = 2.0;
 
 
     // Configuration
@@ -48,7 +61,13 @@ public class KickerConstants {
                 }
                 return MotorIOSpark.max(kKickerCanID, sparkConfig());
             case SIM:
-                return MotorIOSim.flywheel(DCMotor.getNeo550(1), 0.025, 1.0, kKickerP, 0.0, 0.0789);
+                return MotorIOSim.flywheel(
+                        DCMotor.getNeoVortex(1),
+                        kKickerSimMoiKgM2,
+                        kKickerSimReduction,
+                        kKickerRotationsPerRadian,
+                        kKickerSimP,
+                        kKickerSimD);
             default:
                 return new MotorIO() {};
         }

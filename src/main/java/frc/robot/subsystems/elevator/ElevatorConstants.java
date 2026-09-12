@@ -23,7 +23,8 @@ public class ElevatorConstants {
   public static final double kElevatorCruiseVel = 1.5;
   public static final double kElevatorDeviationErr = 0;
 
-  public static final double kElevatorSimP = 8.0;
+  public static final double kElevatorSimP = 60.0;
+  public static final double kElevatorSimD = 2.0;
 
   public static final double kDrumRadiusMeters = Units.inchesToMeters(1.0);
   public static final double kCarriageMassKg = 5.0;
@@ -55,7 +56,8 @@ public class ElevatorConstants {
             kDrumRadiusMeters,
             kStowHeight,
             kHighHeight + kEpsilon,
-            kElevatorSimP);
+            kElevatorSimP,
+            kElevatorSimD);
       default:
         return new MotorIO() {};
     }

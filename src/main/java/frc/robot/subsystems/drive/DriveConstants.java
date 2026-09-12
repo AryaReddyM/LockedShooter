@@ -57,6 +57,8 @@ public class DriveConstants {
   public static final int frontRightCanCoderId = 2;
   public static final int backRightCanCoderId = 3;
 
+  public static final double robotMassKg = 50;
+
   public static final int driveMotorCurrentLimit = 45; 
   public static final double wheelRadiusMeters = 0.0508;
   public static final double driveMotorReduction = 6.48;// Swerve X2i x3 with 10 pinion teeth
@@ -72,10 +74,21 @@ public class DriveConstants {
   public static final double driveKi = 0.0;
   public static final double driveKd = 0.0;
 
-  public static final double driveSimP = 0.1;
+  // Sim feedforward, in volts per rad/s at the wheel. The old literal (3.0) was around 23x
+  // too large, so the feedforward alone saturated the 12 V limit for any setpoint above
+  // 4 rad/s and every module ran wide open regardless of stick position. Deriving it from
+  // the motor curve keeps the two in step if the gearbox or reduction ever changes.
+  public static final double driveSimKs = 0.0;
+  public static final double driveSimKv =
+      12.0 / (driveGearbox.freeSpeedRadPerSec / driveMotorReduction);
+  public static final double driveSimP = 0.05;
   public static final double driveSimD = 0.0;
-  public static final double driveSimKs = 0.9;
-  public static final double driveSimKv = 3;
+
+  // Rotational inertia seen at each wheel. The chassis mass is what a drive motor actually
+  // has to accelerate, so reflect a quarter of the robot through the wheel radius rather
+  // than using a token value; otherwise the sim reaches full speed within a single loop.
+  public static final double driveSimMoiKgM2 = (robotMassKg / 4.0) * wheelRadiusMeters * wheelRadiusMeters;
+  public static final double turnSimMoiKgM2 = 0.004;
 
   public static final double driveKs = 0.1;
   public static final double driveKv = 1.8;
@@ -100,14 +113,13 @@ public class DriveConstants {
   public static final double turnKd = 0.0;
   public static final double turnKv = 0.0;
 
-  public static final double turnSimP = 3.0;
+  public static final double turnSimP = 8.0;
   public static final double turnSimD = 0.0;
 
   public static final double turnPIDMinInput = 0; // Radians
   public static final double turnPIDMaxInput = 2 * Math.PI; // Radians
 
   // PathPlanner configuration
-  public static final double robotMassKg = 50;
   public static final double robotMOI = 6.883;
   public static final double wheelCOF = 1.2;
 

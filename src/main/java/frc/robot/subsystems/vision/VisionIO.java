@@ -15,8 +15,8 @@ public interface VisionIO {
         public boolean seesTarget = false;
         
         public FiducialObservation[] fiducialObservations = new FiducialObservation[0];
-        public MegatagPoseEstimate megatagPoseEstimate = new MegatagPoseEstimate(null, 0, 0, 0, 0, null);
-        public MegatagPoseEstimate megatag2PoseEstimate = new MegatagPoseEstimate(null, 0, 0, 0, 0, null);
+        public MegatagPoseEstimate megatagPoseEstimate = MegatagPoseEstimate.EMPTY;
+        public MegatagPoseEstimate megatag2PoseEstimate = MegatagPoseEstimate.EMPTY;
         
         public int megatag2Count = 0;
         public int megatagCount = 0;

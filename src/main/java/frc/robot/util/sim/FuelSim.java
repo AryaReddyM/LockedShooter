@@ -18,24 +18,23 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
-import org.littletonrobotics.junction.Logger;
 
 public class FuelSim {
     protected static final double PERIOD = 0.02; // sec
-    protected static final Translation3d GRAVITY = new Translation3d(0, 0, -9.81); // m/s^2
+    public static final double GRAVITY_MPS2 = 9.81;
+    protected static final Translation3d GRAVITY = new Translation3d(0, 0, -GRAVITY_MPS2); // m/s^2
     // Room temperature dry air density: https://en.wikipedia.org/wiki/Density_of_air#Dry_air
     protected static final double AIR_DENSITY = 1.2041; // kg/m^3
     protected static final double FIELD_COR = Math.sqrt(22 / 51.5); // coefficient of restitution with the field
     protected static final double FUEL_COR = 0.5; // coefficient of restitution with another fuel
     protected static final double NET_COR = 0.2; // coefficient of restitution with the net
     protected static final double ROBOT_COR = 0.1; // coefficient of restitution with a robot
-    protected static final double FUEL_RADIUS = 0.075;
+    public static final double FUEL_RADIUS = 0.075;
     protected static final double FIELD_LENGTH = 16.51;
     protected static final double FIELD_WIDTH = 8.04;
     protected static final double TRENCH_WIDTH = 1.265;
@@ -43,12 +42,19 @@ public class FuelSim {
     protected static final double TRENCH_HEIGHT = 0.565;
     protected static final double TRENCH_BAR_HEIGHT = 0.102;
     protected static final double TRENCH_BAR_WIDTH = 0.152;
-    protected static final double FRICTION = 0.1; // proportion of horizontal vel to lose per sec while on ground
-    protected static final double FUEL_MASS = 0.448 * 0.45392; // kgs
+    // Proportion of horizontal velocity lost per second while rolling on the floor. At the
+    // original 0.1 a fuel kicked out of the hub took the better part of a minute to stop,
+    // so the field looked like it was drifting on its own long after anything had touched it.
+    protected static final double FRICTION = 2.0;
+
+    /** Below this speed a fuel on the floor is parked outright, instead of creeping forever. */
+    protected static final double REST_SPEED = 0.05; // m/s
+    public static final double FUEL_MASS = 0.448 * 0.45392; // kgs
     protected static final double FUEL_CROSS_AREA = Math.PI * FUEL_RADIUS * FUEL_RADIUS;
     // Drag coefficient of smooth sphere: https://en.wikipedia.org/wiki/Drag_coefficient#/media/File:14ilf1l.svg
     protected static final double DRAG_COF = 0.47; // dimensionless
-    protected static final double DRAG_FORCE_FACTOR = 0.5 * AIR_DENSITY * DRAG_COF * FUEL_CROSS_AREA;
+    /** Drag force = DRAG_FORCE_FACTOR * speed^2, in newtons. */
+    public static final double DRAG_FORCE_FACTOR = 0.5 * AIR_DENSITY * DRAG_COF * FUEL_CROSS_AREA;
 
     protected static final Translation3d[] FIELD_XZ_LINE_STARTS = {
         new Translation3d(0, 0, 0),
@@ -96,6 +102,11 @@ public class FuelSim {
     };
 
     protected static class Fuel {
+        private static int nextId = 0;
+
+        /** Stable ordering key so each colliding pair is resolved exactly once per step. */
+        protected final int id = nextId++;
+
         protected Translation3d pos;
         protected Translation3d vel;
 
@@ -127,7 +138,9 @@ public class FuelSim {
             if (Math.abs(vel.getZ()) < 0.05 && pos.getZ() <= FUEL_RADIUS + 0.03) {
                 vel = new Translation3d(vel.getX(), vel.getY(), 0);
                 vel = vel.times(1 - FRICTION * PERIOD / subticks);
-                // pos = new Translation3d(pos.getX(), pos.getY(), FUEL_RADIUS);
+                if (vel.getNorm() < REST_SPEED) {
+                    vel = Translation3d.kZero;
+                }
             }
             handleFieldCollisions(subticks);
         }
@@ -301,10 +314,12 @@ public class FuelSim {
                 for (int j = row - 1; j <= row + 1; j++) {
                     if (i >= 0 && i < GRID_COLS && j >= 0 && j < GRID_ROWS) {
                         for (Fuel other : grid[i][j]) {
-                            if (fuel != other && fuel.pos.getDistance(other.pos) < FUEL_RADIUS * 2) {
-                                if (fuel.hashCode() < other.hashCode()) {
-                                    handleFuelCollision(fuel, other);
-                                }
+                            // Identity hash codes are not guaranteed distinct, so two fuels
+                            // that happened to share one were never resolved against each
+                            // other. Ids are unique and monotonic.
+                            if (fuel.id < other.id
+                                    && fuel.pos.getDistance(other.pos) < FUEL_RADIUS * 2) {
+                                handleFuelCollision(fuel, other);
                             }
                         }
                     }
@@ -420,6 +435,16 @@ public class FuelSim {
         simulateAirResistance = true;
     }
 
+    /** Disables drag force in the physics step. */
+    public void disableAirResistance() {
+        simulateAirResistance = false;
+    }
+
+    /** Whether the physics step is accounting for drag. */
+    public boolean isAirResistanceEnabled() {
+        return simulateAirResistance;
+    }
+
     /**
      * Sets the number of physics iterations per loop (0.02s)
      * @param subticks
@@ -492,13 +517,27 @@ public class FuelSim {
             handleFuelCollisions(fuels);
 
             if (robotPoseSupplier != null) {
-                Logger.recordOutput("Fuel Pose", robotPoseSupplier.get());
                 handleRobotCollisions(fuels);
                 handleIntakes(fuels);
             }
         }
 
         logFuels();
+    }
+
+    /** Number of fuel currently on the field. */
+    public int getFuelCount() {
+        return fuels.size();
+    }
+
+    /** Positions of every fuel on the field. Test aid. */
+    public java.util.List<Translation3d> debugFuelPositions() {
+        return fuels.stream().map(f -> f.pos).toList();
+    }
+
+    /** Position of the first fuel on the field, or null if there are none. Test aid. */
+    public Translation3d debugFirstFuelPosition() {
+        return fuels.isEmpty() ? null : fuels.get(0).pos;
     }
 
     /**
@@ -752,10 +791,14 @@ public class FuelSim {
                 new Translation3d(FIELD_LENGTH - 5.3, FIELD_WIDTH / 2, 0.89),
                 -1);
 
-        protected static final double ENTRY_HEIGHT = 1.83;
-        protected static final double ENTRY_RADIUS = 0.56;
+        /** Height the fuel has to cross, moving downwards, to count as scored. */
+        public static final double ENTRY_HEIGHT = 1.83;
 
-        protected static final double SIDE = 1.2;
+        /** Radius of the funnel opening at {@link #ENTRY_HEIGHT}. */
+        public static final double ENTRY_RADIUS = 0.56;
+
+        /** Width of the solid part of the hub below the opening. */
+        public static final double SIDE = 1.2;
 
         protected static final double NET_HEIGHT_MAX = 3.057;
         protected static final double NET_HEIGHT_MIN = 1.5;

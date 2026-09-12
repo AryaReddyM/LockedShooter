@@ -318,6 +318,9 @@ public abstract class StateMachine<E extends Enum<E>> extends SubsystemBase {
    * @param state state to transition to
    */
   public final void requestTransition(E state) {
+    if (state == null) {
+      return;
+    }
     TransitionBase<E> transition = transitionGraph.getEdge(currentState, state);
     // Stop transitions to the same state from happening
     if (!isTransitioning() && transition != null && state != currentState) {
@@ -495,12 +498,15 @@ public abstract class StateMachine<E extends Enum<E>> extends SubsystemBase {
 
   @Override
   public final void periodic() {
+    // The chooser reads back null until the dashboard has published a selection, which
+    // is every loop before the first one and any loop where the logger is not running.
+    // Acting on that used to ask for a transition to a null state and throw.
     E chooserRequest = stateChooser.get();
 
     if (enabled) {
       updateTransitioning();
 
-      if (lastChooserRequest != chooserRequest) {
+      if (chooserRequest != null && lastChooserRequest != chooserRequest) {
         requestTransition(chooserRequest);
       }
     }
@@ -508,7 +514,9 @@ public abstract class StateMachine<E extends Enum<E>> extends SubsystemBase {
     recordLogs();
     update();
 
-    lastChooserRequest = chooserRequest;
+    if (chooserRequest != null) {
+      lastChooserRequest = chooserRequest;
+    }
   }
 
   private void recordLogs() {

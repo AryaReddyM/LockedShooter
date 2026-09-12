@@ -56,6 +56,10 @@ public record MegatagPoseEstimate(
                 fiducialIds);
     }
 
+    /** Placeholder for "no estimate this cycle". Logging cannot serialise a null. */
+    public static final MegatagPoseEstimate EMPTY =
+            new MegatagPoseEstimate(MathHelpers.kPose2dZero, 0, 0, 0, 0, new int[0]);
+
     public static final MegatagPoseEstimateStruct struct = new MegatagPoseEstimateStruct();
 
     public static class MegatagPoseEstimateStruct implements Struct<MegatagPoseEstimate> {
@@ -72,12 +76,15 @@ public record MegatagPoseEstimate(
 
         @Override
         public int getSize() {
-            return Pose2d.struct.getSize() + 3 * Double.BYTES;
+            // pack() and unpack() move four doubles, not three; the old size left the
+            // last one hanging off the end of the buffer.
+            return Pose2d.struct.getSize() + 4 * Double.BYTES;
         }
 
         @Override
         public String getSchema() {
-            return "Pose2d fieldToRobot; double timestampSeconds; double latency; double avgTagArea";
+            return "Pose2d fieldToRobot; double timestampSeconds; double latency;"
+                    + " double avgTagArea; double quality";
         }
 
         @Override

@@ -33,11 +33,11 @@ public class ModuleIOSim implements ModuleIO {
     // Create drive and turn sim models
     driveSim =
         new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(driveGearbox, 0.001, driveMotorReduction),
+            LinearSystemId.createDCMotorSystem(driveGearbox, driveSimMoiKgM2, driveMotorReduction),
             driveGearbox);
     turnSim =
         new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(turnGearbox, 0.001, turnMotorReduction),
+            LinearSystemId.createDCMotorSystem(turnGearbox, turnSimMoiKgM2, turnMotorReduction),
             turnGearbox);
 
     // Enable wrapping for turn PID
@@ -75,6 +75,7 @@ public class ModuleIOSim implements ModuleIO {
     // Update turn inputs
     inputs.turnConnected = true;
     inputs.turnPosition = new Rotation2d(turnSim.getAngularPositionRad());
+    inputs.canPosition = inputs.turnPosition;
     inputs.turnVelocityRadPerSec = turnSim.getAngularVelocityRadPerSec();
     inputs.turnAppliedVolts = turnAppliedVolts;
     inputs.turnCurrentAmps = Math.abs(turnSim.getCurrentDrawAmps());

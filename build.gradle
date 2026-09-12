@@ -81,6 +81,12 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+
+    // Several things in this project are process wide: PathPlanner's AutoBuilder can only be
+    // configured once, SubsystemManagerFactory and CommandScheduler are singletons, FuelSim's
+    // hubs keep score statically, and PhotonVision's VisionSystemSim is shared. Give each test
+    // class its own JVM so building a robot in one cannot disturb another.
+    forkEvery = 1
 }
 
 // Simulation configuration (e.g. environment variables).

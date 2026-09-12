@@ -50,8 +50,14 @@ public class Hood extends StateMachine<Hood.State> {
     setState(State.IDLE);
   }
 
+  /** Commanded hood angle in radians above horizontal. */
   public double getHoodPosition() {
     return desiredPos;
+  }
+
+  /** Measured hood angle in radians above horizontal. */
+  public double getMeasuredPositionRad() {
+    return inputs.positionRad;
   }
 
   public boolean atSetpoint(double toleranceRad) {

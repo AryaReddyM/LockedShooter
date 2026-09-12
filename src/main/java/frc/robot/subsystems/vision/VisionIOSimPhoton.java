@@ -2,10 +2,13 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
+import java.util.List;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.*;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class VisionIOSimPhoton implements VisionIO {
 
@@ -16,6 +19,11 @@ public class VisionIOSimPhoton implements VisionIO {
 
         private final PhotonCameraSim turretSim;
         private final PhotonCameraSim chassisSim;
+
+        private final Transform3d robotToChassisCam;
+
+        /** Rebuilt every cycle from the turret angle; the turret camera rotates with the turret. */
+        private Transform3d robotToTurretCam = new Transform3d();
 
         private final Supplier<Pose2d> groundTruthPose;
         private final Supplier<Rotation2d> robotToTurret;
@@ -38,7 +46,7 @@ public class VisionIOSimPhoton implements VisionIO {
                 turretSim = new PhotonCameraSim(turretCamera, props);
                 chassisSim = new PhotonCameraSim(chassisCamera, props);
 
-                Transform3d robotToChassisCam = new Transform3d(
+                robotToChassisCam = new Transform3d(
                                 new Translation3d(
                                                 VisionConstants.kCameraBForwardMeters,
                                                 VisionConstants.kCameraBRightMeters,
@@ -49,23 +57,21 @@ public class VisionIOSimPhoton implements VisionIO {
                                                 Units.degreesToRadians(VisionConstants.kCameraBYawDegrees)));
 
                 visionSim.addCamera(chassisSim, robotToChassisCam);
-                visionSim.addCamera(turretSim, new Transform3d());
+                visionSim.addCamera(turretSim, robotToTurretCam);
         }
 
         @Override
         public void readInputs(CameraInputsAutoLogged turretInputs,
                         CameraInputsAutoLogged chassisInputs) {
 
-                // --- 1. Update robot pose ---
-                Pose2d pose = groundTruthPose.get();
-                if (pose != null) {
-                        visionSim.update(pose);
-                }
-                // --- 2. Update turret transform dynamically ---
+                // --- 1. Point the turret camera where the turret is now ---
+                // This has to happen before the frame is rendered. Rendering first and then
+                // moving the camera means the image was taken from the previous turret angle
+                // but decoded with the current one, which shows up as a pose error that grows
+                // with how fast the turret is moving.
                 Rotation2d turretRot = robotToTurret.get();
                 if (turretRot != null) {
-
-                        Transform3d robotToTurretCam = new Transform3d(
+                        robotToTurretCam = new Transform3d(
                                         new Translation3d(
                                                         VisionConstants.kTurretToCameraX,
                                                         VisionConstants.kTurretToCameraY,
@@ -75,31 +81,55 @@ public class VisionIOSimPhoton implements VisionIO {
                         visionSim.adjustCamera(turretSim, robotToTurretCam);
                 }
 
-                // --- 3. Read turret camera ---
-                readSimCamera(turretCamera, turretInputs);
+                // --- 2. Render from the robot's true pose ---
+                Pose2d pose = groundTruthPose.get();
+                if (pose != null) {
+                        visionSim.update(pose);
+                }
 
-                // --- 4. Read chassis camera ---
-                readSimCamera(chassisCamera, chassisInputs);
+                // --- 3. Read both cameras ---
+                readSimCamera(turretCamera, robotToTurretCam, turretInputs);
+                readSimCamera(chassisCamera, robotToChassisCam, chassisInputs);
 
                 Logger.processInputs("Vision/Turret Camera", turretInputs);
                 Logger.processInputs("Vision/Chassis Camera", chassisInputs);
         }
 
-        private void readSimCamera(PhotonCamera camera, CameraInputsAutoLogged inputs) {
-                try {
-                        var result = camera.getLatestResult();
+        /** Wipes last cycle's observations so a camera that sees nothing does not log stale data. */
+        private static void clear(CameraInputsAutoLogged inputs) {
+                inputs.seesTarget = false;
+                inputs.fiducialObservations = new FiducialObservation[0];
+                inputs.megatagPoseEstimate = MegatagPoseEstimate.EMPTY;
+                inputs.megatag2PoseEstimate = MegatagPoseEstimate.EMPTY;
+                inputs.megatagCount = 0;
+                inputs.megatag2Count = 0;
+                inputs.megatagAvgDist = 0.0;
+                inputs.megatag2avgDist = 0.0;
+                inputs.pose3d = new Pose3d();
+                inputs.standardDeviations = new double[VisionConstants.kExpectedStdDevArrayLength];
+        }
 
-                        inputs.seesTarget = result.hasTargets();
-                        if (!inputs.seesTarget) {
+        private void readSimCamera(
+                        PhotonCamera camera, Transform3d robotToCamera, CameraInputsAutoLogged inputs) {
+                clear(inputs);
+                try {
+                        List<PhotonPipelineResult> unread = camera.getAllUnreadResults();
+                        if (unread.isEmpty()) {
+                                return;
+                        }
+                        PhotonPipelineResult result = unread.get(unread.size() - 1);
+                        if (!result.hasTargets()) {
                                 return;
                         }
 
-                        int tagCount = result.getTargets().size();
-                        inputs.megatag2Count = tagCount;
-                        inputs.megatagCount = tagCount;
+                        List<PhotonTrackedTarget> targets = result.getTargets();
+                        int tagCount = targets.size();
 
-                        // --- Fiducial observations (Limelight-style) ---
-                        inputs.fiducialObservations = result.getTargets().stream()
+                        inputs.seesTarget = true;
+                        inputs.megatagCount = tagCount;
+                        inputs.megatag2Count = tagCount;
+
+                        inputs.fiducialObservations = targets.stream()
                                         .map(t -> new FiducialObservation(
                                                         t.getFiducialId(),
                                                         t.getYaw(),
@@ -108,70 +138,61 @@ public class VisionIOSimPhoton implements VisionIO {
                                                         t.getArea()))
                                         .toArray(FiducialObservation[]::new);
 
-                        // --- Build fiducial ID array ---
-                        int[] fiducialIds = result.getTargets().stream()
-                                        .mapToInt(t -> t.getFiducialId())
+                        int[] fiducialIds = targets.stream()
+                                        .mapToInt(PhotonTrackedTarget::getFiducialId)
                                         .toArray();
 
-                        // --- Average tag area ---
-                        double avgArea = result.getTargets().stream()
-                                        .mapToDouble(t -> t.getArea())
+                        double avgArea = targets.stream()
+                                        .mapToDouble(PhotonTrackedTarget::getArea)
                                         .average()
                                         .orElse(0.0);
 
+                        // Real distance to the tags, which is what drives the standard deviations
+                        // downstream. This used to be pinned at 1.0, so a tag across the field was
+                        // trusted exactly as much as one a foot away.
+                        double avgDist = targets.stream()
+                                        .mapToDouble(t -> t.getBestCameraToTarget().getTranslation().getNorm())
+                                        .average()
+                                        .orElse(0.0);
 
-                        // --- Quality heuristic (MegaTag2-like) ---
-                        double quality = tagCount * avgArea;
-
-                        Pose2d fieldToRobot2d = null;
-                        Pose3d fieldToRobot3d = null;
-
-                        // --- Multi-tag solve (MegaTag2 equivalent) ---
+                        // PhotonVision solves for the camera, not the robot. Both solves below end up
+                        // as a field-to-camera pose, so the camera mount has to be taken back off
+                        // before it can be handed to the pose estimator. For the turret camera that
+                        // offset includes the turret's rotation, so skipping it threw the estimate off
+                        // by however far the turret happened to be pointed.
+                        Pose3d fieldToCamera = null;
                         if (result.getMultiTagResult().isPresent()) {
-                                var multi = result.getMultiTagResult().get();
-
-                                // Photon gives field→camera transform
-                                Transform3d fieldToCamera = multi.estimatedPose.best;
-
-                                Pose3d fieldToCameraPose = new Pose3d().transformBy(fieldToCamera);
-
-                                // Convert camera pose → robot pose using sim camera transform
-                                // PhotonCameraSim already uses the robot-relative transform,
-                                // so fieldToCamera is effectively fieldToRobot if using VisionSystemSim
-                                fieldToRobot3d = fieldToCameraPose;
-                                fieldToRobot2d = fieldToRobot3d.toPose2d();
-                        }
-                        // --- Fallback: single tag ---
-                        else {
-                                var best = result.getBestTarget();
-                                var tagPoseOpt = VisionConstants.kAprilTagLayout.getTagPose(best.getFiducialId());
-
-                                if (tagPoseOpt.isPresent()) {
-                                        fieldToRobot3d = tagPoseOpt.get()
+                                fieldToCamera = new Pose3d()
+                                                .transformBy(result.getMultiTagResult().get().estimatedPose.best);
+                        } else {
+                                PhotonTrackedTarget best = result.getBestTarget();
+                                var tagPose = VisionConstants.kAprilTagLayout.getTagPose(best.getFiducialId());
+                                if (tagPose.isPresent()) {
+                                        fieldToCamera = tagPose.get()
                                                         .transformBy(best.getBestCameraToTarget().inverse());
-                                        fieldToRobot2d = fieldToRobot3d.toPose2d();
                                 }
                         }
 
-                        if (fieldToRobot2d != null) {
-                                inputs.pose3d = fieldToRobot3d;
-
-                                double timestamp = result.getTimestampSeconds();
-                                double latency = 20 / 1000.0;
-
-                                inputs.megatag2PoseEstimate = new MegatagPoseEstimate(
-                                                fieldToRobot2d,
-                                                timestamp,
-                                                latency,
-                                                avgArea,
-                                                quality,
-                                                fiducialIds);
-                                inputs.megatag2avgDist = 1.0;
-                                inputs.megatagAvgDist = 1.0;
-
-                                // Mirror for compatibility
-                                inputs.megatagPoseEstimate = inputs.megatag2PoseEstimate;
+                        if (fieldToCamera == null) {
+                                return;
                         }
+
+                        Pose3d fieldToRobot3d = fieldToCamera.transformBy(robotToCamera.inverse());
+                        Pose2d fieldToRobot2d = fieldToRobot3d.toPose2d();
+
+                        inputs.pose3d = fieldToRobot3d;
+                        inputs.megatagAvgDist = avgDist;
+                        inputs.megatag2avgDist = avgDist;
+
+                        MegatagPoseEstimate estimate = new MegatagPoseEstimate(
+                                        fieldToRobot2d,
+                                        result.getTimestampSeconds(),
+                                        result.metadata.getLatencyMillis() / 1000.0,
+                                        avgArea,
+                                        tagCount * avgArea,
+                                        fiducialIds);
+                        inputs.megatag2PoseEstimate = estimate;
+                        inputs.megatagPoseEstimate = estimate;
 
                         inputs.standardDeviations = new double[] { 0.1, 0.1, 0, 0, 0, 0.5, 0.1, 0.1, 0, 0, 0, 0.5 };
 

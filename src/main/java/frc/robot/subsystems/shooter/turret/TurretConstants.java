@@ -28,8 +28,12 @@ public class TurretConstants {
 
   public static final Rotation2d kTurretAbsEncoderOffset = Rotation2d.fromRadians(0);
 
-  public static final double kTurretSimP = 0.1;
-  public static final double kTurretSimD = 0;
+  // Sim. The turret reports radians natively, so the sim needs no unit scaling; the
+  // reduction is read back out of the position conversion factor so the two cannot drift.
+  public static final double kTurretSimP = 12.0;
+  public static final double kTurretSimD = 0.6;
+  public static final double kTurretSimArmLengthMeters = 0.25;
+  public static final double kTurretSimMassKg = 4.0;
 
   // factors
   public static final double kTurretPositionConversionFactor = 2.0 * Math.PI / 4.0 / (200.0 / 20.0);
@@ -47,6 +51,9 @@ public class TurretConstants {
   public static final double kForwardSoftLimit = 2.7;
   public static final double kBackwardSoftLimit = -Math.PI - (Math.PI - kForwardSoftLimit);
 
+  /** Motor rotations per turret revolution, implied by the position conversion factor. */
+  public static final double kTurretReduction = 2.0 * Math.PI / kTurretPositionConversionFactor;
+
   public static MotorIO createIO() {
     switch (Constants.currentMode) {
       case REAL:
@@ -57,14 +64,16 @@ public class TurretConstants {
       case SIM:
         return MotorIOSim.arm(
             DCMotor.getNeo550(1),
-            1.0,
-            0.1,
-            0.3,
+            kTurretReduction,
+            kTurretSimArmLengthMeters,
+            kTurretSimMassKg,
             kBackwardSoftLimit,
             kForwardSoftLimit,
             false,
             0.0,
-            kTurretSimP);
+            1.0, // already radians
+            kTurretSimP,
+            kTurretSimD);
       default:
         return new MotorIO() {};
     }

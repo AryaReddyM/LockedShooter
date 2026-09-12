@@ -33,7 +33,20 @@ public class HopperConstants {
 
     // factors
     public static final double kHopperPositionConversionFactor = 1.0/9.0;
-    public static final double kHopperVelocityConversionFactor = 0.0001852;
+    // Every other mechanism defines its velocity factor as position-per-minute; the literal
+    // that used to sit here (0.0001852) was that value divided by ten, so reported hopper
+    // speed was a tenth of the truth.
+    public static final double kHopperVelocityConversionFactor = kHopperPositionConversionFactor / 60.0;
+
+    /** The hopper reports output rotations, so one native unit is 1/2pi radians. */
+    public static final double kHopperRotationsPerRadian = 1.0 / (2.0 * Math.PI);
+
+    // Sim. The real reduction is not recoverable from these constants, so pick one that keeps
+    // the configured setpoints inside the motor's range with headroom.
+    public static final double kHopperSimMoiKgM2 = 0.006;
+    public static final double kHopperSimReduction = 4.0;
+    public static final double kHopperSimP = 0.4;
+    public static final double kHopperSimD = 0.0;
 
 
     // Configuration
@@ -58,7 +71,13 @@ public class HopperConstants {
                 }
                 return MotorIOSpark.flex(kHopperCanID, flexConfig());
             case SIM:
-                return MotorIOSim.flywheel(DCMotor.getNeo550(1), 0.025, 1.0, kHopperP, 0.0, 0.0789);
+                return MotorIOSim.flywheel(
+                        DCMotor.getNeoVortex(1),
+                        kHopperSimMoiKgM2,
+                        kHopperSimReduction,
+                        kHopperRotationsPerRadian,
+                        kHopperSimP,
+                        kHopperSimD);
             default:
                 return new MotorIO() {};
         }

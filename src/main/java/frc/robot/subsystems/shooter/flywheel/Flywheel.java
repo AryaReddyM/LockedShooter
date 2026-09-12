@@ -12,8 +12,10 @@ public class Flywheel extends StateMachine<Flywheel.State> {
   private final MotorIOInputsAutoLogged inputs = new MotorIOInputsAutoLogged();
   private final RobotState state;
 
-  private double tunedSetpointRPS = 100.0;
-  private double rpsMultiplier = 1.0;
+  /** Tuning setpoint, in flywheel surface m/s (the flywheel's native unit). */
+  private double tunedSetpointSurfaceSpeed = 15.0;
+
+  private double speedMultiplier = 1.0;
   private boolean ready = false;
 
   public Flywheel(MotorIO io, RobotState state) {
@@ -29,27 +31,34 @@ public class Flywheel extends StateMachine<Flywheel.State> {
     io.updateInputs(inputs);
     Logger.processInputs("Flywheel", inputs);
 
-    double desiredRPS =
+    double desiredSurfaceSpeed =
         switch (getState()) {
-          case SHOOT -> state.getCurrentHubSetpoint().getShooterRPS() * rpsMultiplier;
-          case PASS -> state.getCurrentPassSetpoint().getShooterRPS();
+          case SHOOT -> state.getCurrentHubSetpoint().getFlywheelSurfaceSpeed() * speedMultiplier;
+          case PASS -> state.getCurrentPassSetpoint().getFlywheelSurfaceSpeed();
           case TRACKING -> FlywheelConstants.kSlowSpeed;
-          case TUNING -> tunedSetpointRPS;
+          case TUNING -> tunedSetpointSurfaceSpeed;
           default -> 0.0;
         };
 
-    Setpoint.motionMagicVelocity(desiredRPS).apply(io);
-    ready = computeReady(desiredRPS, FlywheelConstants.kFlywheelSpeedTolerance);
+    Setpoint.motionMagicVelocity(desiredSurfaceSpeed).apply(io);
+    ready = computeReady(desiredSurfaceSpeed, FlywheelConstants.kFlywheelSpeedTolerance);
 
-    Logger.recordOutput("Flywheel/DesiredRPS", desiredRPS);
+    Logger.recordOutput("Flywheel/DesiredSurfaceSpeed", desiredSurfaceSpeed);
+    Logger.recordOutput("Flywheel/MeasuredSurfaceSpeed", inputs.velocityRadPerSec);
     Logger.recordOutput("Flywheel/Ready", ready);
   }
 
-  private boolean computeReady(double desiredRPS, double tolerance) {
-    if (desiredRPS < 1) {
+  /**
+   * Both sides of this comparison are flywheel surface speeds in m/s. The measurement lives in
+   * {@code velocityRadPerSec} only because that is what the shared MotorIO inputs call the field;
+   * the flywheel's conversion factor makes it surface speed. Being over the setpoint still counts
+   * as ready, and the sign is taken out so a reversed shooter behaves the same.
+   */
+  private boolean computeReady(double desiredSurfaceSpeed, double tolerance) {
+    if (Math.abs(desiredSurfaceSpeed) < 1e-3) {
       return false;
     }
-    return (desiredRPS - tolerance) < inputs.velocityRadPerSec;
+    return Math.abs(inputs.velocityRadPerSec) > Math.abs(desiredSurfaceSpeed) - tolerance;
   }
 
   @Override
@@ -61,16 +70,25 @@ public class Flywheel extends StateMachine<Flywheel.State> {
     return ready;
   }
 
+  /**
+   * Total surface travel in meters. Divided by the wheel radius this is the wheel's angle, which
+   * is all a visualiser needs to spin it.
+   */
+  public double getSurfaceTravelMeters() {
+    return inputs.positionRad;
+  }
+
   public void setMultiplier(double newMultiplier) {
-    rpsMultiplier = newMultiplier;
+    speedMultiplier = newMultiplier;
   }
 
   public double getMultiplier() {
-    return rpsMultiplier;
+    return speedMultiplier;
   }
 
-  public void setTuningSetpointRPS(double rps) {
-    tunedSetpointRPS = rps;
+  /** @param surfaceSpeed flywheel surface speed in m/s */
+  public void setTuningSetpoint(double surfaceSpeed) {
+    tunedSetpointSurfaceSpeed = surfaceSpeed;
   }
 
   public enum State {

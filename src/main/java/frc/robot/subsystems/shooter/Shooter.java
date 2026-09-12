@@ -1,11 +1,14 @@
 package frc.robot.subsystems.shooter;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.RobotState;
 import frc.robot.subsystems.base.MotorIO;
 import frc.robot.subsystems.shooter.flywheel.Flywheel;
 import frc.robot.subsystems.shooter.hood.Hood;
+import frc.robot.subsystems.shooter.hood.HoodConstants;
 import frc.robot.subsystems.shooter.turret.Turret;
+import frc.robot.subsystems.shooter.turret.TurretConstants;
 import frc.robot.util.state.StateMachine;
 
 public class Shooter extends StateMachine<Shooter.State> {
@@ -34,12 +37,16 @@ public class Shooter extends StateMachine<Shooter.State> {
         State.TUNING);
 
     registerStateCommand(State.IDLE, cascade(Turret.State.IDLE, Hood.State.IDLE, Flywheel.State.IDLE));
+    // Tracking spins the flywheel all the way up rather than idling it: readyToShoot()
+    // includes the flywheel, so anything waiting on it before feeding would otherwise
+    // wait forever, and pre-spinning is what makes the shot go off the moment the
+    // driver asks for it.
     registerStateCommand(
         State.HUB_TRACKING,
-        cascade(Turret.State.HUB_TRACKING, Hood.State.HUB_TRACKING, Flywheel.State.TRACKING));
+        cascade(Turret.State.HUB_TRACKING, Hood.State.HUB_TRACKING, Flywheel.State.SHOOT));
     registerStateCommand(
         State.PASS_TRACKING,
-        cascade(Turret.State.PASS_TRACKING, Hood.State.PASS_TRACKING, Flywheel.State.TRACKING));
+        cascade(Turret.State.PASS_TRACKING, Hood.State.PASS_TRACKING, Flywheel.State.PASS));
     registerStateCommand(
         State.SHOOTING,
         cascade(Turret.State.HUB_TRACKING, Hood.State.HUB_TRACKING, Flywheel.State.SHOOT));
@@ -71,6 +78,13 @@ public class Shooter extends StateMachine<Shooter.State> {
     return flywheel.isReady()
         && turret.atSetpoint(turretTolRad)
         && hood.atSetpoint(hoodTolRad);
+  }
+
+  /** Ready to shoot using each mechanism's own configured tolerance. */
+  public boolean readyToShoot() {
+    return readyToShoot(
+        Units.degreesToRadians(TurretConstants.kReadyToleranceDegrees),
+        HoodConstants.kReadyToleranceRadians);
   }
 
   public Turret getTurret() {

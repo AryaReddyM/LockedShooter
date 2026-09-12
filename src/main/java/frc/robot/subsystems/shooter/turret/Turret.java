@@ -63,6 +63,11 @@ public class Turret extends StateMachine<Turret.State> {
     return desiredPos;
   }
 
+  /** Measured turret angle in radians, robot relative. */
+  public double getMeasuredPositionRad() {
+    return inputs.positionRad;
+  }
+
   public Rotation2d getRotation() {
     return new Rotation2d(inputs.positionRad).minus(TurretConstants.kTurretAbsEncoderOffset);
   }

@@ -32,6 +32,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
@@ -92,6 +93,18 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
   private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
       lastModulePositions, Pose2d.kZero);
 
+  /**
+   * Wheels-only pose, with no vision correction folded in.
+   *
+   * <p>In simulation there is no wheel slip, so this is the robot's true position. The vision
+   * simulation renders its AprilTags from this rather than from the estimator, because feeding the
+   * estimator's own output back in as ground truth is a closed loop: any small bias in the solve
+   * gets re-observed, re-applied, and the pose walks away on its own. It drifted about 19 cm in
+   * five seconds sitting disabled before this was split out.
+   */
+  private final SwerveDriveOdometry wheelOdometry = new SwerveDriveOdometry(kinematics, rawGyroRotation,
+      lastModulePositions, Pose2d.kZero);
+
   public static double kABDriveP = DriveConstants.kABDriveP;
   public static double kABDriveI = DriveConstants.kABDriveI;
   public static double kABDriveD = DriveConstants.kABDriveD;
@@ -115,10 +128,8 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     modules[2] = new Module(blModuleIO, 2);
     modules[3] = new Module(brModuleIO, 3);
 
-    // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
-    // Start odometry thread
     if (RobotBase.isReal()) {
       SparkOdometryThread.getInstance().start();
     }
@@ -199,7 +210,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
   @Override
   public void update() {
-    odometryLock.lock(); // Prevents odometry updates while reading data
+    odometryLock.lock();
     gyroIO.updateInputs(gyroInputs);
 
     {
@@ -233,7 +244,7 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     }
 
     // Update odometry
-    double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+    double[] sampleTimestamps = modules[0].getOdometryTimestamps();
     int sampleCount = sampleTimestamps.length;
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
@@ -260,57 +271,41 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
 
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      wheelOdometry.update(rawGyroRotation, modulePositions);
     }
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected);
   }
 
-  /**
-   * Runs the drive at the desired velocity.
-   *
-   * @param speeds Speeds in meters/sec
-   */
   public void runVelocity(ChassisSpeeds speeds) {
-    // Calculate module setpoints
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
 
-    // Log unoptimized setpoints
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     Logger.recordOutput("SwerveChassisSpeeds/Setpoints", discreteSpeeds);
 
-    // Send setpoints to modules
     for (int i = 0; i < 4; i++) {
       modules[i].runSetpoint(setpointStates[i]);
     }
 
-    // Log optimized setpoints (runSetpoint mutates each state)
     Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
 
     driveInputs.chassieSpeeds = discreteSpeeds;
     driveInputs.optimizedModStates = setpointStates;
   }
 
-  /** Runs the drive in a straight line with the specified drive output. */
   public void runCharacterization(double output) {
     for (int i = 0; i < 4; i++) {
       modules[i].runCharacterization(output);
     }
   }
 
-  /** Stops the drive. */
   public void stop() {
     runVelocity(new ChassisSpeeds());
   }
 
-  /**
-   * Stops the drive and turns the modules to an X arrangement to resist movement.
-   * The modules will
-   * return to their normal orientations the next time a nonzero velocity is
-   * requested.
-   */
   public void stopWithX() {
     Rotation2d[] headings = new Rotation2d[4];
     for (int i = 0; i < 4; i++) {
@@ -320,22 +315,16 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     stop();
   }
 
-  /** Returns a command to run a quasistatic test in the specified direction. */
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0))
         .withTimeout(1.0)
         .andThen(sysId.quasistatic(direction));
   }
 
-  /** Returns a command to run a dynamic test in the specified direction. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
   }
 
-  /**
-   * Returns the module states (turn angles and drive velocities) for all of the
-   * modules.
-   */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
     SwerveModuleState[] states = new SwerveModuleState[4];
@@ -345,10 +334,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     return states;
   }
 
-  /**
-   * Returns the module positions (turn angles and drive positions) for all of the
-   * modules.
-   */
   private SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] states = new SwerveModulePosition[4];
     for (int i = 0; i < 4; i++) {
@@ -357,13 +342,11 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     return states;
   }
 
-  /** Returns the measured chassis speeds of the robot. */
   @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
   public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
-  /** Returns the position of each module in radians. */
   public double[] getWheelRadiusCharacterizationPositions() {
     double[] values = new double[4];
     for (int i = 0; i < 4; i++) {
@@ -372,7 +355,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     return values;
   }
 
-  /** Returns the average velocity of the modules in rad/sec. */
   public double getFFCharacterizationVelocity() {
     double output = 0.0;
     for (int i = 0; i < 4; i++) {
@@ -381,20 +363,27 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     return output;
   }
 
-  /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
   }
 
-  /** Returns the current odometry rotation. */
   public Rotation2d getRotation() {
     return getPose().getRotation();
   }
 
-  /** Resets the current odometry pose. */
+  /**
+   * Pose from the wheels alone, with no vision applied. In simulation this is ground truth; on the
+   * real robot it is the raw odometry, useful for seeing how far vision is moving things.
+   */
+  @AutoLogOutput(key = "Odometry/WheelsOnly")
+  public Pose2d getWheelOdometryPose() {
+    return wheelOdometry.getPoseMeters();
+  }
+
   public void setPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+    wheelOdometry.resetPosition(rawGyroRotation, getModulePositions(), pose);
     Elastic.sendNotification(
         new Notification().withTitle("Pose Reset").withDescription("Pose has been set to a new custom one"));
   }
@@ -407,7 +396,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     driveInputs.goalPose = pose;
   }
 
-  /** Adds a new timestamped vision measurement. */
   public void addVisionMeasurement(
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
@@ -423,7 +411,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
         visionRobotPoseMeters, timestampSeconds);
   }
 
-  /** Returns the maximum linear speed in meters per sec. */
   public double getMaxLinearSpeedMetersPerSec() {
     if (getState() == State.SLOW) {
       return slowSpeedMetersPerSec;
@@ -431,7 +418,6 @@ public class Drive extends StateMachine<Drive.State> implements DriveIO {
     return maxSpeedMetersPerSec;
   }
 
-  /** Returns the maximum angular speed in radians per sec. */
   public double getMaxAngularSpeedRadPerSec() {
     if (getState() == State.SLOW) {
       return slowSpeedMetersPerSec / driveBaseRadius;

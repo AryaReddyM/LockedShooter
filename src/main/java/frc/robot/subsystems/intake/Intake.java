@@ -67,6 +67,16 @@ public class Intake extends StateMachine<Intake.State> {
     Logger.processInputs("Intake/Rollers", rollerInputs);
   }
 
+  /** Measured deploy angle in degrees, matching the extension's conversion factor. */
+  public double getExtensionDegrees() {
+    return extensionInputs.positionRad;
+  }
+
+  /** Measured roller speed in motor rotations per second. */
+  public double getRollerSpeed() {
+    return rollerInputs.velocityRadPerSec;
+  }
+
   @Override
   protected void determineSelf() {
     setState(State.STOW);
